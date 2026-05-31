@@ -7,6 +7,7 @@ import { ACHIEVEMENTS } from "@/lib/achievements";
 import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Logros" };
 
 export default async function LogrosPage() {
   const user = await getCurrentUser();

@@ -1,5 +1,8 @@
 import { Trophy, Radio, Target, Flame } from "lucide-react";
 import { AuthForm } from "@/components/auth/auth-form";
+import { googleEnabled } from "@/auth";
+
+export const metadata = { title: "Entrar" };
 
 export default function LoginPage() {
   return (
@@ -69,7 +72,7 @@ export default function LoginPage() {
           <p className="text-muted-foreground mt-1 mb-6 text-sm">
             Entra para gestionar tus predicciones y ver la clasificación.
           </p>
-          <AuthForm />
+          <AuthForm googleEnabled={googleEnabled} />
         </div>
       </section>
     </main>

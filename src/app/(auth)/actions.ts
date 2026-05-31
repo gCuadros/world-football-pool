@@ -14,6 +14,10 @@ export type AuthActionState = {
 
 const DEFAULT_REDIRECT = "/partidos";
 
+export async function signInWithGoogle() {
+  await signIn("google", { redirectTo: DEFAULT_REDIRECT });
+}
+
 function initials(name: string): string {
   return name
     .trim()

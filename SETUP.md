@@ -299,6 +299,22 @@ curl -X POST http://localhost:3000/api/admin/simulate \
 Tras cada llamada, la clasificación, las rachas y los logros se reconstruyen
 automáticamente (`src/lib/recalculate.ts`).
 
+## Google OAuth (opcional)
+
+El inicio de sesión con Google está implementado pero **desactivado** hasta que
+configures las credenciales. Para activarlo:
+
+1. En [Google Cloud Console](https://console.cloud.google.com) crea unas
+   credenciales OAuth 2.0 (tipo "Web") y añade el redirect URI:
+   `http://localhost:3000/api/auth/callback/google` (y el de producción).
+2. Añade a `.env`:
+   ```dotenv
+   AUTH_GOOGLE_ID="..."
+   AUTH_GOOGLE_SECRET="..."
+   ```
+3. Reinicia. El botón "Continuar con Google" aparecerá automáticamente en
+   `/login` (si las claves no están, no se muestra y todo sigue con email).
+
 ## Próximas fases
 
 - **Fase 2** — `/partidos` y `/predicciones`: tarjetas en directo, filtros,

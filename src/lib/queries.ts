@@ -92,6 +92,22 @@ export async function getUserStatsView(userId: string): Promise<UserStatsVM> {
   };
 }
 
+/** Lista de equipos (de la fase de grupos) con su bandera, ordenados. */
+export async function getTeams(): Promise<{ name: string; flag: string | null }[]> {
+  const matches = await prisma.match.findMany({
+    where: { stage: "GROUP_STAGE" },
+    select: { homeTeam: true, awayTeam: true, homeFlag: true, awayFlag: true },
+  });
+  const map = new Map<string, string | null>();
+  for (const m of matches) {
+    if (!map.has(m.homeTeam)) map.set(m.homeTeam, m.homeFlag);
+    if (!map.has(m.awayTeam)) map.set(m.awayTeam, m.awayFlag);
+  }
+  return [...map.entries()]
+    .map(([name, flag]) => ({ name, flag }))
+    .sort((a, b) => a.name.localeCompare(b.name, "es"));
+}
+
 /** Distribución agregada de predicciones de la comunidad (solo tras el kickoff). */
 export type CommunityDistribution = {
   total: number;

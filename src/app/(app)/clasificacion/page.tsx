@@ -12,6 +12,7 @@ import { ClasificacionView } from "@/components/leaderboard/clasificacion-view";
 import { AchievementsWidget } from "@/components/leaderboard/achievements-widget";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Clasificación" };
 
 export default async function ClasificacionPage() {
   const user = await getCurrentUser();

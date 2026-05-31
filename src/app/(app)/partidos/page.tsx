@@ -5,6 +5,7 @@ import { getMatchesView, getUserStatsView } from "@/lib/queries";
 import { PartidosView } from "@/components/matches/partidos-view";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Partidos" };
 
 export default async function PartidosPage() {
   const user = await getCurrentUser();

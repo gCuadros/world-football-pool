@@ -13,7 +13,10 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Quiniela · Mundial 2026",
+  title: {
+    default: "Quiniela · Mundial 2026",
+    template: "%s · Quiniela",
+  },
   description:
     "Plataforma de predicciones para el FIFA World Cup 2026. Compite con tus amigos prediciendo los 64 partidos del mundial.",
   applicationName: "Quiniela Mundial 2026",

@@ -5,6 +5,7 @@ import { getMatchesView, getUserStatsView } from "@/lib/queries";
 import { PrediccionesView } from "@/components/predictions/predicciones-view";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Mis Predicciones" };
 
 export default async function PrediccionesPage() {
   const user = await getCurrentUser();

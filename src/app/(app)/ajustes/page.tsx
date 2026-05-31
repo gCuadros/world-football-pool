@@ -1,13 +1,44 @@
-import { ComingSoon } from "@/components/app/coming-soon";
+import { redirect } from "next/navigation";
+
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { getTeams } from "@/lib/queries";
+import { AjustesView } from "@/components/settings/ajustes-view";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Ajustes" };
 
-export default function AjustesPage() {
+export default async function AjustesPage() {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
+  let name = session.user.name ?? "";
+  let favoriteTeam: string | null = null;
+  let teams;
+  try {
+    const [user, teamList] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { name: true, favoriteTeam: true },
+      }),
+      getTeams(),
+    ]);
+    name = user?.name ?? name;
+    favoriteTeam = user?.favoriteTeam ?? null;
+    teams = teamList;
+  } catch {
+    return (
+      <div className="border-warning/40 bg-warning/10 rounded-2xl border p-8">
+        <h2 className="text-xl font-bold">Conecta tu base de datos</h2>
+        <p className="text-muted-foreground mt-2 text-sm">
+          No se pudieron cargar tus ajustes. Revisa Supabase en{" "}
+          <code className="font-mono">.env</code>.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <ComingSoon
-      phase="Fase 3"
-      title="Ajustes"
-      description="Gestiona tu perfil, equipo favorito, preferencias de notificaciones y apariencia."
-    />
+    <AjustesView initialName={name} initialTeam={favoriteTeam} teams={teams} />
   );
 }

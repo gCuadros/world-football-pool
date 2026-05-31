@@ -5,6 +5,7 @@ import { getMiniLeaguesForUser } from "@/lib/leaderboard";
 import { MiniLeaguesView } from "@/components/leaderboard/mini-leagues-view";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Mini-ligas" };
 
 export default async function MiniLigasPage() {
   const user = await getCurrentUser();

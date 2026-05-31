@@ -1,11 +1,24 @@
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 
 import { authConfig } from "@/auth.config";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations";
+
+/** Google OAuth solo se activa si están configuradas las credenciales. */
+export const googleEnabled = Boolean(
+  process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET,
+);
+
+const providers: NextAuthConfig["providers"] = [];
+if (googleEnabled) {
+  providers.push(
+    Google({ allowDangerousEmailAccountLinking: true }),
+  );
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -15,6 +28,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   // self-hosting, proxies y puertos no estándar).
   trustHost: true,
   providers: [
+    ...providers,
     Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
