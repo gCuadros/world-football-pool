@@ -22,7 +22,8 @@ export function PrediccionesView({
   userName: string;
   userInitials: string;
 }) {
-  const now = useNow(1000);
+  // Tick lento (el segundero fino vive en cada <Countdown/> visible).
+  const now = useNow(30_000);
   const [filter, setFilter] = useState<PredFilter>("all");
 
   const liveCount = matches.filter((m) => m.status === "LIVE").length;
@@ -93,7 +94,7 @@ export function PrediccionesView({
             {stats.rank ? `Puesto #${stats.rank} de ${stats.totalPlayers}` : "Sin ranking"}
           </p>
         </div>
-        <div className="ml-auto flex gap-6">
+        <div className="flex w-full justify-between gap-4 sm:ml-auto sm:w-auto sm:justify-normal sm:gap-6">
           {[
             { label: "Puntos", value: stats.points },
             { label: "Precisión", value: `${stats.accuracy}%` },

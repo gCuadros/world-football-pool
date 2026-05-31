@@ -9,20 +9,25 @@ import { titleForPath } from "@/lib/nav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signOutAction } from "@/app/(app)/actions";
+import { MobileNav } from "@/components/app/mobile-nav";
+import type { SidebarUser } from "@/components/app/nav-content";
 
-export function Topbar() {
+export function Topbar({ user }: { user: SidebarUser }) {
   const pathname = usePathname();
   const title = titleForPath(pathname);
   const { resolvedTheme, setTheme } = useTheme();
   const [pending, startTransition] = useTransition();
 
   return (
-    <header className="border-border bg-background/80 sticky top-0 z-20 flex h-16 items-center gap-4 border-b px-4 backdrop-blur lg:px-6">
+    <header className="border-border bg-background/80 sticky top-0 z-20 flex h-16 items-center gap-2 border-b px-3 backdrop-blur sm:gap-4 sm:px-4 lg:px-6">
+      <MobileNav user={user} />
       <div className="min-w-0">
-        <p className="text-muted-foreground font-mono text-[11px] tracking-wide uppercase">
+        <p className="text-muted-foreground hidden font-mono text-[11px] tracking-wide uppercase sm:block">
           Mundial 2026
         </p>
-        <h1 className="truncate text-lg leading-none font-bold">{title}</h1>
+        <h1 className="truncate text-base leading-none font-bold sm:text-lg">
+          {title}
+        </h1>
       </div>
 
       <div className="relative ml-auto hidden max-w-xs flex-1 sm:block">

@@ -18,12 +18,12 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
   return (
     <div className="border-border bg-card overflow-hidden rounded-2xl border">
       {/* Cabecera */}
-      <div className="text-muted-foreground border-border bg-muted/40 grid grid-cols-[2.5rem_1fr_3rem_3rem_3rem_3rem] items-center gap-2 border-b px-4 py-2.5 font-mono text-[10px] tracking-wide uppercase sm:grid-cols-[3rem_1fr_4rem_4rem_4rem_4rem]">
+      <div className="text-muted-foreground border-border bg-muted/40 grid grid-cols-[2rem_1fr_2.5rem_2.5rem] items-center gap-2 border-b px-3 py-2.5 font-mono text-[10px] tracking-wide uppercase sm:grid-cols-[3rem_1fr_4rem_4rem_4rem_4rem] sm:px-4">
         <span>Pos</span>
         <span>Jugador</span>
         <span className="text-right">Pts</span>
-        <span className="text-right">Prec</span>
-        <span className="text-right">Pred</span>
+        <span className="hidden text-right sm:block">Prec</span>
+        <span className="hidden text-right sm:block">Pred</span>
         <span className="text-right">Racha</span>
       </div>
 
@@ -33,7 +33,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
           <div
             key={row.userId}
             className={cn(
-              "grid grid-cols-[2.5rem_1fr_3rem_3rem_3rem_3rem] items-center gap-2 px-4 py-2.5 text-sm sm:grid-cols-[3rem_1fr_4rem_4rem_4rem_4rem]",
+              "grid grid-cols-[2rem_1fr_2.5rem_2.5rem] items-center gap-2 px-3 py-2.5 text-sm sm:grid-cols-[3rem_1fr_4rem_4rem_4rem_4rem] sm:px-4",
               row.isCurrentUser && "bg-primary/5",
             )}
           >
@@ -68,10 +68,10 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
               </span>
             </div>
             <span className="text-right font-mono font-bold">{row.points}</span>
-            <span className="text-muted-foreground text-right font-mono text-xs">
+            <span className="text-muted-foreground hidden text-right font-mono text-xs sm:block">
               {row.accuracy}%
             </span>
-            <span className="text-muted-foreground text-right font-mono text-xs">
+            <span className="text-muted-foreground hidden text-right font-mono text-xs sm:block">
               {row.predictionsCount}
             </span>
             <span className="flex items-center justify-end gap-0.5 text-right font-mono text-xs">

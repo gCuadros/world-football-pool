@@ -55,7 +55,9 @@ export function PartidosView({
   matches: MatchVM[];
   stats: UserStatsVM;
 }) {
-  const now = useNow(1000);
+  // Tick lento para recalcular estados (locked/imminent) y fechas relativas.
+  // El segundero fino vive solo dentro de cada <Countdown/> visible.
+  const now = useNow(30_000);
   const [filter, setFilter] = useState<MatchFilter>("all");
 
   const liveCount = useMemo(

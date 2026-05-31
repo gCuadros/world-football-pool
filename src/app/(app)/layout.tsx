@@ -14,18 +14,18 @@ export default async function AppLayout({
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
+  const navUser = {
+    name: user.name,
+    email: user.email,
+    initials: user.initials,
+    rank: user.rank,
+  };
+
   return (
     <div className="flex min-h-dvh">
-      <Sidebar
-        user={{
-          name: user.name,
-          email: user.email,
-          initials: user.initials,
-          rank: user.rank,
-        }}
-      />
+      <Sidebar user={navUser} />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Topbar />
+        <Topbar user={navUser} />
         <main className="flex-1 p-4 lg:p-6">{children}</main>
       </div>
     </div>

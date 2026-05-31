@@ -19,7 +19,7 @@ export function RankBanner({ info }: { info: RankInfo }) {
   ];
 
   return (
-    <div className="bg-primary text-primary-foreground relative overflow-hidden rounded-2xl p-6 shadow-lg">
+    <div className="bg-primary text-primary-foreground relative overflow-hidden rounded-2xl p-5 shadow-lg sm:p-6">
       <div
         className="pointer-events-none absolute inset-0 opacity-40"
         style={{
@@ -27,13 +27,13 @@ export function RankBanner({ info }: { info: RankInfo }) {
             "radial-gradient(120% 120% at 100% 0%, #0a4f8a 0%, transparent 55%), radial-gradient(100% 100% at 0% 100%, #004a87 0%, transparent 60%)",
         }}
       />
-      <div className="relative flex flex-wrap items-center gap-6">
+      <div className="relative flex flex-col gap-5 sm:flex-row sm:flex-wrap sm:items-center">
         <div>
           <p className="text-primary-foreground/60 font-mono text-[11px] tracking-widest uppercase">
             Tu posición
           </p>
           <div className="flex items-end gap-3">
-            <span className="font-mono text-6xl leading-none font-bold">
+            <span className="font-mono text-5xl leading-none font-bold sm:text-6xl">
               {info.rank ? `#${info.rank}` : "—"}
             </span>
             <span
@@ -51,10 +51,10 @@ export function RankBanner({ info }: { info: RankInfo }) {
           ) : null}
         </div>
 
-        <div className="ml-auto flex gap-6">
+        <div className="flex w-full justify-between gap-4 sm:ml-auto sm:w-auto sm:justify-normal sm:gap-6">
           {stats.map((s) => (
             <div key={s.label} className="text-center">
-              <p className="font-mono text-2xl font-bold">{s.value}</p>
+              <p className="font-mono text-xl font-bold sm:text-2xl">{s.value}</p>
               <p className="text-primary-foreground/60 font-mono text-[10px] tracking-wide uppercase">
                 {s.label}
               </p>
