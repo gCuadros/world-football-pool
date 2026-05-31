@@ -388,7 +388,10 @@ async function main() {
         currentStreak: a.currentStreak,
         bestStreak: a.bestStreak,
         rank: i + 1,
-        previousRank: i + 1,
+        previousRank: Math.min(
+          aggregates.length,
+          Math.max(1, i + 1 + (Math.floor(mulberry32(hash(7, i + 1))() * 7) - 3)),
+        ),
       },
     });
 

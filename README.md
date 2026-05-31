@@ -30,6 +30,9 @@ yarn dev
 - **Fase 1 ✅** — auth, base de datos, seed, login y shell de la app.
 - **Fase 2 ✅** — `/partidos` (en directo, filtros, countdown) y `/predicciones`
   (3 estados, edición, quick picks, distribución de la comunidad) + API REST.
-- **Fase 3** — clasificación, mini-ligas y logros.
+- **Fase 3 ✅** — `/clasificacion` (banner, podio, tabla, tabs), `/mini-ligas`
+  (crear/unirse con código, ranking interno) y `/logros` + API REST.
+
+Las 3 pantallas del diseño y todas las funcionalidades del spec están implementadas.
 
 Plan completo en [`PLAN.md`](./PLAN.md).
