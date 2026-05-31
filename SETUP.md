@@ -274,6 +274,31 @@ fase futura.
 - **Tiempo**: todos los `DateTime` se guardan en **UTC**; se convierten al
   huso del usuario en el cliente.
 
+## Administración y simulador (P2)
+
+Endpoints protegidos por `ADMIN_SECRET` (header `x-admin-secret` o
+`Authorization: Bearer`). Sirven para introducir resultados reales durante el
+torneo (vía un cron o un panel) y, en desarrollo, para ver la app "cobrar vida".
+
+**Actualizar el marcador/estado de un partido** (recalcula al finalizar):
+
+```bash
+curl -X PATCH http://localhost:3000/api/admin/matches/<MATCH_ID> \
+  -H "x-admin-secret: $ADMIN_SECRET" -H "Content-Type: application/json" \
+  -d '{"homeScore":2,"awayScore":1,"status":"FINISHED"}'
+```
+
+**Avanzar el torneo un "tick"** (finaliza los partidos en directo con un
+marcador y arranca los siguientes; recalcula puntos, clasificación y logros):
+
+```bash
+curl -X POST http://localhost:3000/api/admin/simulate \
+  -H "x-admin-secret: $ADMIN_SECRET"
+```
+
+Tras cada llamada, la clasificación, las rachas y los logros se reconstruyen
+automáticamente (`src/lib/recalculate.ts`).
+
 ## Próximas fases
 
 - **Fase 2** — `/partidos` y `/predicciones`: tarjetas en directo, filtros,
