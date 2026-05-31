@@ -13,15 +13,11 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const { pathname } = nextUrl;
 
-      const isOnLogin = pathname.startsWith("/login");
-
-      // Usuario logueado en /login → enviar a la app.
-      if (isOnLogin) {
-        if (isLoggedIn) {
-          return Response.redirect(new URL("/partidos", nextUrl));
-        }
-        return true;
-      }
+      // /login es siempre accesible. La redirección de usuarios YA logueados
+      // se hace en la propia página validando contra la BD: así una cookie de
+      // sesión obsoleta (p. ej. tras borrar/recrear usuarios) no provoca un
+      // bucle de redirecciones (el proxy solo ve el JWT, no la BD).
+      if (pathname.startsWith("/login")) return true;
 
       // El resto de rutas (la app) requieren sesión.
       return isLoggedIn;

@@ -1,10 +1,23 @@
+import { redirect } from "next/navigation";
 import { Trophy, Radio, Target, Flame } from "lucide-react";
 import { AuthForm } from "@/components/auth/auth-form";
 import { googleEnabled } from "@/auth";
+import { getCurrentUser } from "@/lib/current-user";
 
 export const metadata = { title: "Entrar" };
+export const dynamic = "force-dynamic";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  // Solo redirige a la app si la sesión corresponde a un usuario real en la BD.
+  // (Evita el bucle de redirecciones con cookies de sesión obsoletas.)
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch {
+    user = null;
+  }
+  if (user) redirect("/partidos");
+
   return (
     <main className="grid min-h-dvh lg:grid-cols-2">
       {/* Panel de marca */}

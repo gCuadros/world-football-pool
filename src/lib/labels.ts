@@ -25,6 +25,7 @@ export type MatchFilter =
   | "all"
   | "live"
   | "GROUP_STAGE"
+  | "ROUND_OF_32"
   | "ROUND_OF_16"
   | "QUARTER_FINAL"
   | "SEMI_FINAL"
@@ -34,6 +35,7 @@ export const MATCH_FILTERS: { value: MatchFilter; label: string }[] = [
   { value: "all", label: "Todos" },
   { value: "live", label: "En Directo" },
   { value: "GROUP_STAGE", label: "Fase de Grupos" },
+  { value: "ROUND_OF_32", label: "Dieciseisavos" },
   { value: "ROUND_OF_16", label: "Octavos" },
   { value: "QUARTER_FINAL", label: "Cuartos" },
   { value: "SEMI_FINAL", label: "Semis" },

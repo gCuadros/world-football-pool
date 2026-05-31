@@ -1,5 +1,3 @@
-import "server-only";
-
 import { prisma } from "@/lib/prisma";
 import { calculatePoints } from "@/lib/scoring";
 import { AchievementType } from "@prisma/client";
