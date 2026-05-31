@@ -28,7 +28,8 @@ yarn dev
 ## Estado
 
 - **Fase 1 ✅** — auth, base de datos, seed, login y shell de la app.
-- **Fase 2** — partidos en directo y predicciones.
+- **Fase 2 ✅** — `/partidos` (en directo, filtros, countdown) y `/predicciones`
+  (3 estados, edición, quick picks, distribución de la comunidad) + API REST.
 - **Fase 3** — clasificación, mini-ligas y logros.
 
 Plan completo en [`PLAN.md`](./PLAN.md).

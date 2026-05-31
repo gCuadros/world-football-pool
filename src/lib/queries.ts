@@ -1,0 +1,147 @@
+import "server-only";
+
+import { prisma } from "@/lib/prisma";
+import { isPredictionLocked } from "@/lib/scoring";
+import type { Stage, MatchStatus } from "@prisma/client";
+
+export type PredictionVM = {
+  homeScore: number;
+  awayScore: number;
+  points: number | null;
+};
+
+export type MatchVM = {
+  id: string;
+  matchNo: number;
+  homeTeam: string;
+  awayTeam: string;
+  homeFlag: string | null;
+  awayFlag: string | null;
+  kickoffAt: string; // ISO (UTC)
+  stage: Stage;
+  group: string | null;
+  stadium: string;
+  city: string | null;
+  homeScore: number | null;
+  awayScore: number | null;
+  status: MatchStatus;
+  liveMinute: number | null;
+  prediction: PredictionVM | null;
+  locked: boolean;
+};
+
+export type UserStatsVM = {
+  points: number;
+  rank: number | null;
+  totalPlayers: number;
+  accuracy: number;
+  predictionsCount: number;
+  exactCount: number;
+  currentStreak: number;
+};
+
+/** Todos los partidos (orden cronológico) con la predicción del usuario incrustada. */
+export async function getMatchesView(userId: string): Promise<MatchVM[]> {
+  const now = new Date();
+  const matches = await prisma.match.findMany({
+    orderBy: { kickoffAt: "asc" },
+    include: {
+      predictions: {
+        where: { userId },
+        select: { homeScore: true, awayScore: true, points: true },
+      },
+    },
+  });
+
+  return matches.map((m) => ({
+    id: m.id,
+    matchNo: m.matchNo,
+    homeTeam: m.homeTeam,
+    awayTeam: m.awayTeam,
+    homeFlag: m.homeFlag,
+    awayFlag: m.awayFlag,
+    kickoffAt: m.kickoffAt.toISOString(),
+    stage: m.stage,
+    group: m.group,
+    stadium: m.stadium,
+    city: m.city,
+    homeScore: m.homeScore,
+    awayScore: m.awayScore,
+    status: m.status,
+    liveMinute: m.liveMinute,
+    prediction: m.predictions[0] ?? null,
+    locked: isPredictionLocked(m.kickoffAt, now),
+  }));
+}
+
+/** Estadísticas del usuario para la barra de cabecera. */
+export async function getUserStatsView(userId: string): Promise<UserStatsVM> {
+  const [snapshot, totalPlayers] = await Promise.all([
+    prisma.leaderboardSnapshot.findUnique({ where: { userId } }),
+    prisma.leaderboardSnapshot.count(),
+  ]);
+
+  return {
+    points: snapshot?.totalPoints ?? 0,
+    rank: snapshot?.rank ?? null,
+    totalPlayers,
+    accuracy: snapshot?.accuracy ?? 0,
+    predictionsCount: snapshot?.predictionsCount ?? 0,
+    exactCount: snapshot?.exactCount ?? 0,
+    currentStreak: snapshot?.currentStreak ?? 0,
+  };
+}
+
+/** Distribución agregada de predicciones de la comunidad (solo tras el kickoff). */
+export type CommunityDistribution = {
+  total: number;
+  scores: { label: string; count: number; pct: number }[];
+  results: { home: number; draw: number; away: number };
+};
+
+export async function getCommunityDistribution(
+  matchId: string,
+): Promise<CommunityDistribution | null> {
+  const match = await prisma.match.findUnique({ where: { id: matchId } });
+  if (!match) return null;
+  // Privacidad: solo se expone una vez iniciado el partido.
+  if (match.status === "UPCOMING") return null;
+
+  const predictions = await prisma.prediction.findMany({
+    where: { matchId },
+    select: { homeScore: true, awayScore: true },
+  });
+
+  const total = predictions.length;
+  const scoreCounts = new Map<string, number>();
+  let home = 0;
+  let draw = 0;
+  let away = 0;
+
+  for (const p of predictions) {
+    const label = `${p.homeScore}-${p.awayScore}`;
+    scoreCounts.set(label, (scoreCounts.get(label) ?? 0) + 1);
+    if (p.homeScore > p.awayScore) home++;
+    else if (p.homeScore < p.awayScore) away++;
+    else draw++;
+  }
+
+  const scores = [...scoreCounts.entries()]
+    .map(([label, count]) => ({
+      label,
+      count,
+      pct: total > 0 ? Math.round((count / total) * 100) : 0,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  return {
+    total,
+    scores,
+    results: {
+      home: total > 0 ? Math.round((home / total) * 100) : 0,
+      draw: total > 0 ? Math.round((draw / total) * 100) : 0,
+      away: total > 0 ? Math.round((away / total) * 100) : 0,
+    },
+  };
+}

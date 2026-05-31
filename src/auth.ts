@@ -11,6 +11,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  // Confía en el host de la petición (necesario fuera de `next dev`: prod,
+  // self-hosting, proxies y puertos no estándar).
+  trustHost: true,
   providers: [
     Credentials({
       credentials: {
