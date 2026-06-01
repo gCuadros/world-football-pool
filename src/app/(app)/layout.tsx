@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/current-user";
+import { getUserRank } from "@/lib/leaderboard";
 import { Sidebar } from "@/components/app/sidebar";
 import { Topbar } from "@/components/app/topbar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,11 +28,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 async function loadNavUser() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  // name/initials del JWT (sin BD); rank del leaderboard cacheado.
+  const rank = await getUserRank(user.id);
   return {
     name: user.name,
     email: user.email,
     initials: user.initials,
-    rank: user.rank,
+    rank,
   };
 }
 

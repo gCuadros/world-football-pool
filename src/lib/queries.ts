@@ -5,6 +5,7 @@ import { cacheTag, cacheLife } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { isPredictionLocked } from "@/lib/scoring";
 import { TAGS } from "@/lib/cache-tags";
+import { getLeaderboardRows } from "@/lib/leaderboard";
 import type { Stage, MatchStatus } from "@prisma/client";
 
 export type PredictionVM = {
@@ -106,21 +107,21 @@ export async function getMatchesView(userId: string): Promise<MatchVM[]> {
   });
 }
 
-/** Estadísticas del usuario para la barra de cabecera. */
+/**
+ * Estadísticas del usuario para la barra de cabecera.
+ * Se derivan del leaderboard CACHEADO (0 consultas a BD por navegación).
+ */
 export async function getUserStatsView(userId: string): Promise<UserStatsVM> {
-  const [snapshot, totalPlayers] = await Promise.all([
-    prisma.leaderboardSnapshot.findUnique({ where: { userId } }),
-    prisma.leaderboardSnapshot.count(),
-  ]);
-
+  const rows = await getLeaderboardRows();
+  const me = rows.find((r) => r.userId === userId);
   return {
-    points: snapshot?.totalPoints ?? 0,
-    rank: snapshot?.rank ?? null,
-    totalPlayers,
-    accuracy: snapshot?.accuracy ?? 0,
-    predictionsCount: snapshot?.predictionsCount ?? 0,
-    exactCount: snapshot?.exactCount ?? 0,
-    currentStreak: snapshot?.currentStreak ?? 0,
+    points: me?.points ?? 0,
+    rank: me?.rank ?? null,
+    totalPlayers: rows.length,
+    accuracy: me?.accuracy ?? 0,
+    predictionsCount: me?.predictionsCount ?? 0,
+    exactCount: me?.exactCount ?? 0,
+    currentStreak: me?.currentStreak ?? 0,
   };
 }
 

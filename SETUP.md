@@ -32,14 +32,18 @@ cp .env.example .env
 ```dotenv
 DATABASE_URL="postgresql://postgres.XXXX:PASSWORD@aws-0-REGION.pooler.supabase.com:6543/postgres?pgbouncer=true"
 DIRECT_URL="postgresql://postgres.XXXX:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres"
-AUTH_SECRET="genera-uno-con: npx auth secret"
+AUTH_SECRET="genera-uno-con: openssl rand -base64 32"
 AUTH_URL="http://localhost:3000"
+ADMIN_SECRET="genera-uno-con: openssl rand -hex 16"
+# Feature flags (se evalúan en build; cambiarlos requiere redeploy)
+NEXT_PUBLIC_FEATURE_MINI_LEAGUES="false"
 ```
 
-Genera un `AUTH_SECRET` con:
+Genera los secretos con:
 
 ```bash
-openssl rand -base64 32
+openssl rand -base64 32   # AUTH_SECRET
+openssl rand -hex 16      # ADMIN_SECRET
 ```
 
 ## 4. Instalar, migrar y sembrar
@@ -48,7 +52,7 @@ openssl rand -base64 32
 yarn                    # instala dependencias
 yarn db:generate        # genera el cliente Prisma
 yarn db:push            # crea las tablas en Supabase
-yarn db:seed            # carga los 64 partidos + usuarios demo
+yarn db:seed            # carga los 104 partidos reales del Mundial 2026 + usuarios demo
 ```
 
 ## 5. Arrancar
@@ -90,8 +94,8 @@ También puedes crear una cuenta nueva desde la pestaña **Crear cuenta**.
 - **Auth**: registro e inicio de sesión con email/contraseña (hash bcrypt),
   rutas protegidas vía `proxy.ts`.
 - **BD**: esquema completo (usuarios, partidos, predicciones, mini-ligas,
-  logros, clasificación) y seed con los **64 partidos** del Mundial 2026 (8
-  grupos A–H + eliminatorias), usuarios demo, predicciones puntuadas,
+  logros, clasificación) y seed con los **104 partidos** reales del Mundial 2026
+  (12 grupos A–L + eliminatorias), usuarios demo, predicciones puntuadas,
   clasificación y una mini-liga.
 - **UI**: página `/login` (split-screen), shell autenticado con sidebar de
   260px + topbar (búsqueda, tema claro/oscuro, salir), y páginas de la app.
@@ -165,14 +169,14 @@ Relaciones: `predictions[]`, `miniLeagueMembers[]`, `miniLeaguesCreated[]`,
 | Campo        | Tipo         | Notas                                          |
 | ------------ | ------------ | ---------------------------------------------- |
 | `id`         | String (cuid) | PK                                            |
-| `matchNo`    | Int          | **único** · número de partido (1..64)          |
+| `matchNo`    | Int          | **único** · número de partido (1..104)         |
 | `homeTeam`   | String       |                                                |
 | `awayTeam`   | String       |                                                |
 | `homeFlag`   | String?      | emoji/código de bandera                        |
 | `awayFlag`   | String?      |                                                |
 | `kickoffAt`  | DateTime     | **siempre en UTC** · `@@index`                 |
 | `stage`      | `Stage`      | `@@index`                                      |
-| `group`      | String?      | A–H en fase de grupos                          |
+| `group`      | String?      | A–L en fase de grupos                          |
 | `stadium`    | String       |                                                |
 | `city`       | String?      |                                                |
 | `homeScore`  | Int?         | `null` hasta que empieza/termina               |
@@ -315,10 +319,71 @@ configures las credenciales. Para activarlo:
 3. Reinicia. El botón "Continuar con Google" aparecerá automáticamente en
    `/login` (si las claves no están, no se muestra y todo sigue con email).
 
-## Próximas fases
+## Origen de datos (Mundial 2026)
 
-- **Fase 2** — `/partidos` y `/predicciones`: tarjetas en directo, filtros,
-  predicción con cuenta regresiva, distribución de la comunidad, tiempo real.
-- **Fase 3** — `/clasificacion`, mini-ligas y logros.
+El calendario, equipos y sedes reales se importan de
+[openfootball/worldcup.json](https://github.com/openfootball/worldcup.json)
+(dominio público, sin clave). La integración es **agnóstica del proveedor**
+(`src/lib/providers/types.ts` → `FootballProvider`); cambiar a football-data.org
+o API-Football para resultados en vivo es añadir un adaptador, sin tocar el resto.
+
+- `src/lib/wc-data.ts` — mapeo de nombres (EN→ES) + banderas + estadios + parseo
+  de horarios a UTC.
+- `src/lib/import-fixtures.ts` — `importFixtures(provider)`: upsert por `matchNo`,
+  no pisa resultados ya guardados.
+- El seed importa los 104 partidos reales (formato 48 equipos / 12 grupos A–L).
+
+## Rendimiento: Cache Components (PPR + `use cache`)
+
+El proyecto usa **`cacheComponents`** de Next 16 (activado en `next.config.ts`):
+
+- **PPR (Partial Prerendering)**: cada página de la app sirve un *shell* estático
+  al instante y transmite el contenido dinámico (tras `auth()`) vía `<Suspense>`.
+- **`use cache`**: los datos **compartidos** (calendario, clasificación, equipos)
+  se cachean con `'use cache'` + `cacheTag` + `cacheLife` en `src/lib/queries.ts`
+  y `src/lib/leaderboard.ts`. En Vercel persisten en la Runtime/Data Cache (entre
+  peticiones, regiones y despliegues) sin necesidad de Redis/KV.
+- **Shell sin BD**: el sidebar/topbar (`src/app/(app)/layout.tsx`) toman el
+  nombre/iniciales del **JWT de sesión** y el **rank** del leaderboard cacheado
+  (`getUserRank`), sin consultar la BD en cada navegación. Las **stats** del
+  usuario (`getUserStatsView`) también se derivan del leaderboard cacheado.
+- **Datos por usuario** que sí van a BD: solo la **predicción propia** del usuario
+  (consulta ligera por índice), siempre fresca.
+- **Invalidación**: `revalidateTag(TAGS.matches | TAGS.leaderboard, "max")` en los
+  endpoints admin (`sync`/`simulate`/`matches`). Para invalidación inmediata
+  existe la variante `{ expire: 0 }` (ver comentario en `sync/route.ts`).
+
+### Región (¡crítico para la latencia!)
+
+Las funciones de Vercel deben correr **en la misma región que Supabase**, o cada
+query cruza el planeta (~100 ms RTT) y la app se siente lenta. Supabase está en
+`eu-west-1`, así que `vercel.json` fija `"regions": ["dub1"]` (Dublín). Si mueves
+la BD a otra región, actualiza esto.
+
+> Para un cron real durante el torneo: configura un **Vercel Cron** que llame a
+> `POST /api/admin/sync` cada pocos minutos (importa resultados y recalcula).
+> Tras desplegar, revisa el *hit rate* en **Vercel → Observability → Runtime Cache**.
+
+> **Desarrollo local**: si tu red bloquea el puerto 6543 (pooler), las queries
+> tardan ~5 s en *timeout*. Usa el puerto **5432** (directo) en `DATABASE_URL`
+> para desarrollo; mantén **6543** en Vercel.
+
+## Feature flags
+
+Controlados por variables de entorno (`src/lib/features.ts`). Se evalúan en build:
+cambiarlos requiere un nuevo despliegue.
+
+| Variable                            | Por defecto | Efecto                                            |
+| ----------------------------------- | ----------- | ------------------------------------------------- |
+| `NEXT_PUBLIC_FEATURE_MINI_LEAGUES`  | `false`     | Activa/oculta toda la sección de mini-ligas (nav, página, crear/unirse, pestaña en clasificación) |
+
+## Estado del proyecto
+
+- **Fase 1 ✅** — auth, BD, login, shell.
+- **Fase 2 ✅** — `/partidos` y `/predicciones` (tiempo real, deadline, comunidad).
+- **Fase 3 ✅** — `/clasificacion`, mini-ligas, logros.
+- **Extras ✅** — PWA instalable, datos reales del Mundial 2026, motor de
+  recálculo, PPR + caché, `/estadisticas`, `/ajustes`, `/notificaciones`,
+  Google OAuth (condicional).
 
 Ver `PLAN.md` para el detalle completo.
