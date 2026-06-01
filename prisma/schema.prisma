@@ -1,7 +1,3 @@
-// Quiniela Mundial 2026 — Prisma schema
-// Base de datos: Supabase (PostgreSQL). DATABASE_URL usa el pooler (PgBouncer),
-// DIRECT_URL apunta a la conexión directa para migraciones.
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,9 +8,156 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ─────────────────────────────────────────────────────────────
-// Enums
-// ─────────────────────────────────────────────────────────────
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  name                String?
+  avatar              String?
+  passwordHash        String?
+  emailVerified       DateTime?
+  image               String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  favoriteTeam        String?
+  accounts            Account[]
+  achievements        Achievement[]
+  leaderboardSnapshot LeaderboardSnapshot?
+  miniLeaguesCreated  MiniLeague[]         @relation("MiniLeagueCreator")
+  miniLeagueMembers   MiniLeagueMember[]
+  predictions         Prediction[]
+  sessions            Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Match {
+  id          String       @id @default(cuid())
+  matchNo     Int          @unique
+  homeTeam    String
+  awayTeam    String
+  homeFlag    String?
+  awayFlag    String?
+  kickoffAt   DateTime
+  stage       Stage
+  group       String?
+  stadium     String
+  city        String?
+  homeScore   Int?
+  awayScore   Int?
+  status      MatchStatus  @default(UPCOMING)
+  liveMinute  Int?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  awayCrest   String?
+  externalId  String?      @unique
+  homeCrest   String?
+  predictions Prediction[]
+
+  @@index([kickoffAt])
+  @@index([status])
+  @@index([stage])
+}
+
+model Prediction {
+  id          String   @id @default(cuid())
+  userId      String
+  matchId     String
+  homeScore   Int
+  awayScore   Int
+  points      Int?
+  submittedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, matchId])
+  @@index([matchId])
+  @@index([userId])
+}
+
+model MiniLeague {
+  id          String             @id @default(cuid())
+  name        String
+  inviteCode  String             @unique
+  createdById String
+  createdAt   DateTime           @default(now())
+  createdBy   User               @relation("MiniLeagueCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  members     MiniLeagueMember[]
+}
+
+model MiniLeagueMember {
+  id           String     @id @default(cuid())
+  userId       String
+  miniLeagueId String
+  joinedAt     DateTime   @default(now())
+  miniLeague   MiniLeague @relation(fields: [miniLeagueId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, miniLeagueId])
+  @@index([miniLeagueId])
+}
+
+model Achievement {
+  id         String          @id @default(cuid())
+  userId     String
+  type       AchievementType
+  unlockedAt DateTime        @default(now())
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@index([userId])
+}
+
+model LeaderboardSnapshot {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  totalPoints      Int      @default(0)
+  predictionsCount Int      @default(0)
+  exactCount       Int      @default(0)
+  correctCount     Int      @default(0)
+  accuracy         Float    @default(0)
+  currentStreak    Int      @default(0)
+  bestStreak       Int      @default(0)
+  rank             Int      @default(0)
+  previousRank     Int      @default(0)
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([totalPoints])
+  @@index([rank])
+}
 
 enum Stage {
   GROUP_STAGE
@@ -41,174 +184,4 @@ enum AchievementType {
   TOP_3
   ALL_GROUP_STAGE
   CHAMPION_CALL
-}
-
-// ─────────────────────────────────────────────────────────────
-// Auth / Usuarios (compatible con @auth/prisma-adapter)
-// ─────────────────────────────────────────────────────────────
-
-model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  name          String?
-  avatar        String?
-  // Hash bcrypt para el proveedor de credenciales de NextAuth.
-  passwordHash  String?
-  emailVerified DateTime?
-  image         String?
-  favoriteTeam  String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  accounts            Account[]
-  sessions            Session[]
-  predictions         Prediction[]
-  miniLeagueMembers   MiniLeagueMember[]
-  miniLeaguesCreated  MiniLeague[]         @relation("MiniLeagueCreator")
-  achievements        Achievement[]
-  leaderboardSnapshot LeaderboardSnapshot?
-}
-
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
-
-// ─────────────────────────────────────────────────────────────
-// Dominio: partidos, predicciones, mini-ligas, logros
-// ─────────────────────────────────────────────────────────────
-
-model Match {
-  id         String     @id @default(cuid())
-  matchNo    Int        @unique // número de partido del torneo (1..104)
-  externalId String?    @unique // id del proveedor (p. ej. fixture.id de API-Football)
-  homeTeam   String
-  awayTeam   String
-  homeFlag   String? // emoji/código de bandera (fallback)
-  awayFlag   String?
-  homeCrest  String? // URL del escudo (API-Football)
-  awayCrest  String?
-  kickoffAt DateTime // siempre en UTC
-  stage     Stage
-  group     String? // A-L en fase de grupos
-  stadium   String
-  city      String?
-  homeScore Int? // null hasta que el partido empieza/termina
-  awayScore Int?
-  status    MatchStatus @default(UPCOMING)
-  liveMinute Int? // minuto de juego si LIVE
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-
-  predictions Prediction[]
-
-  @@index([kickoffAt])
-  @@index([status])
-  @@index([stage])
-}
-
-model Prediction {
-  id          String   @id @default(cuid())
-  userId      String
-  matchId     String
-  homeScore   Int
-  awayScore   Int
-  points      Int? // null hasta que se calcula (partido FINISHED)
-  submittedAt DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, matchId])
-  @@index([matchId])
-  @@index([userId])
-}
-
-model MiniLeague {
-  id         String   @id @default(cuid())
-  name       String
-  inviteCode String   @unique // 6 chars
-  createdById String
-  createdAt  DateTime @default(now())
-
-  createdBy User               @relation("MiniLeagueCreator", fields: [createdById], references: [id], onDelete: Cascade)
-  members   MiniLeagueMember[]
-}
-
-model MiniLeagueMember {
-  id           String   @id @default(cuid())
-  userId       String
-  miniLeagueId String
-  joinedAt     DateTime @default(now())
-
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  miniLeague MiniLeague @relation(fields: [miniLeagueId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, miniLeagueId])
-  @@index([miniLeagueId])
-}
-
-model Achievement {
-  id         String          @id @default(cuid())
-  userId     String
-  type       AchievementType
-  unlockedAt DateTime        @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, type])
-  @@index([userId])
-}
-
-// Tabla materializada para rankings eficientes; se recalcula al finalizar partidos.
-model LeaderboardSnapshot {
-  id               String   @id @default(cuid())
-  userId           String   @unique
-  totalPoints      Int      @default(0)
-  predictionsCount Int      @default(0)
-  exactCount       Int      @default(0)
-  correctCount     Int      @default(0)
-  accuracy         Float    @default(0) // 0..100
-  currentStreak    Int      @default(0)
-  bestStreak       Int      @default(0)
-  rank             Int      @default(0)
-  previousRank     Int      @default(0)
-  updatedAt        DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([totalPoints])
-  @@index([rank])
 }
