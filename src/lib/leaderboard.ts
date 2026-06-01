@@ -27,13 +27,18 @@ export type LeaderboardRow = {
   points: number;
   accuracy: number;
   predictionsCount: number;
+  exactCount: number;
   currentStreak: number;
   trend: number; // previousRank − rank (positivo = ha subido)
   isCurrentUser: boolean;
 };
 
-/** Filas de la clasificación (compartidas) — CACHEADAS (`use cache`), sin marca de usuario. */
-async function getLeaderboardRows(): Promise<
+/**
+ * Filas de la clasificación (compartidas) — CACHEADAS (`use cache`), sin marca
+ * de usuario. Fuente única para clasificación, rank del shell y stats del
+ * usuario (todo derivable de aquí sin tocar la BD en cada navegación).
+ */
+export async function getLeaderboardRows(): Promise<
   Omit<LeaderboardRow, "isCurrentUser">[]
 > {
   "use cache";
@@ -52,9 +57,16 @@ async function getLeaderboardRows(): Promise<
     points: s.totalPoints,
     accuracy: s.accuracy,
     predictionsCount: s.predictionsCount,
+    exactCount: s.exactCount,
     currentStreak: s.currentStreak,
     trend: s.previousRank - s.rank,
   }));
+}
+
+/** Puesto del usuario, derivado del leaderboard cacheado (sin query a BD). */
+export async function getUserRank(userId: string): Promise<number | null> {
+  const rows = await getLeaderboardRows();
+  return rows.find((r) => r.userId === userId)?.rank ?? null;
 }
 
 /** Clasificación general, ordenada por puesto (marca al usuario actual). */
@@ -80,10 +92,13 @@ export type RankInfo = {
 
 /** Datos del banner de ranking del usuario. */
 export async function getRankInfo(userId: string): Promise<RankInfo> {
-  const [snap, totalPlayers] = await Promise.all([
+  // El snapshot del usuario es per-user (1 query); totalPlayers sale del
+  // leaderboard cacheado (sin un count() adicional a la BD).
+  const [snap, rows] = await Promise.all([
     prisma.leaderboardSnapshot.findUnique({ where: { userId } }),
-    prisma.leaderboardSnapshot.count(),
+    getLeaderboardRows(),
   ]);
+  const totalPlayers = rows.length;
 
   const rank = snap?.rank ?? null;
   return {
@@ -148,6 +163,7 @@ export async function getMiniLeaguesForUser(
         points: m.user.leaderboardSnapshot?.totalPoints ?? 0,
         accuracy: m.user.leaderboardSnapshot?.accuracy ?? 0,
         predictionsCount: m.user.leaderboardSnapshot?.predictionsCount ?? 0,
+        exactCount: m.user.leaderboardSnapshot?.exactCount ?? 0,
         currentStreak: m.user.leaderboardSnapshot?.currentStreak ?? 0,
         trend: 0,
         isCurrentUser: m.user.id === userId,
