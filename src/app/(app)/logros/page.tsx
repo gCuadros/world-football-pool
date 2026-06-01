@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { Lock, Check } from "lucide-react";
 
@@ -5,11 +6,19 @@ import { getCurrentUser } from "@/lib/current-user";
 import { getUnlockedAchievements } from "@/lib/leaderboard";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { cn } from "@/lib/utils";
+import Loading from "./loading";
 
-export const dynamic = "force-dynamic";
 export const metadata = { title: "Logros" };
 
-export default async function LogrosPage() {
+export default function LogrosPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <LogrosContent />
+    </Suspense>
+  );
+}
+
+async function LogrosContent() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 

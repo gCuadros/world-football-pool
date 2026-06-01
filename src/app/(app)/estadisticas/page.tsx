@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { Target, Crosshair, Check, Flame } from "lucide-react";
 
@@ -5,11 +6,19 @@ import { getCurrentUser } from "@/lib/current-user";
 import { getUserStatsDetailed } from "@/lib/stats";
 import { STAGE_LABELS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+import Loading from "./loading";
 
-export const dynamic = "force-dynamic";
 export const metadata = { title: "Estadísticas" };
 
-export default async function EstadisticasPage() {
+export default function EstadisticasPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <EstadisticasContent />
+    </Suspense>
+  );
+}
+
+async function EstadisticasContent() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 import { MatchStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import { TAGS } from "@/lib/cache-tags";
 import { isAdminRequest } from "@/lib/admin-auth";
 import {
   recalculateMatchPoints,
@@ -16,12 +17,6 @@ const schema = z.object({
   status: z.nativeEnum(MatchStatus).optional(),
   liveMinute: z.coerce.number().int().min(0).max(130).nullish(),
 });
-
-function revalidateAll() {
-  for (const p of ["/partidos", "/predicciones", "/clasificacion", "/logros"]) {
-    revalidatePath(p);
-  }
-}
 
 // PATCH /api/admin/matches/[id] — actualiza marcador/estado de un partido.
 // Si queda FINISHED, recalcula puntos + clasificación + logros.
@@ -74,11 +69,13 @@ export async function PATCH(
     },
   });
 
+  revalidateTag(TAGS.matches, "max");
+
   if (nextStatus === "FINISHED") {
     await recalculateMatchPoints(id);
     await rebuildLeaderboardAndAchievements();
+    revalidateTag(TAGS.leaderboard, "max");
   }
 
-  revalidateAll();
   return NextResponse.json({ ok: true });
 }

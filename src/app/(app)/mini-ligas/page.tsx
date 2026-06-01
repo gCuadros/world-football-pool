@@ -1,13 +1,26 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getMiniLeaguesForUser } from "@/lib/leaderboard";
+import { FEATURES } from "@/lib/features";
 import { MiniLeaguesView } from "@/components/leaderboard/mini-leagues-view";
+import Loading from "./loading";
 
-export const dynamic = "force-dynamic";
 export const metadata = { title: "Mini-ligas" };
 
-export default async function MiniLigasPage() {
+export default function MiniLigasPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <MiniLigasContent />
+    </Suspense>
+  );
+}
+
+async function MiniLigasContent() {
+  // Feature desactivada: la ruta no existe para el usuario → a la home.
+  if (!FEATURES.miniLeagues) redirect("/partidos");
+
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 

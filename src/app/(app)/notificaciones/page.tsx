@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/current-user";
@@ -6,11 +7,19 @@ import {
   NotificacionesView,
   type Notif,
 } from "@/components/notifications/notificaciones-view";
+import Loading from "./loading";
 
-export const dynamic = "force-dynamic";
 export const metadata = { title: "Notificaciones" };
 
-export default async function NotificacionesPage() {
+export default function NotificacionesPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <NotificacionesContent />
+    </Suspense>
+  );
+}
+
+async function NotificacionesContent() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 

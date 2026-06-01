@@ -1,13 +1,22 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getMatchesView, getUserStatsView } from "@/lib/queries";
 import { PartidosView } from "@/components/matches/partidos-view";
+import Loading from "./loading";
 
-export const dynamic = "force-dynamic";
 export const metadata = { title: "Partidos" };
 
-export default async function PartidosPage() {
+export default function PartidosPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <PartidosContent />
+    </Suspense>
+  );
+}
+
+async function PartidosContent() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
