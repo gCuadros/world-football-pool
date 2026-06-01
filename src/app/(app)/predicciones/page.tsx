@@ -1,13 +1,22 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getMatchesView, getUserStatsView } from "@/lib/queries";
 import { PrediccionesView } from "@/components/predictions/predicciones-view";
+import Loading from "./loading";
 
-export const dynamic = "force-dynamic";
 export const metadata = { title: "Mis Predicciones" };
 
-export default async function PrediccionesPage() {
+export default function PrediccionesPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <PrediccionesContent />
+    </Suspense>
+  );
+}
+
+async function PrediccionesContent() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { Trophy, Radio, Target, Flame } from "lucide-react";
 import { AuthForm } from "@/components/auth/auth-form";
@@ -5,11 +6,11 @@ import { googleEnabled } from "@/auth";
 import { getCurrentUser } from "@/lib/current-user";
 
 export const metadata = { title: "Entrar" };
-export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
-  // Solo redirige a la app si la sesión corresponde a un usuario real en la BD.
-  // (Evita el bucle de redirecciones con cookies de sesión obsoletas.)
+// Comprobación de sesión (dinámica) aislada en Suspense: si ya hay sesión válida
+// en BD, redirige a la app; si no, no renderiza nada y se muestra el login.
+// (Validar contra BD evita el bucle con cookies de sesión obsoletas.)
+async function SessionGate() {
   let user = null;
   try {
     user = await getCurrentUser();
@@ -17,9 +18,15 @@ export default async function LoginPage() {
     user = null;
   }
   if (user) redirect("/partidos");
+  return null;
+}
 
+export default function LoginPage() {
   return (
     <main className="grid min-h-dvh lg:grid-cols-2">
+      <Suspense fallback={null}>
+        <SessionGate />
+      </Suspense>
       {/* Panel de marca */}
       <section className="bg-primary text-primary-foreground relative hidden flex-col justify-between overflow-hidden p-12 lg:flex">
         <div

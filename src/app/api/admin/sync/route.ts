@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 
+import { TAGS } from "@/lib/cache-tags";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { importFixtures } from "@/lib/import-fixtures";
 import { openfootballProvider } from "@/lib/providers/openfootball";
@@ -21,6 +22,11 @@ export async function POST(req: Request) {
   }
 
   const result = await importFixtures(openfootballProvider);
+  // El calendario pudo cambiar → invalida la caché de partidos (use cache).
+  // "max" = stale-while-revalidate (recomendado): el siguiente visitante ve el
+  // dato ~1 request viejo y se regenera en background. Para expiración inmediata
+  // (cache miss bloqueante) se podría usar revalidateTag(TAGS.matches, { expire: 0 }).
+  revalidateTag(TAGS.matches, "max");
 
   // Si llegaron resultados nuevos, recalcula puntos de los partidos terminados.
   if (result.finishedUpdated > 0) {
@@ -32,12 +38,7 @@ export async function POST(req: Request) {
       await recalculateMatchPoints(m.id);
     }
     await rebuildLeaderboardAndAchievements();
-
-    for (const p of ["/partidos", "/predicciones", "/clasificacion", "/logros"]) {
-      revalidatePath(p);
-    }
-  } else {
-    revalidatePath("/partidos");
+    revalidateTag(TAGS.leaderboard, "max");
   }
 
   return NextResponse.json({ ok: true, ...result });

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Trophy } from "lucide-react";
 
 import { PRIMARY_NAV, ACCOUNT_NAV, type NavItem } from "@/lib/nav";
+import { FEATURES } from "@/lib/features";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -54,6 +55,10 @@ export function NavContent({
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
 
+  const primaryNav = PRIMARY_NAV.filter(
+    (item) => item.href !== "/mini-ligas" || FEATURES.miniLeagues,
+  );
+
   return (
     <div className="flex h-full flex-col">
       {/* Logo */}
@@ -70,7 +75,7 @@ export function NavContent({
           <p className="text-sidebar-foreground/40 px-3 pb-1 font-mono text-[10px] tracking-widest uppercase">
             Principal
           </p>
-          {PRIMARY_NAV.map((item) => (
+          {primaryNav.map((item) => (
             <NavLink
               key={item.href}
               item={item}

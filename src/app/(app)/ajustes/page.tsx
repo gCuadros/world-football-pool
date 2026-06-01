@@ -1,14 +1,23 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getTeams } from "@/lib/queries";
 import { AjustesView } from "@/components/settings/ajustes-view";
+import Loading from "./loading";
 
-export const dynamic = "force-dynamic";
 export const metadata = { title: "Ajustes" };
 
-export default async function AjustesPage() {
+export default function AjustesPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <AjustesContent />
+    </Suspense>
+  );
+}
+
+async function AjustesContent() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 

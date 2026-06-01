@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
+import { TAGS } from "@/lib/cache-tags";
 import { isAdminRequest } from "@/lib/admin-auth";
 import {
   finalizeMatch,
@@ -62,9 +63,8 @@ export async function POST(req: Request) {
   // 3) Recalcular clasificación y logros.
   await rebuildLeaderboardAndAchievements();
 
-  for (const p of ["/partidos", "/predicciones", "/clasificacion", "/logros"]) {
-    revalidatePath(p);
-  }
+  revalidateTag(TAGS.matches, "max");
+  revalidateTag(TAGS.leaderboard, "max");
 
   return NextResponse.json({ ok: true, finalized, started });
 }

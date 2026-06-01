@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/current-user";
@@ -7,14 +8,23 @@ import {
   getMiniLeaguesForUser,
   getUnlockedAchievements,
 } from "@/lib/leaderboard";
+import { FEATURES } from "@/lib/features";
 import { RankBanner } from "@/components/leaderboard/rank-banner";
 import { ClasificacionView } from "@/components/leaderboard/clasificacion-view";
 import { AchievementsWidget } from "@/components/leaderboard/achievements-widget";
+import Loading from "./loading";
 
-export const dynamic = "force-dynamic";
 export const metadata = { title: "Clasificación" };
 
-export default async function ClasificacionPage() {
+export default function ClasificacionPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <ClasificacionContent />
+    </Suspense>
+  );
+}
+
+async function ClasificacionContent() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
@@ -23,7 +33,7 @@ export default async function ClasificacionPage() {
     [info, generalRows, miniLeagues, unlocked] = await Promise.all([
       getRankInfo(user.id),
       getLeaderboard(user.id),
-      getMiniLeaguesForUser(user.id),
+      FEATURES.miniLeagues ? getMiniLeaguesForUser(user.id) : Promise.resolve([]),
       getUnlockedAchievements(user.id),
     ]);
   } catch {

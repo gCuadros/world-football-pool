@@ -1,6 +1,9 @@
 import "server-only";
 
+import { cacheTag, cacheLife } from "next/cache";
+
 import { prisma } from "@/lib/prisma";
+import { TAGS } from "@/lib/cache-tags";
 import type { AchievementType } from "@prisma/client";
 
 function initials(name: string | null | undefined, email: string): string {
@@ -29,15 +32,18 @@ export type LeaderboardRow = {
   isCurrentUser: boolean;
 };
 
-/** Clasificación general, ordenada por puesto. */
-export async function getLeaderboard(
-  currentUserId: string,
-): Promise<LeaderboardRow[]> {
+/** Filas de la clasificación (compartidas) — CACHEADAS (`use cache`), sin marca de usuario. */
+async function getLeaderboardRows(): Promise<
+  Omit<LeaderboardRow, "isCurrentUser">[]
+> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(TAGS.leaderboard);
+
   const snaps = await prisma.leaderboardSnapshot.findMany({
     orderBy: { rank: "asc" },
     include: { user: { select: { name: true, email: true } } },
   });
-
   return snaps.map((s) => ({
     rank: s.rank,
     userId: s.userId,
@@ -48,8 +54,15 @@ export async function getLeaderboard(
     predictionsCount: s.predictionsCount,
     currentStreak: s.currentStreak,
     trend: s.previousRank - s.rank,
-    isCurrentUser: s.userId === currentUserId,
   }));
+}
+
+/** Clasificación general, ordenada por puesto (marca al usuario actual). */
+export async function getLeaderboard(
+  currentUserId: string,
+): Promise<LeaderboardRow[]> {
+  const rows = await getLeaderboardRows();
+  return rows.map((r) => ({ ...r, isCurrentUser: r.userId === currentUserId }));
 }
 
 export type RankInfo = {
