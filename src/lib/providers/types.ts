@@ -3,10 +3,13 @@ import type { Stage, MatchStatus } from "@prisma/client";
 // Partido normalizado, independiente del proveedor de datos.
 export type ProviderFixture = {
   matchNo: number;
+  externalId: string | null; // id del proveedor (fixture.id) para reconciliar
   homeTeam: string;
   awayTeam: string;
   homeFlag: string | null;
   awayFlag: string | null;
+  homeCrest: string | null; // URL del escudo
+  awayCrest: string | null;
   kickoffAt: Date;
   stage: Stage;
   group: string | null;
@@ -15,6 +18,7 @@ export type ProviderFixture = {
   homeScore: number | null;
   awayScore: number | null;
   status: MatchStatus;
+  liveMinute: number | null;
 };
 
 /**

@@ -3,8 +3,7 @@ import { revalidateTag } from "next/cache";
 
 import { TAGS } from "@/lib/cache-tags";
 import { isAdminRequest } from "@/lib/admin-auth";
-import { importFixtures } from "@/lib/import-fixtures";
-import { openfootballProvider } from "@/lib/providers/openfootball";
+import { importFromActiveProvider } from "@/lib/import-fixtures";
 import {
   recalculateMatchPoints,
   rebuildLeaderboardAndAchievements,
@@ -21,7 +20,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  const result = await importFixtures(openfootballProvider);
+  const result = await importFromActiveProvider();
   // El calendario pudo cambiar → invalida la caché de partidos (use cache).
   // "max" = stale-while-revalidate (recomendado): el siguiente visitante ve el
   // dato ~1 request viejo y se regenera en background. Para expiración inmediata

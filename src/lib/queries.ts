@@ -6,6 +6,10 @@ import { prisma } from "@/lib/prisma";
 import { isPredictionLocked } from "@/lib/scoring";
 import { TAGS } from "@/lib/cache-tags";
 import { getLeaderboardRows } from "@/lib/leaderboard";
+import {
+  getApiFootballEvents,
+  type MatchEvent,
+} from "@/lib/providers/api-football";
 import type { Stage, MatchStatus } from "@prisma/client";
 
 export type PredictionVM = {
@@ -18,10 +22,13 @@ export type PredictionVM = {
 export type MatchBase = {
   id: string;
   matchNo: number;
+  externalId: string | null;
   homeTeam: string;
   awayTeam: string;
   homeFlag: string | null;
   awayFlag: string | null;
+  homeCrest: string | null;
+  awayCrest: string | null;
   kickoffAt: string; // ISO (UTC)
   stage: Stage;
   group: string | null;
@@ -65,10 +72,13 @@ async function getMatchesBase(): Promise<MatchBase[]> {
   return matches.map((m) => ({
     id: m.id,
     matchNo: m.matchNo,
+    externalId: m.externalId,
     homeTeam: m.homeTeam,
     awayTeam: m.awayTeam,
     homeFlag: m.homeFlag,
     awayFlag: m.awayFlag,
+    homeCrest: m.homeCrest,
+    awayCrest: m.awayCrest,
     kickoffAt: m.kickoffAt.toISOString(),
     stage: m.stage,
     group: m.group,
@@ -206,4 +216,24 @@ export async function getCommunityDistribution(
       away: total > 0 ? Math.round((away / total) * 100) : 0,
     },
   };
+}
+
+/**
+ * Eventos (goles/tarjetas) de un partido — CACHEADO (`use cache`).
+ * Solo desde API-Football y tras el inicio del partido. Sin clave o sin
+ * externalId, devuelve lista vacía (no hay datos de eventos).
+ */
+export async function getMatchEvents(
+  externalId: string,
+): Promise<MatchEvent[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(TAGS.matches, `events-${externalId}`);
+
+  if (!process.env.API_FOOTBALL_KEY) return [];
+  try {
+    return await getApiFootballEvents(externalId);
+  } catch {
+    return [];
+  }
 }

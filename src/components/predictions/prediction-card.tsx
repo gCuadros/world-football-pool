@@ -13,6 +13,8 @@ import { savePrediction } from "@/app/(app)/predicciones/actions";
 import { Countdown, isLockImminent } from "@/components/matches/countdown";
 import { PredictionBadge } from "@/components/matches/prediction-badge";
 import { CommunityBreakdown } from "@/components/predictions/community-breakdown";
+import { TeamCrest } from "@/components/matches/team-crest";
+import { MatchEvents } from "@/components/matches/match-events";
 
 const QUICK_PICKS: [number, number][] = [
   [1, 0],
@@ -23,10 +25,18 @@ const QUICK_PICKS: [number, number][] = [
   [0, 1],
 ];
 
-function TeamLabel({ flag, name }: { flag: string | null; name: string }) {
+function TeamLabel({
+  flag,
+  crest,
+  name,
+}: {
+  flag: string | null;
+  crest: string | null;
+  name: string;
+}) {
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      <span className="w-6 text-center text-lg leading-none">{flag ?? "🏳️"}</span>
+      <TeamCrest crest={crest} flag={flag} name={name} size={24} className="shrink-0" />
       <span className="truncate text-sm font-medium">{name}</span>
     </div>
   );
@@ -136,11 +146,11 @@ export function PredictionCard({ match, now }: { match: MatchVM; now: Date }) {
       {editable ? (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <TeamLabel flag={match.homeFlag} name={match.homeTeam} />
+            <TeamLabel flag={match.homeFlag} crest={match.homeCrest} name={match.homeTeam} />
             <Stepper value={home} onChange={setHome} disabled={pending} />
           </div>
           <div className="flex items-center justify-between">
-            <TeamLabel flag={match.awayFlag} name={match.awayTeam} />
+            <TeamLabel flag={match.awayFlag} crest={match.awayCrest} name={match.awayTeam} />
             <Stepper value={away} onChange={setAway} disabled={pending} />
           </div>
 
@@ -189,7 +199,7 @@ export function PredictionCard({ match, now }: { match: MatchVM; now: Date }) {
           {/* Marcador real */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <TeamLabel flag={match.homeFlag} name={match.homeTeam} />
+              <TeamLabel flag={match.homeFlag} crest={match.homeCrest} name={match.homeTeam} />
               {hasScore ? (
                 <span
                   className={cn(
@@ -202,7 +212,7 @@ export function PredictionCard({ match, now }: { match: MatchVM; now: Date }) {
               ) : null}
             </div>
             <div className="flex items-center justify-between">
-              <TeamLabel flag={match.awayFlag} name={match.awayTeam} />
+              <TeamLabel flag={match.awayFlag} crest={match.awayCrest} name={match.awayTeam} />
               {hasScore ? (
                 <span
                   className={cn(
@@ -225,9 +235,12 @@ export function PredictionCard({ match, now }: { match: MatchVM; now: Date }) {
             </div>
           )}
 
-          {/* Comunidad (solo live/finished) */}
-          {(resolved || live) ? (
-            <CommunityBreakdown matchId={match.id} prediction={match.prediction} />
+          {/* Comunidad + eventos (solo live/finished) */}
+          {resolved || live ? (
+            <>
+              <CommunityBreakdown matchId={match.id} prediction={match.prediction} />
+              {match.externalId ? <MatchEvents matchId={match.id} /> : null}
+            </>
           ) : null}
         </div>
       )}

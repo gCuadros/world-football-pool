@@ -14,7 +14,7 @@ import {
 const schema = z.object({
   homeScore: z.coerce.number().int().min(0).max(99).optional(),
   awayScore: z.coerce.number().int().min(0).max(99).optional(),
-  status: z.nativeEnum(MatchStatus).optional(),
+  status: z.enum(MatchStatus).optional(),
   liveMinute: z.coerce.number().int().min(0).max(130).nullish(),
 });
 

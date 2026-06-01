@@ -1,8 +1,7 @@
 import bcrypt from "bcryptjs";
 
 import { prisma } from "../src/lib/prisma";
-import { importFixtures } from "../src/lib/import-fixtures";
-import { openfootballProvider } from "../src/lib/providers/openfootball";
+import { importFromActiveProvider } from "../src/lib/import-fixtures";
 import { rebuildLeaderboardAndAchievements } from "../src/lib/recalculate";
 
 // Pseudo-aleatorio determinista para predicciones demo estables.
@@ -59,8 +58,10 @@ async function main() {
   await prisma.user.deleteMany();
 
   // Calendario real del Mundial 2026 (openfootball).
-  const result = await importFixtures(openfootballProvider);
-  console.log(`  ✓ ${result.imported} partidos reales importados`);
+  const result = await importFromActiveProvider();
+  console.log(
+    `  ✓ ${result.imported} partidos importados (proveedor: ${result.provider})`,
+  );
 
   // Usuarios demo.
   const passwordHash = await bcrypt.hash("password123", 10);
