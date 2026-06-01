@@ -47,6 +47,8 @@ export const openfootballProvider: FootballProvider = {
         awayTeam: away.name,
         homeFlag: home.flag,
         awayFlag: away.flag,
+        homeCrest: null,
+        awayCrest: null,
         kickoffAt: parseKickoff(m.date, m.time),
         stage: roundToStage(m.round),
         group: parseGroup(m.group),
@@ -55,6 +57,7 @@ export const openfootballProvider: FootballProvider = {
         homeScore: ft ? ft[0] : null,
         awayScore: ft ? ft[1] : null,
         status: (ft ? "FINISHED" : "UPCOMING") as ProviderFixture["status"],
+        liveMinute: null,
       };
     });
 
@@ -64,6 +67,10 @@ export const openfootballProvider: FootballProvider = {
         a.kickoffAt.getTime() - b.kickoffAt.getTime() ||
         a.homeTeam.localeCompare(b.homeTeam),
     );
-    return mapped.map((f, i) => ({ ...f, matchNo: i + 1 }));
+    return mapped.map((f, i) => ({
+      ...f,
+      matchNo: i + 1,
+      externalId: `of-${i + 1}`,
+    }));
   },
 };

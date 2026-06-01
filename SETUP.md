@@ -321,17 +321,37 @@ configures las credenciales. Para activarlo:
 
 ## Origen de datos (Mundial 2026)
 
-El calendario, equipos y sedes reales se importan de
-[openfootball/worldcup.json](https://github.com/openfootball/worldcup.json)
-(dominio público, sin clave). La integración es **agnóstica del proveedor**
-(`src/lib/providers/types.ts` → `FootballProvider`); cambiar a football-data.org
-o API-Football para resultados en vivo es añadir un adaptador, sin tocar el resto.
+Integración **agnóstica del proveedor** (`src/lib/providers/types.ts` →
+`FootballProvider`). El proveedor activo se elige en `src/lib/providers/index.ts`:
 
-- `src/lib/wc-data.ts` — mapeo de nombres (EN→ES) + banderas + estadios + parseo
-  de horarios a UTC.
-- `src/lib/import-fixtures.ts` — `importFixtures(provider)`: upsert por `matchNo`,
-  no pisa resultados ya guardados.
-- El seed importa los 104 partidos reales (formato 48 equipos / 12 grupos A–L).
+- **API-Football** (`api-football.ts`) si `API_FOOTBALL_KEY` está definida →
+  datos reales + en vivo + **escudos** + eventos.
+- **openfootball** (`openfootball.ts`) como fallback sin clave (calendario público).
+
+Piezas: `src/lib/wc-data.ts` (nombres EN→ES, banderas, estadios, horarios UTC) ·
+`src/lib/import-fixtures.ts` (`importFixtures`: upsert por `externalId`, no pisa
+resultados) · el seed importa los 104 partidos del proveedor activo (48 equipos,
+12 grupos A–L).
+
+### Activar API-Football (datos reales + en vivo)
+
+1. Copia tu clave de [dashboard.api-football.com](https://dashboard.api-football.com)
+   a `.env`: `API_FOOTBALL_KEY="..."`.
+2. `yarn db:seed` → reimporta los fixtures desde API-Football (World Cup = league
+   1, season 2026), con escudos y grupos (vía `/standings`).
+3. **Eventos** (goles/tarjetas): se cargan on-demand y cacheados en la ficha del
+   partido (`/api/matches/[id]/events`), sin gastar cuota en el cron.
+
+**Plan Free (100 req/día)**: el `sync` consume ~2 llamadas (fixtures + standings).
+Para resultados en vivo durante el torneo, programa un **cron externo** (Vercel
+Hobby no permite crons sub-diarios) — p. ej. [cron-job.org](https://cron-job.org)
+o GitHub Actions — que haga cada ~20 min en horario de partidos:
+
+```bash
+curl -X POST https://TU-APP.vercel.app/api/admin/sync -H "x-admin-secret: $ADMIN_SECRET"
+```
+
+Vigila el consumo en tu dashboard de API-Football para no pasarte de 100/día.
 
 ## Rendimiento: Cache Components (PPR + `use cache`)
 

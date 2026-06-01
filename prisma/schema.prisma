@@ -110,12 +110,15 @@ model VerificationToken {
 // ─────────────────────────────────────────────────────────────
 
 model Match {
-  id        String      @id @default(cuid())
-  matchNo   Int         @unique // número de partido del torneo (1..104)
-  homeTeam  String
-  awayTeam  String
-  homeFlag  String? // emoji/código de bandera
-  awayFlag  String?
+  id         String     @id @default(cuid())
+  matchNo    Int        @unique // número de partido del torneo (1..104)
+  externalId String?    @unique // id del proveedor (p. ej. fixture.id de API-Football)
+  homeTeam   String
+  awayTeam   String
+  homeFlag   String? // emoji/código de bandera (fallback)
+  awayFlag   String?
+  homeCrest  String? // URL del escudo (API-Football)
+  awayCrest  String?
   kickoffAt DateTime // siempre en UTC
   stage     Stage
   group     String? // A-L en fase de grupos

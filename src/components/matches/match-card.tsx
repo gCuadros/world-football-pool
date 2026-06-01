@@ -9,15 +9,18 @@ import { formatRelativeDay, formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Countdown, isLockImminent } from "@/components/matches/countdown";
 import { PredictionBadge } from "@/components/matches/prediction-badge";
+import { TeamCrest } from "@/components/matches/team-crest";
 
 function TeamRow({
   flag,
+  crest,
   name,
   score,
   scoreTone,
   winner,
 }: {
   flag: string | null;
+  crest: string | null;
   name: string;
   score: number | null;
   scoreTone: string;
@@ -25,7 +28,7 @@ function TeamRow({
 }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="w-6 text-center text-lg leading-none">{flag ?? "🏳️"}</span>
+      <TeamCrest crest={crest} flag={flag} name={name} size={24} className="shrink-0" />
       <span
         className={cn(
           "min-w-0 flex-1 truncate text-sm",
@@ -95,6 +98,7 @@ export function MatchCard({ match, now }: { match: MatchVM; now: Date }) {
       <div className="space-y-2">
         <TeamRow
           flag={match.homeFlag}
+          crest={match.homeCrest}
           name={match.homeTeam}
           score={hasScore ? homeScore : null}
           scoreTone={scoreTone}
@@ -102,6 +106,7 @@ export function MatchCard({ match, now }: { match: MatchVM; now: Date }) {
         />
         <TeamRow
           flag={match.awayFlag}
+          crest={match.awayCrest}
           name={match.awayTeam}
           score={hasScore ? awayScore : null}
           scoreTone={scoreTone}
