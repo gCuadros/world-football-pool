@@ -1,13 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTransition } from "react";
-import { Search, Bell, LogOut, Moon, Sun } from "lucide-react";
+import { LogOut, LogIn, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 import { titleForPath } from "@/lib/nav";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { signOutAction } from "@/app/(app)/actions";
 import { MobileNav } from "@/components/app/mobile-nav";
 import type { SidebarUser } from "@/components/app/nav-content";
@@ -30,43 +30,34 @@ export function Topbar({ user }: { user: SidebarUser }) {
         </h1>
       </div>
 
-      <div className="relative ml-auto hidden max-w-xs flex-1 sm:block">
-        <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-        <Input
-          placeholder="Buscar partidos o equipos…"
-          className="bg-card pl-9"
-        />
+      <div className="ml-auto flex items-center gap-1 sm:gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Cambiar tema"
+          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+        >
+          <Sun className="size-4 dark:hidden" />
+          <Moon className="hidden size-4 dark:block" />
+        </Button>
+
+        {user.isLoggedIn ? (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={pending}
+            onClick={() => startTransition(() => signOutAction())}
+          >
+            <LogOut className="size-4" />
+            <span className="hidden sm:inline">Salir</span>
+          </Button>
+        ) : (
+          <Button variant="default" size="sm" render={<Link href="/login" />}>
+            <LogIn className="size-4" />
+            <span className="hidden sm:inline">Entrar</span>
+          </Button>
+        )}
       </div>
-
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Cambiar tema"
-        onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      >
-        <Sun className="size-4 dark:hidden" />
-        <Moon className="hidden size-4 dark:block" />
-      </Button>
-
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Notificaciones"
-        className="relative"
-      >
-        <Bell className="size-4" />
-        <span className="bg-live absolute top-2 right-2 size-2 rounded-full" />
-      </Button>
-
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={pending}
-        onClick={() => startTransition(() => signOutAction())}
-      >
-        <LogOut className="size-4" />
-        <span className="hidden sm:inline">Salir</span>
-      </Button>
     </header>
   );
 }
