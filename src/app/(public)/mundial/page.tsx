@@ -118,19 +118,19 @@ async function TopScorersSection() {
         <table className="w-full text-sm">
           <thead>
             <tr className="text-muted-foreground border-border bg-muted/30 border-b font-mono text-[10px] tracking-wide uppercase">
-              <th className="px-3 py-2 text-left">#</th>
-              <th className="px-3 py-2 text-left">Jugador</th>
-              <th className="px-3 py-2 text-left">Equipo</th>
-              <th className="px-3 py-2 text-center">PJ</th>
-              <th className="px-3 py-2 text-center">Asis</th>
-              <th className="px-3 py-2 text-center font-bold">Goles</th>
+              <th className="px-2 py-2 text-left sm:px-3">#</th>
+              <th className="px-2 py-2 text-left sm:px-3">Jugador</th>
+              <th className="hidden px-3 py-2 text-left sm:table-cell">Equipo</th>
+              <th className="hidden px-3 py-2 text-center sm:table-cell">PJ</th>
+              <th className="hidden px-3 py-2 text-center sm:table-cell">Asis</th>
+              <th className="px-2 py-2 text-center font-bold sm:px-3">Goles</th>
             </tr>
           </thead>
           <tbody>
             {scorers.map((s) => (
               <tr key={s.playerName} className="border-border border-b last:border-0 hover:bg-muted/20">
-                <td className="text-muted-foreground px-3 py-2 font-mono text-xs">{s.rank}</td>
-                <td className="px-3 py-2">
+                <td className="text-muted-foreground px-2 py-2 font-mono text-xs sm:px-3">{s.rank}</td>
+                <td className="px-2 py-2 sm:px-3">
                   <div className="flex items-center gap-2">
                     {s.photo ? (
                       <Image
@@ -138,24 +138,32 @@ async function TopScorersSection() {
                         alt={s.playerName}
                         width={24}
                         height={24}
-                        className="rounded-full"
+                        className="size-6 shrink-0 rounded-full"
                         unoptimized
                       />
                     ) : (
-                      <div className="bg-muted size-6 rounded-full" />
+                      <div className="bg-muted size-6 shrink-0 rounded-full" />
                     )}
-                    <span className="font-medium">{s.playerName}</span>
+                    <span className="min-w-0 truncate font-medium">{s.playerName}</span>
+                    {/* Equipo inline en móvil (la columna Equipo se oculta) */}
+                    <TeamCrest
+                      crest={s.teamLogo}
+                      flag={s.teamFlag}
+                      name={s.teamName}
+                      size={14}
+                      className="shrink-0 sm:hidden"
+                    />
                   </div>
                 </td>
-                <td className="px-3 py-2">
+                <td className="hidden px-3 py-2 sm:table-cell">
                   <div className="flex items-center gap-1.5">
                     <TeamCrest crest={s.teamLogo} flag={s.teamFlag} name={s.teamName} size={16} />
                     <span className="text-muted-foreground text-xs">{s.teamName}</span>
                   </div>
                 </td>
-                <td className="px-3 py-2 text-center font-mono text-xs">{s.played}</td>
-                <td className="px-3 py-2 text-center font-mono text-xs">{s.assists}</td>
-                <td className="px-3 py-2 text-center font-mono text-sm font-bold text-primary">
+                <td className="hidden px-3 py-2 text-center font-mono text-xs sm:table-cell">{s.played}</td>
+                <td className="hidden px-3 py-2 text-center font-mono text-xs sm:table-cell">{s.assists}</td>
+                <td className="text-primary px-2 py-2 text-center font-mono text-sm font-bold sm:px-3">
                   {s.goals}
                 </td>
               </tr>

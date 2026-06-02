@@ -1,13 +1,12 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Target, Trophy, TrendingUp, TrendingDown, Minus, Copy } from "lucide-react";
+import { Target, Trophy } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getLeagueLeaderboard } from "@/lib/leaderboard";
 import { prisma } from "@/lib/prisma";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { CopyCode } from "@/components/ligas/copy-code";
 
@@ -50,16 +49,16 @@ async function LigaContent({ params }: { params: Promise<{ id: string }> }) {
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Cabecera de la liga */}
       <div className="border-border bg-card rounded-2xl border p-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold">{league.name}</h1>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-bold">{league.name}</h1>
             <div className="mt-1 flex items-center gap-2">
               <CopyCode code={league.inviteCode} />
             </div>
           </div>
           <Link
             href={`/liga/${id}/predicciones`}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 flex shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors"
           >
             <Target className="size-4" />
             Mis predicciones
