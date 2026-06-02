@@ -5,7 +5,6 @@ import { cacheTag, cacheLife } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { isPredictionLocked } from "@/lib/scoring";
 import { TAGS } from "@/lib/cache-tags";
-import { getLeaderboardRows } from "@/lib/leaderboard";
 import {
   getApiFootballEvents,
   type MatchEvent,
@@ -18,7 +17,6 @@ export type PredictionVM = {
   points: number | null;
 };
 
-// Datos del partido compartidos por todos los usuarios (cacheables).
 export type MatchBase = {
   id: string;
   matchNo: number;
@@ -40,28 +38,16 @@ export type MatchBase = {
   liveMinute: number | null;
 };
 
-// Vista por usuario = base + predicción propia + estado de cierre (por petición).
 export type MatchVM = MatchBase & {
   prediction: PredictionVM | null;
   locked: boolean;
 };
 
-export type UserStatsVM = {
-  points: number;
-  rank: number | null;
-  totalPlayers: number;
-  accuracy: number;
-  predictionsCount: number;
-  exactCount: number;
-  currentStreak: number;
-};
-
 /**
  * Calendario completo (compartido entre todos los usuarios) — CACHEADO (`use cache`).
- * Forma parte del shell prerenderizado; se invalida por tag al actualizar partidos.
- * No incluye nada dependiente del usuario ni del tiempo (eso se añade fuera).
+ * Invalida con tag `matches` cuando se actualiza el calendario o resultados.
  */
-async function getMatchesBase(): Promise<MatchBase[]> {
+export async function getMatchesBase(): Promise<MatchBase[]> {
   "use cache";
   cacheLife("minutes");
   cacheTag(TAGS.matches);
@@ -91,14 +77,16 @@ async function getMatchesBase(): Promise<MatchBase[]> {
   }));
 }
 
-/** Todos los partidos con la predicción del usuario y el estado de cierre. */
-export async function getMatchesView(userId: string): Promise<MatchVM[]> {
+/** Partidos con la predicción del usuario EN UNA LIGA CONCRETA. */
+export async function getMatchesViewForLeague(
+  userId: string,
+  leagueId: string,
+): Promise<MatchVM[]> {
   const now = new Date();
-  // Calendario cacheado (compartido) + predicciones del usuario (ligero, por índice).
   const [base, predictions] = await Promise.all([
     getMatchesBase(),
     prisma.prediction.findMany({
-      where: { userId },
+      where: { userId, leagueId },
       select: { matchId: true, homeScore: true, awayScore: true, points: true },
     }),
   ]);
@@ -117,22 +105,17 @@ export async function getMatchesView(userId: string): Promise<MatchVM[]> {
   });
 }
 
-/**
- * Estadísticas del usuario para la barra de cabecera.
- * Se derivan del leaderboard CACHEADO (0 consultas a BD por navegación).
- */
-export async function getUserStatsView(userId: string): Promise<UserStatsVM> {
-  const rows = await getLeaderboardRows();
-  const me = rows.find((r) => r.userId === userId);
-  return {
-    points: me?.points ?? 0,
-    rank: me?.rank ?? null,
-    totalPlayers: rows.length,
-    accuracy: me?.accuracy ?? 0,
-    predictionsCount: me?.predictionsCount ?? 0,
-    exactCount: me?.exactCount ?? 0,
-    currentStreak: me?.currentStreak ?? 0,
-  };
+/** Última predicción del usuario para un partido (en cualquier liga) — para autorrelleno. */
+export async function getLastPredictionForMatch(
+  userId: string,
+  matchId: string,
+): Promise<PredictionVM | null> {
+  const pred = await prisma.prediction.findFirst({
+    where: { userId, matchId },
+    orderBy: { updatedAt: "desc" },
+    select: { homeScore: true, awayScore: true, points: true },
+  });
+  return pred ?? null;
 }
 
 /** Lista de equipos (de la fase de grupos) con su bandera — CACHEADA (`use cache`). */
@@ -140,7 +123,7 @@ export async function getTeams(): Promise<
   { name: string; flag: string | null }[]
 > {
   "use cache";
-  cacheLife("max"); // la lista de equipos casi nunca cambia; el tag matches la invalida
+  cacheLife("max");
   cacheTag(TAGS.matches);
 
   const matches = await prisma.match.findMany({
@@ -168,15 +151,11 @@ export async function getCommunityDistribution(
   matchId: string,
 ): Promise<CommunityDistribution | null> {
   "use cache";
-  // Tras el kickoff las predicciones del partido son inmutables → muy cacheable.
-  // El tag matches lo invalida cuando el sync cambia el estado del partido
-  // (p. ej. UPCOMING→LIVE, que pasa de null a distribución).
   cacheLife("hours");
   cacheTag(TAGS.matches, `community-${matchId}`);
 
   const match = await prisma.match.findUnique({ where: { id: matchId } });
   if (!match) return null;
-  // Privacidad: solo se expone una vez iniciado el partido.
   if (match.status === "UPCOMING") return null;
 
   const predictions = await prisma.prediction.findMany({
@@ -218,10 +197,42 @@ export async function getCommunityDistribution(
   };
 }
 
+/** Standings de los grupos del Mundial — CACHEADOS. */
+export async function getWorldCupStandings() {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(TAGS.matches);
+
+  if (!process.env.API_FOOTBALL_KEY) return [];
+  try {
+    const { getApiFootballStandings } = await import(
+      "@/lib/providers/api-football"
+    );
+    return await getApiFootballStandings();
+  } catch {
+    return [];
+  }
+}
+
+/** Top Scorers del Mundial — CACHEADOS. */
+export async function getWorldCupTopScorers() {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(TAGS.matches);
+
+  if (!process.env.API_FOOTBALL_KEY) return [];
+  try {
+    const { getApiFootballTopScorers } = await import(
+      "@/lib/providers/api-football"
+    );
+    return await getApiFootballTopScorers();
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Eventos (goles/tarjetas) de un partido — CACHEADO (`use cache`).
- * Solo desde API-Football y tras el inicio del partido. Sin clave o sin
- * externalId, devuelve lista vacía (no hay datos de eventos).
  */
 export async function getMatchEvents(
   externalId: string,

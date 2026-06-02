@@ -1,17 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { auth } from "@/auth";
-import { getMatchesView } from "@/lib/queries";
+import { getMatchesBase } from "@/lib/queries";
 
-// GET /api/matches?status=LIVE&stage=GROUP_STAGE
-// Lista de partidos con la predicción del usuario autenticado incrustada.
+// GET /api/matches — lista pública de partidos (sin predicciones de usuario).
 export async function GET(req: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-  }
-
-  const matches = await getMatchesView(session.user.id);
+  const matches = await getMatchesBase();
   const url = new URL(req.url);
   const status = url.searchParams.get("status");
   const stage = url.searchParams.get("stage");

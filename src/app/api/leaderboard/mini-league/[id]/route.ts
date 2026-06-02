@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
-import { getMiniLeaguesForUser } from "@/lib/leaderboard";
+import { getLeagueLeaderboard } from "@/lib/leaderboard";
+import { prisma } from "@/lib/prisma";
 
-// GET /api/leaderboard/mini-league/[id] — ranking interno de una mini-liga
-// (solo si el usuario es miembro).
+// GET /api/leaderboard/mini-league/[id] — ranking interno de una liga.
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -15,14 +15,17 @@ export async function GET(
   }
 
   const { id } = await params;
-  const leagues = await getMiniLeaguesForUser(session.user.id);
-  const league = leagues.find((l) => l.id === id);
+  const membership = await prisma.miniLeagueMember.findUnique({
+    where: { userId_miniLeagueId: { userId: session.user.id, miniLeagueId: id } },
+  });
 
-  if (!league) {
+  if (!membership) {
     return NextResponse.json(
       { error: "Liga no encontrada o no eres miembro" },
       { status: 404 },
     );
   }
-  return NextResponse.json(league);
+
+  const rows = await getLeagueLeaderboard(id, session.user.id);
+  return NextResponse.json({ rows });
 }

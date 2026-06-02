@@ -46,7 +46,15 @@ function TeamRow({
   );
 }
 
-export function MatchCard({ match, now }: { match: MatchVM; now: Date }) {
+export function MatchCard({
+  match,
+  now,
+  publicMode = false,
+}: {
+  match: MatchVM;
+  now: Date;
+  publicMode?: boolean;
+}) {
   const { status, homeScore, awayScore, prediction } = match;
   const isLive = status === "LIVE";
   const isFinished = status === "FINISHED";
@@ -120,26 +128,30 @@ export function MatchCard({ match, now }: { match: MatchVM; now: Date }) {
       </div>
 
       {/* Pie: predicción / countdown / CTA */}
-      <div className="mt-auto">
-        {imminent ? (
-          <Countdown kickoffAt={match.kickoffAt} />
-        ) : prediction ? (
-          <PredictionBadge prediction={prediction} />
-        ) : status === "UPCOMING" && !match.locked ? (
-          <Link
-            href="/predicciones"
-            className="border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 flex items-center justify-center gap-1.5 rounded-lg border py-2 text-sm font-medium transition-colors"
-          >
-            Predecir
-            <ArrowRight className="size-3.5" />
-          </Link>
-        ) : (
-          <div className="text-muted-foreground bg-muted flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium">
-            <Lock className="size-3.5" />
-            Sin predicción
-          </div>
-        )}
-      </div>
+      {publicMode ? (
+        imminent ? <Countdown kickoffAt={match.kickoffAt} /> : null
+      ) : (
+        <div className="mt-auto">
+          {imminent ? (
+            <Countdown kickoffAt={match.kickoffAt} />
+          ) : prediction ? (
+            <PredictionBadge prediction={prediction} />
+          ) : status === "UPCOMING" && !match.locked ? (
+            <Link
+              href="/ligas"
+              className="border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 flex items-center justify-center gap-1.5 rounded-lg border py-2 text-sm font-medium transition-colors"
+            >
+              Predecir
+              <ArrowRight className="size-3.5" />
+            </Link>
+          ) : (
+            <div className="text-muted-foreground bg-muted flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium">
+              <Lock className="size-3.5" />
+              Sin predicción
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

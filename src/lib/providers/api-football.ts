@@ -26,6 +26,8 @@ const AF_ALIAS: Record<string, string> = {
   "Türkiye": "Turkey",
   "USA": "USA",
   "United States": "USA",
+  "Cape Verde Islands": "Cape Verde",
+  "Cap-Vert": "Cape Verde",
 };
 
 function teamInfo(name: string) {
@@ -168,6 +170,121 @@ type AfEvent = {
   type: string;
   detail: string;
 };
+
+// ── Standings (grupos) ────────────────────────────────────────────────────
+export type GroupStanding = {
+  group: string;
+  teams: {
+    rank: number;
+    teamId: number;
+    name: string;
+    nameEs: string;
+    logo: string | null;
+    flag: string | null;
+    played: number;
+    won: number;
+    drawn: number;
+    lost: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    goalDiff: number;
+    points: number;
+    form: string | null;
+  }[];
+};
+
+type AfStandingRow = {
+  rank: number;
+  team: { id: number; name: string; logo: string | null };
+  group: string;
+  all: { played: number; win: number; draw: number; lose: number; goals: { for: number; against: number } };
+  goalsDiff: number;
+  points: number;
+  form: string | null;
+};
+
+type AfStandingsResp = {
+  league: { standings: AfStandingRow[][] };
+}[];
+
+export async function getApiFootballStandings(): Promise<GroupStanding[]> {
+  const resp = await apiGet<AfStandingsResp>(
+    `/standings?league=${LEAGUE}&season=${SEASON}`,
+  );
+  const groups = resp[0]?.league?.standings ?? [];
+  return groups
+    .filter((g) => g.length > 0)
+    .map((g) => {
+      const groupName = (g[0].group ?? "").replace(/group\s*/i, "").trim();
+      return {
+        group: groupName,
+        teams: g.map((row) => {
+          const info = teamInfo(row.team.name);
+          return {
+            rank: row.rank,
+            teamId: row.team.id,
+            name: row.team.name,
+            nameEs: info.name,
+            logo: row.team.logo,
+            flag: info.flag,
+            played: row.all.played,
+            won: row.all.win,
+            drawn: row.all.draw,
+            lost: row.all.lose,
+            goalsFor: row.all.goals.for,
+            goalsAgainst: row.all.goals.against,
+            goalDiff: row.goalsDiff,
+            points: row.points,
+            form: row.form,
+          };
+        }),
+      };
+    })
+    .sort((a, b) => a.group.localeCompare(b.group));
+}
+
+// ── Top Scorers ───────────────────────────────────────────────────────────
+export type TopScorer = {
+  rank: number;
+  playerName: string;
+  teamName: string;
+  teamLogo: string | null;
+  teamFlag: string | null;
+  photo: string | null;
+  goals: number;
+  assists: number;
+  played: number;
+};
+
+type AfTopScorerRow = {
+  player: { id: number; name: string; photo: string | null };
+  statistics: {
+    team: { id: number; name: string; logo: string | null };
+    goals: { total: number | null; assists: number | null };
+    games: { appearences: number | null };
+  }[];
+};
+
+export async function getApiFootballTopScorers(): Promise<TopScorer[]> {
+  const resp = await apiGet<AfTopScorerRow[]>(
+    `/players/topscorers?league=${LEAGUE}&season=${SEASON}`,
+  );
+  return resp.slice(0, 20).map((row, i) => {
+    const stat = row.statistics[0];
+    const info = teamInfo(stat?.team?.name ?? "");
+    return {
+      rank: i + 1,
+      playerName: row.player.name,
+      teamName: info.name,
+      teamLogo: stat?.team?.logo ?? null,
+      teamFlag: info.flag,
+      photo: row.player.photo,
+      goals: stat?.goals?.total ?? 0,
+      assists: stat?.goals?.assists ?? 0,
+      played: stat?.games?.appearences ?? 0,
+    };
+  });
+}
 
 /** Eventos (goles, tarjetas…) de un partido por su fixture id de API-Football. */
 export async function getApiFootballEvents(

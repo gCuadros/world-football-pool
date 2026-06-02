@@ -1,6 +1,6 @@
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
-import type { RankInfo } from "@/lib/leaderboard";
+type RankInfo = { rank: number | null; totalPlayers: number; points: number; accuracy: number; predictionsCount: number; exactCount: number; currentStreak: number; bestStreak: number; trend: number; percentile: number | null };
 
 export function RankBanner({ info }: { info: RankInfo }) {
   const trendUp = info.trend > 0;

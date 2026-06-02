@@ -1,20 +1,14 @@
 import { NextResponse } from "next/server";
 
-import { auth } from "@/auth";
-import { getMatchesView } from "@/lib/queries";
+import { getMatchesBase } from "@/lib/queries";
 
-// GET /api/matches/[id] — detalle del partido + predicción del usuario.
+// GET /api/matches/[id] — detalle de un partido (datos públicos).
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
-  }
-
   const { id } = await params;
-  const matches = await getMatchesView(session.user.id);
+  const matches = await getMatchesBase();
   const match = matches.find((m) => m.id === id);
 
   if (!match) {
