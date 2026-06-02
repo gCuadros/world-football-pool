@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 
-import type { LeaderboardRow, MiniLeagueVM } from "@/lib/leaderboard";
+import type { LeaderboardRow, LeagueVM } from "@/lib/leaderboard";
+type MiniLeagueVM = LeagueVM & { rows: LeaderboardRow[] };
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Podium } from "@/components/leaderboard/podium";

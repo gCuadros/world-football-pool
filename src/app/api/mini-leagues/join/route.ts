@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { joinMiniLeague } from "@/app/(app)/mini-ligas/actions";
+import { joinLeague } from "@/app/(app)/mini-ligas/actions";
 
 // POST /api/mini-leagues/join — unirse con código. Body: { code }.
 export async function POST(req: Request) {
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "JSON no válido" }, { status: 400 });
   }
 
-  const res = await joinMiniLeague(body.code ?? "");
+  const res = await joinLeague(body.code ?? "");
   if (res.ok) return NextResponse.json({ ok: true });
 
   const status = res.error.includes("Sesión")

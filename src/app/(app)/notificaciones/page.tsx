@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/current-user";
-import { getMatchesView } from "@/lib/queries";
+import { getMatchesBase } from "@/lib/queries";
 import {
   NotificacionesView,
   type Notif,
@@ -25,7 +25,7 @@ async function NotificacionesContent() {
 
   let matches;
   try {
-    matches = await getMatchesView(user.id);
+    matches = await getMatchesBase();
   } catch {
     return (
       <div className="border-warning/40 bg-warning/10 rounded-2xl border p-8">
@@ -40,43 +40,30 @@ async function NotificacionesContent() {
 
   const live: Notif[] = [];
   const reminders: Notif[] = [];
-  const results: Notif[] = [];
 
   for (const m of matches) {
     const vs = `${m.homeTeam} vs ${m.awayTeam}`;
-    if (m.status === "LIVE" && m.prediction) {
+    if (m.status === "LIVE") {
       live.push({
         id: `${m.id}-live`,
         kind: "live",
         title: `En directo: ${m.homeTeam} ${m.homeScore ?? 0}-${m.awayScore ?? 0} ${m.awayTeam}`,
-        detail: `Tu predicción: ${m.prediction.homeScore}-${m.prediction.awayScore}`,
+        detail: "Partido en curso",
         iso: m.kickoffAt,
       });
-    } else if (m.status === "FINISHED" && m.prediction) {
-      const pts = m.prediction.points ?? 0;
-      results.push({
-        id: `${m.id}-res`,
-        kind: "result",
-        title: `${m.homeTeam} ${m.homeScore}-${m.awayScore} ${m.awayTeam}`,
-        detail: pts > 0 ? `Conseguiste ${pts} ${pts === 1 ? "punto" : "puntos"}` : "Sin puntos esta vez",
-        iso: m.kickoffAt,
-        points: pts,
-      });
-    } else if (m.status === "UPCOMING" && !m.locked && !m.prediction) {
+    } else if (m.status === "UPCOMING") {
       reminders.push({
         id: `${m.id}-rem`,
         kind: "reminder",
-        title: `Predice ${vs}`,
-        detail: "Aún no has hecho tu predicción",
+        title: `Próximo: ${vs}`,
+        detail: "Recuerda hacer tu predicción antes del pitido inicial",
         iso: m.kickoffAt,
       });
     }
   }
 
   reminders.sort((a, b) => +new Date(a.iso) - +new Date(b.iso));
-  results.sort((a, b) => +new Date(b.iso) - +new Date(a.iso));
-
-  const notifs = [...live, ...reminders.slice(0, 8), ...results.slice(0, 12)];
+  const notifs = [...live, ...reminders.slice(0, 8)];
 
   return <NotificacionesView notifs={notifs} />;
 }

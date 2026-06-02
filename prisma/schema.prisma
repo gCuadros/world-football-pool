@@ -19,13 +19,12 @@ model User {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   favoriteTeam        String?
-  accounts            Account[]
-  achievements        Achievement[]
-  leaderboardSnapshot LeaderboardSnapshot?
-  miniLeaguesCreated  MiniLeague[]         @relation("MiniLeagueCreator")
-  miniLeagueMembers   MiniLeagueMember[]
-  predictions         Prediction[]
-  sessions            Session[]
+  accounts           Account[]
+  achievements       Achievement[]
+  miniLeaguesCreated MiniLeague[]       @relation("MiniLeagueCreator")
+  miniLeagueMembers  MiniLeagueMember[]
+  predictions        Prediction[]
+  sessions           Session[]
 }
 
 model Account {
@@ -91,20 +90,23 @@ model Match {
 }
 
 model Prediction {
-  id          String   @id @default(cuid())
+  id          String     @id @default(cuid())
   userId      String
   matchId     String
+  leagueId    String
   homeScore   Int
   awayScore   Int
   points      Int?
-  submittedAt DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  match       Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  submittedAt DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  match       Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  league      MiniLeague @relation(fields: [leagueId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, matchId])
+  @@unique([userId, leagueId, matchId])
   @@index([matchId])
   @@index([userId])
+  @@index([leagueId])
 }
 
 model MiniLeague {
@@ -115,6 +117,7 @@ model MiniLeague {
   createdAt   DateTime           @default(now())
   createdBy   User               @relation("MiniLeagueCreator", fields: [createdById], references: [id], onDelete: Cascade)
   members     MiniLeagueMember[]
+  predictions Prediction[]
 }
 
 model MiniLeagueMember {
@@ -140,24 +143,6 @@ model Achievement {
   @@index([userId])
 }
 
-model LeaderboardSnapshot {
-  id               String   @id @default(cuid())
-  userId           String   @unique
-  totalPoints      Int      @default(0)
-  predictionsCount Int      @default(0)
-  exactCount       Int      @default(0)
-  correctCount     Int      @default(0)
-  accuracy         Float    @default(0)
-  currentStreak    Int      @default(0)
-  bestStreak       Int      @default(0)
-  rank             Int      @default(0)
-  previousRank     Int      @default(0)
-  updatedAt        DateTime @updatedAt
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([totalPoints])
-  @@index([rank])
-}
 
 enum Stage {
   GROUP_STAGE

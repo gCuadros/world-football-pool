@@ -78,7 +78,17 @@ function Stepper({
   );
 }
 
-export function PredictionCard({ match, now }: { match: MatchVM; now: Date }) {
+export function PredictionCard({
+  match,
+  now,
+  leagueId,
+  autofill,
+}: {
+  match: MatchVM;
+  now: Date;
+  leagueId: string;
+  autofill?: { homeScore: number; awayScore: number } | null;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -88,8 +98,10 @@ export function PredictionCard({ match, now }: { match: MatchVM; now: Date }) {
   const live = match.status === "LIVE";
   const hasScore = match.homeScore !== null && match.awayScore !== null;
 
-  const [home, setHome] = useState(match.prediction?.homeScore ?? 0);
-  const [away, setAway] = useState(match.prediction?.awayScore ?? 0);
+  // Pre-rellena con predicción existente en la liga, o con autorrelleno de otra liga.
+  const initial = match.prediction ?? autofill ?? { homeScore: 0, awayScore: 0 };
+  const [home, setHome] = useState(initial.homeScore);
+  const [away, setAway] = useState(initial.awayScore);
 
   const saved = match.prediction;
   const dirty =
@@ -102,7 +114,7 @@ export function PredictionCard({ match, now }: { match: MatchVM; now: Date }) {
 
   function handleSave() {
     startTransition(async () => {
-      const res = await savePrediction(match.id, home, away);
+      const res = await savePrediction(leagueId, match.id, home, away);
       if (res.ok) {
         toast.success(`Predicción guardada: ${home}-${away}`);
         router.refresh();
@@ -153,6 +165,13 @@ export function PredictionCard({ match, now }: { match: MatchVM; now: Date }) {
             <TeamLabel flag={match.awayFlag} crest={match.awayCrest} name={match.awayTeam} />
             <Stepper value={away} onChange={setAway} disabled={pending} />
           </div>
+
+          {/* Nota de autorrelleno */}
+          {!match.prediction && autofill && (
+            <p className="text-muted-foreground text-[11px]">
+              ✦ Pre-rellenado desde otra liga
+            </p>
+          )}
 
           {/* Quick picks */}
           <div className="flex flex-wrap gap-1.5">

@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from "react";
 
-import type { MatchVM, UserStatsVM } from "@/lib/queries";
+import type { MatchVM } from "@/lib/queries";
+type UserStatsVM = { points: number; rank: number | null; totalPlayers: number; accuracy: number; predictionsCount: number; exactCount: number; currentStreak: number };
 import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -143,7 +144,7 @@ export function PrediccionesView({
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((m) => (
-            <PredictionCard key={m.id} match={m} now={now} />
+            <PredictionCard key={m.id} match={m} now={now} leagueId="" autofill={null} />
           ))}
         </div>
       )}

@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { Plus, LogIn, Copy, Users, Crown, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import type { MiniLeagueVM } from "@/lib/leaderboard";
-import { createMiniLeague, joinMiniLeague } from "@/app/(app)/mini-ligas/actions";
+import type { LeagueVM, LeaderboardRow } from "@/lib/leaderboard";
+type MiniLeagueVM = LeagueVM & { rows: LeaderboardRow[] };
+import { createLeague, joinLeague } from "@/app/(app)/mini-ligas/actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
@@ -20,7 +21,7 @@ export function MiniLeaguesView({ leagues }: { leagues: MiniLeagueVM[] }) {
 
   function handleCreate() {
     startCreate(async () => {
-      const res = await createMiniLeague(name);
+      const res = await createLeague(name);
       if (res.ok) {
         toast.success(`Liga creada · código ${res.code}`);
         setName("");
@@ -33,7 +34,7 @@ export function MiniLeaguesView({ leagues }: { leagues: MiniLeagueVM[] }) {
 
   function handleJoin() {
     startJoin(async () => {
-      const res = await joinMiniLeague(code);
+      const res = await joinLeague(code);
       if (res.ok) {
         toast.success(`Te uniste a "${res.code}"`);
         setCode("");

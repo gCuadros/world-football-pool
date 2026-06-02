@@ -6,10 +6,7 @@ import { MatchStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { TAGS } from "@/lib/cache-tags";
 import { isAdminRequest } from "@/lib/admin-auth";
-import {
-  recalculateMatchPoints,
-  rebuildLeaderboardAndAchievements,
-} from "@/lib/recalculate";
+import { recalculateMatchPoints, rebuildAchievements } from "@/lib/recalculate";
 
 const schema = z.object({
   homeScore: z.coerce.number().int().min(0).max(99).optional(),
@@ -19,7 +16,7 @@ const schema = z.object({
 });
 
 // PATCH /api/admin/matches/[id] — actualiza marcador/estado de un partido.
-// Si queda FINISHED, recalcula puntos + clasificación + logros.
+// Si queda FINISHED, recalcula puntos + logros + invalida cachés de ligas.
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> },
@@ -72,9 +69,15 @@ export async function PATCH(
   revalidateTag(TAGS.matches, "max");
 
   if (nextStatus === "FINISHED") {
+    // recalculateMatchPoints revalida los tags de cada liga afectada.
     await recalculateMatchPoints(id);
-    await rebuildLeaderboardAndAchievements();
-    revalidateTag(TAGS.leaderboard, "max");
+
+    const affectedUsers = await prisma.prediction.findMany({
+      where: { matchId: id },
+      select: { userId: true },
+      distinct: ["userId"],
+    });
+    await Promise.all(affectedUsers.map((u) => rebuildAchievements(u.userId)));
   }
 
   return NextResponse.json({ ok: true });

@@ -3,7 +3,7 @@ import "server-only";
 import { cacheTag, cacheLife } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
-import { TAGS } from "@/lib/cache-tags";
+import { leagueTag } from "@/lib/cache-tags";
 import type { AchievementType } from "@prisma/client";
 
 function initials(name: string | null | undefined, email: string): string {
@@ -29,158 +29,161 @@ export type LeaderboardRow = {
   predictionsCount: number;
   exactCount: number;
   currentStreak: number;
-  trend: number; // previousRank − rank (positivo = ha subido)
+  bestStreak: number;
   isCurrentUser: boolean;
 };
 
-/**
- * Filas de la clasificación (compartidas) — CACHEADAS (`use cache`), sin marca
- * de usuario. Fuente única para clasificación, rank del shell y stats del
- * usuario (todo derivable de aquí sin tocar la BD en cada navegación).
- */
-export async function getLeaderboardRows(): Promise<
-  Omit<LeaderboardRow, "isCurrentUser">[]
-> {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag(TAGS.leaderboard);
-
-  const snaps = await prisma.leaderboardSnapshot.findMany({
-    orderBy: { rank: "asc" },
-    include: { user: { select: { name: true, email: true } } },
-  });
-  return snaps.map((s) => ({
-    rank: s.rank,
-    userId: s.userId,
-    name: s.user.name ?? s.user.email,
-    initials: initials(s.user.name, s.user.email),
-    points: s.totalPoints,
-    accuracy: s.accuracy,
-    predictionsCount: s.predictionsCount,
-    exactCount: s.exactCount,
-    currentStreak: s.currentStreak,
-    trend: s.previousRank - s.rank,
-  }));
-}
-
-/** Puesto del usuario, derivado del leaderboard cacheado (sin query a BD). */
-export async function getUserRank(userId: string): Promise<number | null> {
-  const rows = await getLeaderboardRows();
-  return rows.find((r) => r.userId === userId)?.rank ?? null;
-}
-
-/** Clasificación general, ordenada por puesto (marca al usuario actual). */
-export async function getLeaderboard(
-  currentUserId: string,
-): Promise<LeaderboardRow[]> {
-  const rows = await getLeaderboardRows();
-  return rows.map((r) => ({ ...r, isCurrentUser: r.userId === currentUserId }));
-}
-
-export type RankInfo = {
-  rank: number | null;
-  totalPlayers: number;
-  points: number;
-  accuracy: number;
-  predictionsCount: number;
-  exactCount: number;
-  currentStreak: number;
-  bestStreak: number;
-  trend: number;
-  percentile: number | null; // top X%
-};
-
-/** Datos del banner de ranking del usuario. */
-export async function getRankInfo(userId: string): Promise<RankInfo> {
-  // El snapshot del usuario es per-user (1 query); totalPlayers sale del
-  // leaderboard cacheado (sin un count() adicional a la BD).
-  const [snap, rows] = await Promise.all([
-    prisma.leaderboardSnapshot.findUnique({ where: { userId } }),
-    getLeaderboardRows(),
-  ]);
-  const totalPlayers = rows.length;
-
-  const rank = snap?.rank ?? null;
-  return {
-    rank,
-    totalPlayers,
-    points: snap?.totalPoints ?? 0,
-    accuracy: snap?.accuracy ?? 0,
-    predictionsCount: snap?.predictionsCount ?? 0,
-    exactCount: snap?.exactCount ?? 0,
-    currentStreak: snap?.currentStreak ?? 0,
-    bestStreak: snap?.bestStreak ?? 0,
-    trend: snap ? snap.previousRank - snap.rank : 0,
-    percentile:
-      rank && totalPlayers > 0
-        ? Math.max(1, Math.round((rank / totalPlayers) * 100))
-        : null,
-  };
-}
-
-export type MiniLeagueVM = {
+export type LeagueVM = {
   id: string;
   name: string;
   inviteCode: string;
   memberCount: number;
   isOwner: boolean;
-  rows: LeaderboardRow[];
 };
 
-/** Mini-ligas del usuario con su ranking interno (por puntos). */
-export async function getMiniLeaguesForUser(
+/**
+ * Clasificación de una liga calculada en tiempo real desde predicciones.
+ * Cacheada por liga — se invalida cuando un partido de esa liga se puntúa.
+ */
+export async function getLeagueLeaderboard(
+  leagueId: string,
+  currentUserId: string,
+): Promise<LeaderboardRow[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(leagueTag(leagueId));
+
+  const [members, finishedMatches, predictions] = await Promise.all([
+    prisma.miniLeagueMember.findMany({
+      where: { miniLeagueId: leagueId },
+      include: { user: { select: { id: true, name: true, email: true } } },
+    }),
+    prisma.match.findMany({
+      where: { status: "FINISHED" },
+      orderBy: { kickoffAt: "asc" },
+      select: { id: true },
+    }),
+    prisma.prediction.findMany({
+      where: { leagueId },
+      select: { userId: true, matchId: true, points: true },
+    }),
+  ]);
+
+  const finishedOrder = finishedMatches.map((m) => m.id);
+  const finishedSet = new Set(finishedOrder);
+
+  const predsByUser = new Map<string, { matchId: string; points: number | null }[]>();
+  for (const p of predictions) {
+    const arr = predsByUser.get(p.userId) ?? [];
+    arr.push(p);
+    predsByUser.set(p.userId, arr);
+  }
+
+  const rows: LeaderboardRow[] = members.map(({ user }) => {
+    const userPreds = predsByUser.get(user.id) ?? [];
+    const finished = userPreds.filter((p) => finishedSet.has(p.matchId));
+
+    const totalPoints = finished.reduce((s, p) => s + (p.points ?? 0), 0);
+    const exactCount = finished.filter((p) => p.points === 3).length;
+    const correctCount = finished.filter((p) => p.points === 1).length;
+    const predictionsCount = finished.length;
+    const accuracy =
+      predictionsCount > 0
+        ? Math.round(((exactCount + correctCount) / predictionsCount) * 1000) / 10
+        : 0;
+
+    const byMatch = new Map(finished.map((p) => [p.matchId, p]));
+    let bestStreak = 0;
+    let runningStreak = 0;
+    let currentStreak = 0;
+    for (const matchId of finishedOrder) {
+      const p = byMatch.get(matchId);
+      if (p && (p.points ?? 0) > 0) {
+        runningStreak++;
+        bestStreak = Math.max(bestStreak, runningStreak);
+        currentStreak = runningStreak;
+      } else if (p) {
+        runningStreak = 0;
+        currentStreak = 0;
+      }
+    }
+
+    return {
+      rank: 0,
+      userId: user.id,
+      name: user.name ?? user.email,
+      initials: initials(user.name, user.email),
+      points: totalPoints,
+      accuracy,
+      predictionsCount,
+      exactCount,
+      currentStreak,
+      bestStreak,
+      isCurrentUser: user.id === currentUserId,
+    };
+  });
+
+  rows.sort((a, b) => b.points - a.points || b.accuracy - a.accuracy);
+  rows.forEach((r, i) => (r.rank = i + 1));
+
+  return rows;
+}
+
+/** Puesto del usuario en una liga concreta. */
+export async function getUserLeagueRank(
   userId: string,
-): Promise<MiniLeagueVM[]> {
+  leagueId: string,
+): Promise<number | null> {
+  const rows = await getLeagueLeaderboard(leagueId, userId);
+  return rows.find((r) => r.userId === userId)?.rank ?? null;
+}
+
+/** Primera liga del usuario y su puesto en ella (para el shell). */
+export async function getFirstLeagueInfo(userId: string): Promise<{
+  rank: number | null;
+  leagueName: string | null;
+  leagueId: string | null;
+}> {
+  const membership = await prisma.miniLeagueMember.findFirst({
+    where: { userId },
+    orderBy: { joinedAt: "asc" },
+    include: { miniLeague: { select: { id: true, name: true } } },
+  });
+  if (!membership) return { rank: null, leagueName: null, leagueId: null };
+
+  const rank = await getUserLeagueRank(userId, membership.miniLeagueId);
+  return {
+    rank,
+    leagueName: membership.miniLeague.name,
+    leagueId: membership.miniLeagueId,
+  };
+}
+
+/** Ligas a las que pertenece el usuario. */
+export async function getUserLeagues(userId: string): Promise<LeagueVM[]> {
   const memberships = await prisma.miniLeagueMember.findMany({
     where: { userId },
     include: {
       miniLeague: {
-        include: {
-          members: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  leaderboardSnapshot: true,
-                },
-              },
-            },
-          },
-        },
+        include: { _count: { select: { members: true } } },
       },
     },
     orderBy: { joinedAt: "asc" },
   });
 
-  return memberships.map(({ miniLeague }) => {
-    const rows: LeaderboardRow[] = miniLeague.members
-      .map((m) => ({
-        userId: m.user.id,
-        name: m.user.name ?? m.user.email,
-        initials: initials(m.user.name, m.user.email),
-        points: m.user.leaderboardSnapshot?.totalPoints ?? 0,
-        accuracy: m.user.leaderboardSnapshot?.accuracy ?? 0,
-        predictionsCount: m.user.leaderboardSnapshot?.predictionsCount ?? 0,
-        exactCount: m.user.leaderboardSnapshot?.exactCount ?? 0,
-        currentStreak: m.user.leaderboardSnapshot?.currentStreak ?? 0,
-        trend: 0,
-        isCurrentUser: m.user.id === userId,
-        rank: 0,
-      }))
-      .sort((a, b) => b.points - a.points || b.accuracy - a.accuracy)
-      .map((row, i) => ({ ...row, rank: i + 1 }));
+  return memberships.map(({ miniLeague }) => ({
+    id: miniLeague.id,
+    name: miniLeague.name,
+    inviteCode: miniLeague.inviteCode,
+    memberCount: miniLeague._count.members,
+    isOwner: miniLeague.createdById === userId,
+  }));
+}
 
-    return {
-      id: miniLeague.id,
-      name: miniLeague.name,
-      inviteCode: miniLeague.inviteCode,
-      memberCount: miniLeague.members.length,
-      isOwner: miniLeague.createdById === userId,
-      rows,
-    };
-  });
+/** ¿El usuario pertenece a al menos una liga? */
+export async function userHasLeague(userId: string): Promise<boolean> {
+  const count = await prisma.miniLeagueMember.count({ where: { userId } });
+  return count > 0;
 }
 
 /** Logros del usuario: catálogo completo con estado desbloqueado. */

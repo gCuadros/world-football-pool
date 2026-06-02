@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { Radio, Trophy, Target, Percent } from "lucide-react";
 
-import type { MatchVM, UserStatsVM } from "@/lib/queries";
+import type { MatchVM } from "@/lib/queries";
+type UserStatsVM = { points: number; rank: number | null; totalPlayers: number; accuracy: number; predictionsCount: number; exactCount: number; currentStreak: number };
 import type { MatchFilter } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";

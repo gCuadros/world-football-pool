@@ -6,9 +6,9 @@ import type { Stage } from "@prisma/client";
 export type StageStat = {
   stage: Stage;
   total: number;
-  hits: number; // points > 0
-  exact: number; // points === 3
-  accuracy: number; // 0..100
+  hits: number;
+  exact: number;
+  accuracy: number;
 };
 
 export type BestPrediction = {
@@ -17,7 +17,7 @@ export type BestPrediction = {
   awayTeam: string;
   homeFlag: string | null;
   awayFlag: string | null;
-  score: string; // marcador real
+  score: string;
   points: number;
 };
 
@@ -43,16 +43,21 @@ const STAGE_ORDER: Stage[] = [
   "FINAL",
 ];
 
-/** Estadísticas detalladas del usuario sobre sus predicciones ya puntuadas. */
+/** Estadísticas detalladas del usuario en una liga sobre sus predicciones ya puntuadas. */
 export async function getUserStatsDetailed(
   userId: string,
+  leagueId: string,
 ): Promise<UserStatsDetailed> {
-  const [preds, snapshot] = await Promise.all([
+  const [preds, finishedMatches] = await Promise.all([
     prisma.prediction.findMany({
-      where: { userId, match: { status: "FINISHED" } },
+      where: { userId, leagueId, match: { status: "FINISHED" } },
       include: { match: true },
     }),
-    prisma.leaderboardSnapshot.findUnique({ where: { userId } }),
+    prisma.match.findMany({
+      where: { status: "FINISHED" },
+      orderBy: { kickoffAt: "asc" },
+      select: { id: true },
+    }),
   ]);
 
   let exact = 0;
@@ -99,9 +104,24 @@ export async function getUserStatsDetailed(
       points: 3,
     }));
 
+  // Racha mejor (sobre los partidos terminados del torneo en orden)
+  const finishedOrder = finishedMatches.map((m) => m.id);
+  const byMatch = new Map(preds.map((p) => [p.matchId, p]));
+  let bestStreak = 0;
+  let runningStreak = 0;
+  for (const matchId of finishedOrder) {
+    const p = byMatch.get(matchId);
+    if (p && (p.points ?? 0) > 0) {
+      runningStreak++;
+      bestStreak = Math.max(bestStreak, runningStreak);
+    } else if (p) {
+      runningStreak = 0;
+    }
+  }
+
   const predictionsCount = preds.length;
   return {
-    totalPoints: snapshot?.totalPoints ?? exact * 3 + correct,
+    totalPoints: exact * 3 + correct,
     predictionsCount,
     exact,
     correct,
@@ -110,7 +130,7 @@ export async function getUserStatsDetailed(
       predictionsCount > 0
         ? Math.round(((exact + correct) / predictionsCount) * 1000) / 10
         : 0,
-    bestStreak: snapshot?.bestStreak ?? 0,
+    bestStreak,
     byStage,
     best,
   };

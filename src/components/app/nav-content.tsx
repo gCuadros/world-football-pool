@@ -4,8 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Trophy } from "lucide-react";
 
-import { PRIMARY_NAV, ACCOUNT_NAV, type NavItem } from "@/lib/nav";
-import { FEATURES } from "@/lib/features";
+import { PUBLIC_NAV, APP_NAV, ACCOUNT_NAV, type NavItem } from "@/lib/nav";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -14,6 +13,7 @@ export type SidebarUser = {
   email: string;
   initials: string;
   rank: number | null;
+  leagueName: string | null;
 };
 
 function NavLink({
@@ -43,7 +43,6 @@ function NavLink({
   );
 }
 
-/** Contenido de navegación compartido por el sidebar (desktop) y el drawer (móvil). */
 export function NavContent({
   user,
   onNavigate,
@@ -54,10 +53,6 @@ export function NavContent({
   const pathname = usePathname();
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
-
-  const primaryNav = PRIMARY_NAV.filter(
-    (item) => item.href !== "/mini-ligas" || FEATURES.miniLeagues,
-  );
 
   return (
     <div className="flex h-full flex-col">
@@ -71,11 +66,12 @@ export function NavContent({
       </div>
 
       <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
+        {/* Zona pública */}
         <div className="space-y-1">
           <p className="text-sidebar-foreground/40 px-3 pb-1 font-mono text-[10px] tracking-widest uppercase">
-            Principal
+            Mundial
           </p>
-          {primaryNav.map((item) => (
+          {PUBLIC_NAV.map((item) => (
             <NavLink
               key={item.href}
               item={item}
@@ -85,6 +81,22 @@ export function NavContent({
           ))}
         </div>
 
+        {/* Zona privada */}
+        <div className="space-y-1">
+          <p className="text-sidebar-foreground/40 px-3 pb-1 font-mono text-[10px] tracking-widest uppercase">
+            Mi Quiniela
+          </p>
+          {APP_NAV.map((item) => (
+            <NavLink
+              key={item.href}
+              item={item}
+              active={isActive(item.href)}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+
+        {/* Cuenta */}
         <div className="space-y-1">
           <p className="text-sidebar-foreground/40 px-3 pb-1 font-mono text-[10px] tracking-widest uppercase">
             Cuenta
@@ -100,7 +112,7 @@ export function NavContent({
         </div>
       </nav>
 
-      {/* Footer: usuario */}
+      {/* Footer: usuario + rank */}
       <div className="border-sidebar-border border-t p-3">
         <div className="flex items-center gap-3 rounded-lg p-2">
           <Avatar className="size-9">
@@ -113,7 +125,9 @@ export function NavContent({
               {user.name}
             </p>
             <p className="text-sidebar-foreground/50 truncate text-xs">
-              {user.rank ? `Puesto #${user.rank}` : "Sin ranking"}
+              {user.rank && user.leagueName
+                ? `#${user.rank} · ${user.leagueName}`
+                : "Sin liga activa"}
             </p>
           </div>
         </div>

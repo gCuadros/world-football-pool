@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
-import { getUserStatsView } from "@/lib/queries";
+import { getUserLeagues } from "@/lib/leaderboard";
 
-// GET /api/user/stats — estadísticas del usuario autenticado.
+// GET /api/user/stats — ligas y primera liga del usuario autenticado.
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
-  const stats = await getUserStatsView(session.user.id);
-  return NextResponse.json(stats);
+  const leagues = await getUserLeagues(session.user.id);
+  return NextResponse.json({ leagues });
 }

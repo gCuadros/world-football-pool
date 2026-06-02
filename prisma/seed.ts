@@ -2,7 +2,6 @@ import bcrypt from "bcryptjs";
 
 import { prisma } from "../src/lib/prisma";
 import { importFromActiveProvider } from "../src/lib/import-fixtures";
-import { rebuildLeaderboardAndAchievements } from "../src/lib/recalculate";
 
 // Pseudo-aleatorio determinista para predicciones demo estables.
 function mulberry32(seed: number) {
@@ -48,7 +47,6 @@ async function main() {
 
   // Limpieza idempotente.
   await prisma.achievement.deleteMany();
-  await prisma.leaderboardSnapshot.deleteMany();
   await prisma.prediction.deleteMany();
   await prisma.miniLeagueMember.deleteMany();
   await prisma.miniLeague.deleteMany();
@@ -57,7 +55,7 @@ async function main() {
   await prisma.account.deleteMany();
   await prisma.user.deleteMany();
 
-  // Calendario real del Mundial 2026 (openfootball).
+  // Calendario real del Mundial 2026.
   const result = await importFromActiveProvider();
   console.log(
     `  ✓ ${result.imported} partidos importados (proveedor: ${result.provider})`,
@@ -80,6 +78,32 @@ async function main() {
   }
   console.log(`  ✓ ${users.length} usuarios (contraseña: password123)`);
 
+  // Liga principal de demo — todos los usuarios.
+  const mainLeague = await prisma.miniLeague.create({
+    data: {
+      name: "Liga de Amigos",
+      inviteCode: "MUND26",
+      createdById: users[0].id,
+      members: {
+        create: users.map((u) => ({ userId: u.id })),
+      },
+    },
+  });
+  console.log(`  ✓ Liga "Liga de Amigos" (código: MUND26)`);
+
+  // Segunda liga demo — solo 4 usuarios.
+  const secondLeague = await prisma.miniLeague.create({
+    data: {
+      name: "Liga Élite",
+      inviteCode: "ELITE6",
+      createdById: users[1].id,
+      members: {
+        create: users.slice(0, 4).map((u) => ({ userId: u.id })),
+      },
+    },
+  });
+  console.log(`  ✓ Liga "Liga Élite" (código: ELITE6)`);
+
   // Predicciones demo sobre los primeros partidos de la fase de grupos.
   const groupMatches = await prisma.match.findMany({
     where: { stage: "GROUP_STAGE" },
@@ -87,6 +111,8 @@ async function main() {
   });
 
   let predCount = 0;
+
+  // Predicciones en la liga principal.
   for (let ui = 0; ui < users.length; ui++) {
     const take = ui === 0 ? 36 : 18 + Math.floor(mulberry32(hash(ui))() * 10);
     for (const m of groupMatches.slice(0, take)) {
@@ -94,36 +120,37 @@ async function main() {
       await prisma.prediction.create({
         data: {
           userId: users[ui].id,
+          leagueId: mainLeague.id,
           matchId: m.id,
           homeScore: Math.floor(rnd() * 4),
           awayScore: Math.floor(rnd() * 3),
-          points: null, // el torneo aún no ha empezado
+          points: null,
         },
       });
       predCount++;
     }
   }
-  console.log(`  ✓ ${predCount} predicciones demo`);
 
-  // Clasificación inicial (todos a 0; se recalcula al haber resultados).
-  await rebuildLeaderboardAndAchievements();
-  console.log(`  ✓ clasificación inicializada`);
-
-  // Mini-liga demo.
-  const league = await prisma.miniLeague.create({
-    data: {
-      name: "Liga de Amigos",
-      inviteCode: "MUND26",
-      createdById: users[0].id,
-    },
-  });
-  for (const user of users.slice(0, 5)) {
-    await prisma.miniLeagueMember.create({
-      data: { userId: user.id, miniLeagueId: league.id },
-    });
+  // Predicciones en la liga élite (primeros 4 usuarios, marcadores distintos).
+  for (let ui = 0; ui < 4; ui++) {
+    const take = 20 + Math.floor(mulberry32(hash(ui + 10))() * 8);
+    for (const m of groupMatches.slice(0, take)) {
+      const rnd = mulberry32(hash(ui + 20, m.matchNo));
+      await prisma.prediction.create({
+        data: {
+          userId: users[ui].id,
+          leagueId: secondLeague.id,
+          matchId: m.id,
+          homeScore: Math.floor(rnd() * 3),
+          awayScore: Math.floor(rnd() * 3),
+          points: null,
+        },
+      });
+      predCount++;
+    }
   }
-  console.log(`  ✓ mini-liga "Liga de Amigos" (código: MUND26)`);
 
+  console.log(`  ✓ ${predCount} predicciones demo (2 ligas)`);
   console.log("✅ Seed completado.");
 }
 

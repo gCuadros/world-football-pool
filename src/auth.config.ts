@@ -1,8 +1,15 @@
 import type { NextAuthConfig } from "next-auth";
 
+// Rutas accesibles sin sesión (zona pública del Mundial).
+const PUBLIC_PATHS = ["/", "/resultados", "/mundial", "/partido", "/noticias"];
+
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(p + "/"),
+  );
+}
+
 // Configuración base, segura para el runtime edge (sin Prisma ni bcrypt).
-// La usa el middleware para proteger rutas. La config completa (con el
-// proveedor de credenciales) vive en `src/auth.ts` (runtime Node).
 export const authConfig = {
   pages: {
     signIn: "/login",
@@ -13,13 +20,13 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const { pathname } = nextUrl;
 
-      // /login es siempre accesible. La redirección de usuarios YA logueados
-      // se hace en la propia página validando contra la BD: así una cookie de
-      // sesión obsoleta (p. ej. tras borrar/recrear usuarios) no provoca un
-      // bucle de redirecciones (el proxy solo ve el JWT, no la BD).
+      // /login siempre accesible.
       if (pathname.startsWith("/login")) return true;
 
-      // El resto de rutas (la app) requieren sesión.
+      // Zona pública: sin login requerido.
+      if (isPublicPath(pathname)) return true;
+
+      // Resto de rutas (zona privada, /liga, /ligas, /ajustes…) requieren sesión.
       return isLoggedIn;
     },
     jwt({ token, user }) {
