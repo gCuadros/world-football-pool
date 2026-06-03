@@ -10,22 +10,45 @@ export const metadata = { title: "Entrar" };
 // Comprobación de sesión (dinámica) aislada en Suspense: si ya hay sesión válida
 // en BD, redirige a la app; si no, no renderiza nada y se muestra el login.
 // (Validar contra BD evita el bucle con cookies de sesión obsoletas.)
-async function SessionGate() {
+function safePath(value: string | undefined): string | undefined {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return undefined;
+  return value;
+}
+
+type SearchParams = Promise<{ next?: string }>;
+
+async function SessionGate({ searchParams }: { searchParams: SearchParams }) {
   let user = null;
   try {
     user = await getCurrentUser();
   } catch {
     user = null;
   }
-  if (user) redirect("/partidos");
+  const { next } = await searchParams;
+  if (user) redirect(safePath(next) ?? "/partidos");
   return null;
 }
 
-export default function LoginPage() {
+async function AuthFormSlot({
+  searchParams,
+  googleEnabled,
+}: {
+  searchParams: SearchParams;
+  googleEnabled: boolean;
+}) {
+  const { next } = await searchParams;
+  return <AuthForm googleEnabled={googleEnabled} next={safePath(next)} />;
+}
+
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   return (
     <main className="grid min-h-dvh lg:grid-cols-2">
       <Suspense fallback={null}>
-        <SessionGate />
+        <SessionGate searchParams={searchParams} />
       </Suspense>
       {/* Panel de marca */}
       <section className="bg-primary text-primary-foreground relative hidden flex-col justify-between overflow-hidden p-12 lg:flex">
@@ -92,7 +115,9 @@ export default function LoginPage() {
           <p className="text-muted-foreground mt-1 mb-6 text-sm">
             Entra para gestionar tus predicciones y ver la clasificación.
           </p>
-          <AuthForm googleEnabled={googleEnabled} />
+          <Suspense fallback={<AuthForm googleEnabled={googleEnabled} />}>
+            <AuthFormSlot searchParams={searchParams} googleEnabled={googleEnabled} />
+          </Suspense>
         </div>
       </section>
     </main>

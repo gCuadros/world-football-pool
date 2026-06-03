@@ -8,7 +8,7 @@ import { getLeagueLeaderboard } from "@/lib/leaderboard";
 import { prisma } from "@/lib/prisma";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CopyCode } from "@/components/ligas/copy-code";
+import { ShareLeague } from "@/components/ligas/share-league";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -52,8 +52,8 @@ async function LigaContent({ params }: { params: Promise<{ id: string }> }) {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="min-w-0">
             <h1 className="truncate text-xl font-bold">{league.name}</h1>
-            <div className="mt-1 flex items-center gap-2">
-              <CopyCode code={league.inviteCode} />
+            <div className="mt-2">
+              <ShareLeague code={league.inviteCode} leagueName={league.name} />
             </div>
           </div>
           <Link

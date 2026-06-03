@@ -45,7 +45,13 @@ function GoogleIcon() {
   );
 }
 
-export function AuthForm({ googleEnabled = false }: { googleEnabled?: boolean }) {
+export function AuthForm({
+  googleEnabled = false,
+  next,
+}: {
+  googleEnabled?: boolean;
+  next?: string;
+}) {
   const [mode, setMode] = useState<Mode>("login");
   const [loginState, loginDispatch, loginPending] = useActionState(
     loginAction,
@@ -103,6 +109,7 @@ export function AuthForm({ googleEnabled = false }: { googleEnabled?: boolean })
 
       {isLogin ? (
         <form action={loginDispatch} className="space-y-4">
+          {next ? <input type="hidden" name="next" value={next} /> : null}
           <div className="space-y-2">
             <Label htmlFor="login-email">Email</Label>
             <Input
@@ -133,6 +140,7 @@ export function AuthForm({ googleEnabled = false }: { googleEnabled?: boolean })
         </form>
       ) : (
         <form action={registerDispatch} className="space-y-4">
+          {next ? <input type="hidden" name="next" value={next} /> : null}
           <div className="space-y-2">
             <Label htmlFor="reg-name">Nombre</Label>
             <Input
