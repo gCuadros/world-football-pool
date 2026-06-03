@@ -84,10 +84,11 @@ export async function registerAction(
   });
 
   try {
+    // Tras el registro mostramos el vídeo de bienvenida (no en logins normales).
     await signIn("credentials", {
       email,
       password,
-      redirectTo: DEFAULT_REDIRECT,
+      redirectTo: "/bienvenida",
     });
   } catch (error) {
     if (error instanceof AuthError) {
