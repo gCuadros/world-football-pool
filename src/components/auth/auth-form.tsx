@@ -118,7 +118,6 @@ export function AuthForm({
               type="email"
               autoComplete="email"
               placeholder="tu@email.com"
-              defaultValue="gonzalo@quiniela.app"
               required
             />
             <FieldError messages={loginState.fieldErrors?.email} />
@@ -131,7 +130,6 @@ export function AuthForm({
               type="password"
               autoComplete="current-password"
               placeholder="••••••••"
-              defaultValue="password123"
               required
             />
             <FieldError messages={loginState.fieldErrors?.password} />
@@ -180,13 +178,6 @@ export function AuthForm({
           <SubmitButton pending={pending}>Crear cuenta</SubmitButton>
         </form>
       )}
-
-      {isLogin ? (
-        <p className="text-muted-foreground mt-6 text-center text-xs">
-          Cuenta demo precargada ·{" "}
-          <span className="font-mono">password123</span>
-        </p>
-      ) : null}
     </div>
   );
 }
