@@ -71,15 +71,16 @@ export function MatchCard({
 
   const imminent = status === "UPCOMING" && isLockImminent(match.kickoffAt, now);
 
-  return (
-    <div
-      className={cn(
-        "bg-card flex flex-col gap-3 rounded-xl border p-4 transition-colors",
-        isLive
-          ? "border-border border-l-[3px] border-l-primary"
-          : "border-border",
-      )}
-    >
+  const cardClass = cn(
+    "bg-card flex flex-col gap-3 rounded-xl border p-4 transition-colors",
+    isLive
+      ? "border-border border-l-[3px] border-l-primary"
+      : "border-border",
+    publicMode && "hover:border-primary/40",
+  );
+
+  const body = (
+    <>
       {/* Cabecera */}
       <div className="flex items-center justify-between gap-2">
         <span className="text-muted-foreground font-mono text-[10px] tracking-wide uppercase">
@@ -154,6 +155,14 @@ export function MatchCard({
           )}
         </div>
       )}
-    </div>
+    </>
+  );
+
+  return publicMode ? (
+    <Link href={`/partido/${match.id}`} className={cardClass}>
+      {body}
+    </Link>
+  ) : (
+    <div className={cardClass}>{body}</div>
   );
 }

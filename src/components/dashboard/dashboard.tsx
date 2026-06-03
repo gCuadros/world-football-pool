@@ -178,8 +178,9 @@ function MiniMatch({
   const hasScore = match.homeScore !== null && match.awayScore !== null;
 
   return (
-    <div
-      className={`bg-card flex flex-col gap-2 rounded-xl border p-3 ${live ? "border-live/40" : "border-border"}`}
+    <Link
+      href={`/partido/${match.id}`}
+      className={`bg-card hover:border-primary/40 flex flex-col gap-2 rounded-xl border p-3 transition-colors ${live ? "border-live/40" : "border-border"}`}
     >
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground font-mono text-[10px] tracking-wide uppercase">
@@ -195,7 +196,7 @@ function MiniMatch({
         <TeamRow flag={match.homeFlag} crest={match.homeCrest} name={match.homeTeam} score={hasScore ? match.homeScore : null} />
         <TeamRow flag={match.awayFlag} crest={match.awayCrest} name={match.awayTeam} score={hasScore ? match.awayScore : null} />
       </div>
-    </div>
+    </Link>
   );
 }
 

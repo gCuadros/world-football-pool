@@ -7,7 +7,15 @@ import { isPredictionLocked } from "@/lib/scoring";
 import { TAGS } from "@/lib/cache-tags";
 import {
   getApiFootballEvents,
+  getApiFootballPrediction,
+  getApiFootballLineups,
+  getApiFootballStatistics,
+  getApiFootballH2H,
   type MatchEvent,
+  type MatchPrediction,
+  type TeamLineup,
+  type TeamStats,
+  type H2HMatch,
 } from "@/lib/providers/api-football";
 import type { Stage, MatchStatus } from "@prisma/client";
 
@@ -244,6 +252,71 @@ export async function getMatchEvents(
   if (!process.env.API_FOOTBALL_KEY) return [];
   try {
     return await getApiFootballEvents(externalId);
+  } catch {
+    return [];
+  }
+}
+
+/** Pronóstico (%) de un partido — CACHEADO. Incluye IDs de equipo para el h2h. */
+export async function getMatchPrediction(
+  externalId: string,
+): Promise<MatchPrediction | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAGS.matches, `detail-${externalId}`);
+
+  if (!process.env.API_FOOTBALL_KEY) return null;
+  try {
+    return await getApiFootballPrediction(externalId);
+  } catch {
+    return null;
+  }
+}
+
+/** Alineaciones de un partido — CACHEADO. */
+export async function getMatchLineups(
+  externalId: string,
+): Promise<TeamLineup[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(TAGS.matches, `detail-${externalId}`);
+
+  if (!process.env.API_FOOTBALL_KEY) return [];
+  try {
+    return await getApiFootballLineups(externalId);
+  } catch {
+    return [];
+  }
+}
+
+/** Estadísticas de un partido — CACHEADO. */
+export async function getMatchStatistics(
+  externalId: string,
+): Promise<TeamStats[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(TAGS.matches, `detail-${externalId}`);
+
+  if (!process.env.API_FOOTBALL_KEY) return [];
+  try {
+    return await getApiFootballStatistics(externalId);
+  } catch {
+    return [];
+  }
+}
+
+/** Head-to-head entre dos equipos (por IDs de API-Football) — CACHEADO. */
+export async function getMatchH2H(
+  homeId: number,
+  awayId: number,
+): Promise<H2HMatch[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(`h2h-${homeId}-${awayId}`);
+
+  if (!process.env.API_FOOTBALL_KEY) return [];
+  try {
+    return await getApiFootballH2H(homeId, awayId);
   } catch {
     return [];
   }
