@@ -11,8 +11,21 @@ import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/app/(app)/actions";
 import { MobileNav } from "@/components/app/mobile-nav";
 import type { SidebarUser } from "@/components/app/nav-content";
+import { NotificationBell } from "@/components/notifications/notification-bell";
+import type { NotificationVM } from "@/lib/notifications";
 
-export function Topbar({ user }: { user: SidebarUser }) {
+export type TopbarNotifications = {
+  count: number;
+  items: NotificationVM[];
+};
+
+export function Topbar({
+  user,
+  notifications,
+}: {
+  user: SidebarUser;
+  notifications?: TopbarNotifications;
+}) {
   const pathname = usePathname();
   const title = titleForPath(pathname);
   const { resolvedTheme, setTheme } = useTheme();
@@ -40,6 +53,13 @@ export function Topbar({ user }: { user: SidebarUser }) {
           <Sun className="size-4 dark:hidden" />
           <Moon className="hidden size-4 dark:block" />
         </Button>
+
+        {user.isLoggedIn && notifications && (
+          <NotificationBell
+            count={notifications.count}
+            items={notifications.items}
+          />
+        )}
 
         {user.isLoggedIn ? (
           <Button

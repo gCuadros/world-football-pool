@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { TAGS } from "@/lib/cache-tags";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { finalizeMatch } from "@/lib/recalculate";
+import { notifyMatchResult } from "@/lib/notification-triggers";
 
 const KICKOFFS_PER_TICK = 3;
 
@@ -33,6 +34,7 @@ export async function POST(req: Request) {
     const home = randomGoals();
     const away = randomGoals();
     await finalizeMatch(m.id, home, away);
+    await notifyMatchResult(m.id);
     finalized.push({
       matchNo: m.matchNo,
       result: `${m.homeTeam} ${home}-${away} ${m.awayTeam}`,

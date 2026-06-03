@@ -8,6 +8,7 @@ import { toast } from "sonner";
 
 import { updateProfile } from "@/app/(app)/ajustes/actions";
 import { signOutAction } from "@/app/(app)/actions";
+import { PushToggle } from "@/components/notifications/push-toggle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -146,6 +147,15 @@ export function AjustesView({
                 );
               })}
             </div>
+          </section>
+
+          {/* Notificaciones */}
+          <section className="border-border bg-card rounded-2xl border p-5">
+            <h2 className="mb-1 font-bold">Notificaciones</h2>
+            <p className="text-muted-foreground mb-4 text-sm">
+              Recibe avisos de goles, resultados y recordatorios en este dispositivo.
+            </p>
+            <PushToggle />
           </section>
 
           {/* Zona de peligro */}

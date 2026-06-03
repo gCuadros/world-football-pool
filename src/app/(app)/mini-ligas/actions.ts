@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { createNotifications } from "@/lib/notifications";
 
 export type LeagueResult =
   | { ok: true; leagueId?: string; code?: string }
@@ -90,6 +91,23 @@ export async function joinLeague(code: string): Promise<LeagueResult> {
   await prisma.miniLeagueMember.create({
     data: { userId: session.user.id, miniLeagueId: league.id },
   });
+
+  // Avisa a los miembros existentes de la liga.
+  const newName = session.user.name ?? "Alguien";
+  const others = await prisma.miniLeagueMember.findMany({
+    where: { miniLeagueId: league.id, userId: { not: session.user.id } },
+    select: { userId: true },
+  });
+  await createNotifications(
+    others.map((m) => ({
+      userId: m.userId,
+      type: "LEAGUE_JOIN" as const,
+      title: `${newName} se ha unido a ${league.name}`,
+      body: "Tienes nueva competencia en tu liga.",
+      link: `/liga/${league.id}`,
+      leagueId: league.id,
+    })),
+  );
 
   revalidatePath("/ligas");
   return { ok: true, leagueId: league.id, code: league.name };

@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { TAGS } from "@/lib/cache-tags";
 import { isAdminRequest } from "@/lib/admin-auth";
 import { recalculateMatchPoints, rebuildAchievements } from "@/lib/recalculate";
+import { notifyMatchResult } from "@/lib/notification-triggers";
 
 const schema = z.object({
   homeScore: z.coerce.number().int().min(0).max(99).optional(),
@@ -78,6 +79,9 @@ export async function PATCH(
       distinct: ["userId"],
     });
     await Promise.all(affectedUsers.map((u) => rebuildAchievements(u.userId)));
+
+    // Notifica el resultado (idempotente).
+    await notifyMatchResult(id);
   }
 
   return NextResponse.json({ ok: true });

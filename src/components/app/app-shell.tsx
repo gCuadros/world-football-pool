@@ -2,6 +2,7 @@ import { Suspense } from "react";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getFirstLeagueInfo, getUserLeagues } from "@/lib/leaderboard";
+import { getUnreadCount, getRecentNotifications } from "@/lib/notifications";
 import { Sidebar } from "@/components/app/sidebar";
 import { Topbar } from "@/components/app/topbar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -69,7 +70,15 @@ async function SidebarSlot() {
 }
 
 async function TopbarSlot() {
-  return <Topbar user={await loadNavUser()} />;
+  const user = await loadNavUser();
+  if (!user.isLoggedIn) return <Topbar user={user} />;
+
+  const me = await getCurrentUser();
+  const [count, items] = await Promise.all([
+    getUnreadCount(me!.id),
+    getRecentNotifications(me!.id),
+  ]);
+  return <Topbar user={user} notifications={{ count, items }} />;
 }
 
 function SidebarSkeleton() {
