@@ -14,6 +14,13 @@ export type AuthActionState = {
 
 const DEFAULT_REDIRECT = "/partidos";
 
+/** Solo acepta rutas internas relativas (evita open redirects). */
+function safeNext(value: FormDataEntryValue | null): string | null {
+  if (typeof value !== "string") return null;
+  if (!value.startsWith("/") || value.startsWith("//")) return null;
+  return value;
+}
+
 export async function signInWithGoogle() {
   await signIn("google", { redirectTo: DEFAULT_REDIRECT });
 }
@@ -45,7 +52,7 @@ export async function loginAction(
     await signIn("credentials", {
       email: parsed.data.email,
       password: parsed.data.password,
-      redirectTo: DEFAULT_REDIRECT,
+      redirectTo: safeNext(formData.get("next")) ?? DEFAULT_REDIRECT,
     });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -84,11 +91,11 @@ export async function registerAction(
   });
 
   try {
-    // Tras el registro mostramos el vídeo de bienvenida (no en logins normales).
+    // Con invitación (next) vamos directos a unirse; si no, vídeo de bienvenida.
     await signIn("credentials", {
       email,
       password,
-      redirectTo: "/bienvenida",
+      redirectTo: safeNext(formData.get("next")) ?? "/bienvenida",
     });
   } catch (error) {
     if (error instanceof AuthError) {
