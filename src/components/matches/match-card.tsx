@@ -75,7 +75,9 @@ export function MatchCard({
     <div
       className={cn(
         "bg-card flex flex-col gap-3 rounded-xl border p-4 transition-colors",
-        isLive ? "border-live/40" : "border-border",
+        isLive
+          ? "border-border border-l-[3px] border-l-primary"
+          : "border-border",
       )}
     >
       {/* Cabecera */}

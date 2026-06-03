@@ -58,7 +58,6 @@ export async function rebuildAchievements(userId: string): Promise<void> {
   const finished = preds.filter((p) => finishedSet.has(p.matchId));
 
   const exactCount = finished.filter((p) => p.points === 3).length;
-  const correctCount = finished.filter((p) => p.points === 1).length;
   const predictionsCount = finished.length;
 
   let bestStreak = 0;

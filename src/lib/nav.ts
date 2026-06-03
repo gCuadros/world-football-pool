@@ -1,9 +1,10 @@
 import {
-  Globe,
   Radio,
-  Trophy,
+  Globe,
+  Newspaper,
   Users,
-  Medal,
+  SquarePen,
+  User,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -16,26 +17,30 @@ export type NavItem = {
   badge?: string;
 };
 
-// Navegación de la zona pública (sin login).
-export const PUBLIC_NAV: NavItem[] = [
+// EXPLORAR — zona pública (sin login).
+export const EXPLORE_NAV: NavItem[] = [
   { href: "/resultados", label: "Resultados", title: "Resultados en vivo", icon: Radio },
   { href: "/mundial", label: "Mundial", title: "Info del Mundial", icon: Globe },
+  { href: "/noticias", label: "Noticias", title: "Noticias", icon: Newspaper },
 ];
 
-// Navegación de la zona privada (login + liga).
-export const APP_NAV: NavItem[] = [
+// MIS LIGAS — zona privada. "Predicciones" es dinámica (liga activa) y se compone
+// en el NavContent a partir de las ligas del usuario.
+export const LEAGUE_NAV: NavItem[] = [
   { href: "/ligas", label: "Mis Ligas", title: "Mis Ligas", icon: Users },
 ];
 
+// CUENTA — Perfil y Ajustes viven en /ajustes (pantalla combinada del diseño).
 export const ACCOUNT_NAV: NavItem[] = [
-  { href: "/logros", label: "Logros", title: "Logros", icon: Medal },
+  { href: "/ajustes", label: "Perfil", title: "Perfil", icon: User },
   { href: "/ajustes", label: "Ajustes", title: "Ajustes", icon: Settings },
 ];
 
-export const ALL_NAV = [...PUBLIC_NAV, ...APP_NAV, ...ACCOUNT_NAV];
+export const PREDICCIONES_ICON = SquarePen;
+
+const ALL_NAV = [...EXPLORE_NAV, ...LEAGUE_NAV, ...ACCOUNT_NAV];
 
 export function titleForPath(pathname: string): string {
-  // Liga dinámica
   const ligaMatch = pathname.match(/^\/liga\/([^/]+)(\/predicciones)?$/);
   if (ligaMatch) return ligaMatch[2] ? "Mis Predicciones" : "Clasificación";
 
@@ -44,6 +49,3 @@ export function titleForPath(pathname: string): string {
   );
   return match?.title ?? "Quiniela";
 }
-
-// Re-export legacy Trophy icon for shell compatibility.
-export { Trophy };

@@ -2,32 +2,19 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Hash } from "lucide-react";
+import { LogIn, Plus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { createLeague, joinLeague } from "@/app/(app)/mini-ligas/actions";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
+// Botones de cabecera "Unirse con código" / "Nueva liga" + panel de formulario.
+// Diseño: topbar de la pantalla 08 "Mis Ligas".
 export function LigasActions() {
-  const [mode, setMode] = useState<"idle" | "create" | "join">("idle");
-  const [name, setName] = useState("");
+  const [mode, setMode] = useState<"idle" | "join" | "create">("idle");
   const [code, setCode] = useState("");
-  const [isPending, startTransition] = useTransition();
+  const [name, setName] = useState("");
+  const [pending, startTransition] = useTransition();
   const router = useRouter();
-
-  function handleCreate() {
-    startTransition(async () => {
-      const res = await createLeague(name);
-      if (!res.ok) {
-        toast.error(res.error);
-        return;
-      }
-      toast.success(`¡Liga creada! Código: ${res.code}`);
-      router.push(`/liga/${res.leagueId}`);
-    });
-  }
 
   function handleJoin() {
     startTransition(async () => {
@@ -41,95 +28,93 @@ export function LigasActions() {
     });
   }
 
-  if (mode === "create") {
-    return (
-      <div className="border-border bg-card space-y-4 rounded-xl border p-5">
-        <h3 className="font-semibold">Nueva liga</h3>
-        <div className="space-y-2">
-          <Label htmlFor="league-name">Nombre de la liga</Label>
-          <Input
-            id="league-name"
-            placeholder="p. ej. Liga de la Oficina"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={40}
-            autoFocus
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button
-            onClick={handleCreate}
-            disabled={isPending || name.trim().length < 3}
-            className="flex-1"
-          >
-            {isPending ? "Creando…" : "Crear liga"}
-          </Button>
-          <Button variant="outline" onClick={() => setMode("idle")} disabled={isPending}>
-            Cancelar
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  if (mode === "join") {
-    return (
-      <div className="border-border bg-card space-y-4 rounded-xl border p-5">
-        <h3 className="font-semibold">Unirse con código</h3>
-        <div className="space-y-2">
-          <Label htmlFor="league-code">Código de invitación (6 caracteres)</Label>
-          <Input
-            id="league-code"
-            placeholder="p. ej. MUND26"
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            maxLength={6}
-            className="font-mono tracking-widest uppercase"
-            autoFocus
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button
-            onClick={handleJoin}
-            disabled={isPending || code.length !== 6}
-            className="flex-1"
-          >
-            {isPending ? "Uniéndome…" : "Unirse"}
-          </Button>
-          <Button variant="outline" onClick={() => setMode("idle")} disabled={isPending}>
-            Cancelar
-          </Button>
-        </div>
-      </div>
-    );
+  function handleCreate() {
+    startTransition(async () => {
+      const res = await createLeague(name);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success(`¡Liga creada! Código: ${res.code}`);
+      router.push(`/liga/${res.leagueId}`);
+    });
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <button
-        onClick={() => setMode("join")}
-        className="border-border bg-card hover:bg-muted/50 flex items-center gap-3 rounded-xl border p-4 text-left transition-colors"
-      >
-        <div className="bg-primary/10 flex size-10 shrink-0 items-center justify-center rounded-xl">
-          <Hash className="text-primary size-5" />
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-end gap-2.5">
+        <button
+          onClick={() => setMode((m) => (m === "join" ? "idle" : "join"))}
+          className="bg-secondary text-secondary-foreground border-border hover:bg-secondary/70 flex items-center gap-2 rounded-lg border px-4 py-2 text-[13px] font-medium transition-colors"
+        >
+          <LogIn className="size-4" />
+          Unirse con código
+        </button>
+        <button
+          onClick={() => setMode((m) => (m === "create" ? "idle" : "create"))}
+          className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors"
+        >
+          <Plus className="size-4" />
+          Nueva liga
+        </button>
+      </div>
+
+      {mode !== "idle" && (
+        <div className="border-border bg-card relative space-y-3 rounded-2xl border p-5">
+          <button
+            onClick={() => setMode("idle")}
+            aria-label="Cerrar"
+            className="text-muted-foreground hover:text-foreground absolute top-4 right-4"
+          >
+            <X className="size-4" />
+          </button>
+          {mode === "join" ? (
+            <>
+              <h3 className="font-semibold">Unirse con código</h3>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  maxLength={6}
+                  placeholder="CÓDIGO"
+                  autoFocus
+                  className="border-border bg-background focus:border-primary h-11 flex-1 rounded-xl border px-4 font-mono tracking-[0.3em] uppercase outline-none transition-colors placeholder:tracking-normal"
+                />
+                <button
+                  onClick={handleJoin}
+                  disabled={pending || code.length !== 6}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition-colors disabled:opacity-50"
+                >
+                  {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+                  Unirse
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h3 className="font-semibold">Nueva liga</h3>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={40}
+                  placeholder="Nombre de tu liga…"
+                  autoFocus
+                  className="border-border bg-background focus:border-primary h-11 flex-1 rounded-xl border px-4 outline-none transition-colors"
+                />
+                <button
+                  onClick={handleCreate}
+                  disabled={pending || name.trim().length < 3}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition-colors disabled:opacity-50"
+                >
+                  {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+                  Crear
+                </button>
+              </div>
+            </>
+          )}
         </div>
-        <div>
-          <p className="font-semibold text-sm">Unirse con código</p>
-          <p className="text-muted-foreground text-xs">Tengo un código de invitación</p>
-        </div>
-      </button>
-      <button
-        onClick={() => setMode("create")}
-        className="border-border bg-card hover:bg-muted/50 flex items-center gap-3 rounded-xl border p-4 text-left transition-colors"
-      >
-        <div className="bg-primary/10 flex size-10 shrink-0 items-center justify-center rounded-xl">
-          <Plus className="text-primary size-5" />
-        </div>
-        <div>
-          <p className="font-semibold text-sm">Crear liga</p>
-          <p className="text-muted-foreground text-xs">Invita a tus amigos con un código</p>
-        </div>
-      </button>
+      )}
     </div>
   );
 }

@@ -29,15 +29,13 @@ function SectionHeader({
   return (
     <div
       className={cn(
-        "mb-3 border-l-2 pl-3",
-        accent === "live" ? "border-live" : "border-primary",
+        "border-primary mb-3 border-l-[3px] pl-3",
+        accent === "live" && "border-live",
       )}
     >
-      <h2 className="flex items-center gap-2 text-base font-bold">
+      <h2 className="flex items-center gap-2 font-mono text-base font-bold">
         {title}
-        <span className="text-muted-foreground font-mono text-xs font-normal">
-          {count}
-        </span>
+        <span className="text-muted-foreground text-xs font-normal">{count}</span>
       </h2>
     </div>
   );
