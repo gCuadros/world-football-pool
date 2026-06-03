@@ -328,3 +328,180 @@ export async function getApiFootballEvents(
     detail: e.detail,
   }));
 }
+
+// ── Pronóstico (%) ────────────────────────────────────────────────────────
+export type MatchPrediction = {
+  percent: { home: number; draw: number; away: number };
+  advice: string | null;
+  winnerName: string | null;
+  homeId: number;
+  awayId: number;
+};
+
+type AfPrediction = {
+  predictions: {
+    winner: { id: number | null; name: string | null } | null;
+    advice: string | null;
+    percent: { home: string; draw: string; away: string };
+  };
+  teams: {
+    home: { id: number; name: string };
+    away: { id: number; name: string };
+  };
+};
+
+function pct(v: string | null | undefined): number {
+  return v ? Number(v.replace("%", "").trim()) || 0 : 0;
+}
+
+/** Pronóstico de API-Football para un partido. Incluye los IDs de equipo (para el h2h). */
+export async function getApiFootballPrediction(
+  externalId: string,
+): Promise<MatchPrediction | null> {
+  const resp = await apiGet<AfPrediction[]>(`/predictions?fixture=${externalId}`);
+  const p = resp[0];
+  if (!p) return null;
+  return {
+    percent: {
+      home: pct(p.predictions.percent?.home),
+      draw: pct(p.predictions.percent?.draw),
+      away: pct(p.predictions.percent?.away),
+    },
+    advice: p.predictions.advice ?? null,
+    winnerName: p.predictions.winner?.name ?? null,
+    homeId: p.teams.home.id,
+    awayId: p.teams.away.id,
+  };
+}
+
+// ── Alineaciones ──────────────────────────────────────────────────────────
+export type LineupPlayer = {
+  name: string;
+  number: number | null;
+  pos: string | null;
+};
+export type TeamLineup = {
+  team: string;
+  teamLogo: string | null;
+  teamFlag: string | null;
+  formation: string | null;
+  coach: string | null;
+  startXI: LineupPlayer[];
+  substitutes: LineupPlayer[];
+};
+
+type AfLineupPlayer = {
+  player: { name: string | null; number: number | null; pos: string | null };
+};
+type AfLineup = {
+  team: { name: string; logo: string | null };
+  formation: string | null;
+  coach: { name: string | null } | null;
+  startXI: AfLineupPlayer[];
+  substitutes: AfLineupPlayer[];
+};
+
+export async function getApiFootballLineups(
+  externalId: string,
+): Promise<TeamLineup[]> {
+  const resp = await apiGet<AfLineup[]>(`/fixtures/lineups?fixture=${externalId}`);
+  const mapPlayer = (p: AfLineupPlayer): LineupPlayer => ({
+    name: p.player.name ?? "—",
+    number: p.player.number,
+    pos: p.player.pos,
+  });
+  return resp.map((l) => {
+    const info = teamInfo(l.team.name);
+    return {
+      team: info.name,
+      teamLogo: l.team.logo,
+      teamFlag: info.flag,
+      formation: l.formation,
+      coach: l.coach?.name ?? null,
+      startXI: (l.startXI ?? []).map(mapPlayer),
+      substitutes: (l.substitutes ?? []).map(mapPlayer),
+    };
+  });
+}
+
+// ── Estadísticas ──────────────────────────────────────────────────────────
+const STAT_LABELS: Record<string, string> = {
+  "Ball Possession": "Posesión",
+  "Total Shots": "Tiros totales",
+  "Shots on Goal": "Tiros a puerta",
+  "Shots off Goal": "Tiros fuera",
+  "Corner Kicks": "Córners",
+  "Fouls": "Faltas",
+  "Yellow Cards": "Tarjetas amarillas",
+  "Red Cards": "Tarjetas rojas",
+  "Offsides": "Fueras de juego",
+  "Goalkeeper Saves": "Paradas",
+  "Total passes": "Pases totales",
+  "Passes accurate": "Pases acertados",
+  "Passes %": "% de pases",
+  "expected_goals": "Goles esperados (xG)",
+};
+
+export type TeamStats = {
+  team: string;
+  teamFlag: string | null;
+  stats: { label: string; value: string | number | null }[];
+};
+
+type AfStatistics = {
+  team: { name: string };
+  statistics: { type: string; value: string | number | null }[];
+};
+
+export async function getApiFootballStatistics(
+  externalId: string,
+): Promise<TeamStats[]> {
+  const resp = await apiGet<AfStatistics[]>(
+    `/fixtures/statistics?fixture=${externalId}`,
+  );
+  return resp.map((s) => {
+    const info = teamInfo(s.team.name);
+    return {
+      team: info.name,
+      teamFlag: info.flag,
+      stats: (s.statistics ?? []).map((st) => ({
+        label: STAT_LABELS[st.type] ?? st.type,
+        value: st.value,
+      })),
+    };
+  });
+}
+
+// ── Head-to-head ──────────────────────────────────────────────────────────
+export type H2HMatch = {
+  date: string; // ISO
+  home: string;
+  homeFlag: string | null;
+  away: string;
+  awayFlag: string | null;
+  homeScore: number | null;
+  awayScore: number | null;
+};
+
+export async function getApiFootballH2H(
+  homeId: number,
+  awayId: number,
+  last = 5,
+): Promise<H2HMatch[]> {
+  const resp = await apiGet<AfFixture[]>(
+    `/fixtures/headtohead?h2h=${homeId}-${awayId}&last=${last}`,
+  );
+  return resp.map((f) => {
+    const h = teamInfo(f.teams.home.name);
+    const a = teamInfo(f.teams.away.name);
+    return {
+      date: new Date(f.fixture.timestamp * 1000).toISOString(),
+      home: h.name,
+      homeFlag: h.flag,
+      away: a.name,
+      awayFlag: a.flag,
+      homeScore: f.goals.home,
+      awayScore: f.goals.away,
+    };
+  });
+}
