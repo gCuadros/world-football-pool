@@ -16,7 +16,8 @@ import {
   subscribeToPush,
 } from "@/lib/push-client";
 
-const DISMISS_KEY = "push-prompt-dismissed";
+const SNOOZE_KEY = "push-prompt-snoozed-until";
+const SNOOZE_DAYS = 7;
 
 /**
  * Banner de onboarding que invita a activar notificaciones. Se oculta si ya hay
@@ -28,7 +29,9 @@ export function PushPrompt() {
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
-    if (localStorage.getItem(DISMISS_KEY) === "1") return;
+    // Pospuesto recientemente → no molestar hasta que caduque.
+    const until = Number(localStorage.getItem(SNOOZE_KEY) ?? 0);
+    if (until && Date.now() < until) return;
 
     if (!isPushSupported()) {
       if (isIOS() && !isStandalone()) setMode("ios-install");
@@ -38,7 +41,11 @@ export function PushPrompt() {
   }, []);
 
   function dismiss() {
-    localStorage.setItem(DISMISS_KEY, "1");
+    // Posponer (no descartar para siempre): se vuelve a invitar tras N días.
+    localStorage.setItem(
+      SNOOZE_KEY,
+      String(Date.now() + SNOOZE_DAYS * 86_400_000),
+    );
     setMode("hidden");
   }
 
