@@ -8,11 +8,10 @@ import { STAGE_LABELS } from "@/lib/labels";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  PredictionSection,
-  EventsSection,
   LineupsSection,
+  TimelineSection,
   StatsSection,
-  H2HSection,
+  CommunitySection,
 } from "@/components/matches/detail/sections";
 
 const DATE_FMT = new Intl.DateTimeFormat("es-ES", {
@@ -69,35 +68,28 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
 
       <MatchHeader match={match} />
 
-      {/* Pronóstico + comunidad — disponible siempre */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <PredictionSection
-          externalId={match.externalId}
-          matchId={match.id}
-          homeTeam={match.homeTeam}
-          awayTeam={match.awayTeam}
-        />
-      </Suspense>
-
-      {/* Eventos / alineaciones / estadísticas — solo tras el inicio */}
-      {showLive && (
+      {showLive ? (
         <>
-          <Suspense fallback={<SectionSkeleton />}>
-            <EventsSection externalId={match.externalId} />
-          </Suspense>
+          {/* Alineaciones → cronología → estadísticas → comunidad */}
           <Suspense fallback={<SectionSkeleton />}>
             <LineupsSection externalId={match.externalId} />
           </Suspense>
           <Suspense fallback={<SectionSkeleton />}>
+            <TimelineSection externalId={match.externalId} />
+          </Suspense>
+          <Suspense fallback={<SectionSkeleton />}>
             <StatsSection externalId={match.externalId} />
           </Suspense>
+          <Suspense fallback={<SectionSkeleton />}>
+            <CommunitySection matchId={match.id} />
+          </Suspense>
         </>
+      ) : (
+        <div className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center text-sm">
+          El partido aún no ha comenzado. Aquí verás las alineaciones, la
+          cronología y las estadísticas cuando arranque.
+        </div>
       )}
-
-      {/* Cara a cara — disponible siempre */}
-      <Suspense fallback={<SectionSkeleton />}>
-        <H2HSection externalId={match.externalId} />
-      </Suspense>
     </div>
   );
 }
