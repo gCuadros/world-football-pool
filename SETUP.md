@@ -35,16 +35,25 @@ DIRECT_URL="postgresql://postgres.XXXX:PASSWORD@aws-0-REGION.pooler.supabase.com
 AUTH_SECRET="genera-uno-con: openssl rand -base64 32"
 AUTH_URL="http://localhost:3000"
 ADMIN_SECRET="genera-uno-con: openssl rand -hex 16"
-# Feature flags (se evalúan en build; cambiarlos requiere redeploy)
-NEXT_PUBLIC_FEATURE_MINI_LEAGUES="false"
+# Web Push (notificaciones). Opcional: sin estas claves, el centro in-app
+# funciona igual y el push queda desactivado.
+VAPID_PUBLIC_KEY="..."
+VAPID_PRIVATE_KEY="..."
+VAPID_SUBJECT="mailto:tu-email@dominio.com"
+NEXT_PUBLIC_VAPID_PUBLIC_KEY="(el mismo valor que VAPID_PUBLIC_KEY)"
 ```
 
 Genera los secretos con:
 
 ```bash
-openssl rand -base64 32   # AUTH_SECRET
-openssl rand -hex 16      # ADMIN_SECRET
+openssl rand -base64 32                 # AUTH_SECRET
+openssl rand -hex 16                    # ADMIN_SECRET
+npx web-push generate-vapid-keys        # VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY
 ```
+
+> `NEXT_PUBLIC_VAPID_PUBLIC_KEY` debe ser idéntica a `VAPID_PUBLIC_KEY` (la usa el
+> cliente para suscribirse). En iPhone, las push web requieren instalar la PWA
+> («Añadir a pantalla de inicio», iOS 16.4+).
 
 ## 4. Instalar, migrar y sembrar
 
@@ -383,6 +392,20 @@ la BD a otra región, actualiza esto.
 > Para un cron real durante el torneo: configura un **Vercel Cron** que llame a
 > `POST /api/admin/sync` cada pocos minutos (importa resultados y recalcula).
 > Tras desplegar, revisa el *hit rate* en **Vercel → Observability → Runtime Cache**.
+
+### Crons de notificaciones
+
+Todos protegidos con `x-admin-secret: $ADMIN_SECRET`:
+
+| Endpoint | Cadencia sugerida | Qué hace | Coste API |
+| --- | --- | --- | --- |
+| `POST /api/admin/sync` | cada ~5 min | importa fixtures/resultados; notifica resultados de partidos recién finalizados | ~2 req |
+| `POST /api/cron/live` | cada **60 s** en ventana de partidos | **goles en vivo**: si hay partidos `LIVE` en BD, 1 sola llamada `live=all`, actualiza marcadores y notifica goles | **1 req/sondeo**; **0** si no hay LIVE |
+| `POST /api/cron/reminders` | cada hora | recordatorios de predicción de partidos próximos sin predecir | 0 (solo BD) |
+
+`/api/cron/live` no llama a la API si no hay partidos en vivo, así que fuera de
+horario de partidos el coste es cero. Con plan Pro, 60 s en vivo (~480 req/día) va
+sobrado.
 
 > **Desarrollo local**: si tu red bloquea el puerto 6543 (pooler), las queries
 > tardan ~5 s en *timeout*. Usa el puerto **5432** (directo) en `DATABASE_URL`

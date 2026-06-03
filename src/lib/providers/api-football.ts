@@ -286,6 +286,32 @@ export async function getApiFootballTopScorers(): Promise<TopScorer[]> {
   });
 }
 
+// ── Partidos en vivo (1 sola llamada, para detectar goles) ────────────────
+export type LiveFixture = {
+  externalId: string;
+  homeScore: number;
+  awayScore: number;
+  minute: number | null;
+  status: MatchStatus;
+};
+
+/**
+ * Todos los partidos del Mundial en vivo AHORA, en UNA llamada (`live=all`).
+ * Pensado para sondeo frecuente barato: devuelve marcador y minuto actuales.
+ */
+export async function getLiveFixtures(): Promise<LiveFixture[]> {
+  const resp = await apiGet<AfFixture[]>(
+    `/fixtures?league=${LEAGUE}&season=${SEASON}&live=all`,
+  );
+  return resp.map((item) => ({
+    externalId: String(item.fixture.id),
+    homeScore: item.goals.home ?? 0,
+    awayScore: item.goals.away ?? 0,
+    minute: item.fixture.status.elapsed,
+    status: mapStatus(item.fixture.status.short),
+  }));
+}
+
 /** Eventos (goles, tarjetas…) de un partido por su fixture id de API-Football. */
 export async function getApiFootballEvents(
   externalId: string,

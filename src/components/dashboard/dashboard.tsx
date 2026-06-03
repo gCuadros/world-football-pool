@@ -12,6 +12,7 @@ import {
 import type { DashboardData } from "@/lib/dashboard";
 import { STAGE_SHORT } from "@/lib/labels";
 import { TeamCrest } from "@/components/matches/team-crest";
+import { PushPrompt } from "@/components/notifications/push-prompt";
 
 export function Dashboard({
   data,
@@ -26,6 +27,8 @@ export function Dashboard({
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
+      <PushPrompt />
+
       {/* Saludo + CTA pendientes */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>

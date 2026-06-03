@@ -25,6 +25,8 @@ model User {
   miniLeagueMembers  MiniLeagueMember[]
   predictions        Prediction[]
   sessions           Session[]
+  notifications      Notification[]
+  pushSubscriptions  PushSubscription[]
 }
 
 model Account {
@@ -169,4 +171,41 @@ enum AchievementType {
   TOP_3
   ALL_GROUP_STAGE
   CHAMPION_CALL
+}
+
+enum NotificationType {
+  PREDICTION_REMINDER
+  MATCH_RESULT
+  LEAGUE_RANK
+  LEAGUE_JOIN
+  LIVE_GOAL
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  matchId   String?
+  leagueId  String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
