@@ -3,9 +3,19 @@
 import bcrypt from "bcryptjs";
 import { AuthError } from "next-auth";
 
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+
 import { signIn } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { loginSchema, registerSchema } from "@/lib/validations";
+import {
+  loginSchema,
+  registerSchema,
+  resetRequestSchema,
+  resetSchema,
+} from "@/lib/validations";
+import { createResetToken, consumeResetToken } from "@/lib/password-reset";
+import { sendPasswordResetEmail } from "@/lib/email";
 
 export type AuthActionState = {
   error?: string;
@@ -105,4 +115,63 @@ export async function registerAction(
   }
 
   return {};
+}
+
+export type ResetActionState = {
+  error?: string;
+  sent?: boolean;
+  fieldErrors?: Record<string, string[]>;
+};
+
+export async function requestPasswordReset(
+  _prev: ResetActionState,
+  formData: FormData,
+): Promise<ResetActionState> {
+  const parsed = resetRequestSchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+
+  const { email } = parsed.data;
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  // Solo enviamos si existe, pero respondemos igual en ambos casos (no filtrar).
+  if (user) {
+    const raw = await createResetToken(email);
+    const h = await headers();
+    const host = h.get("x-forwarded-host") ?? h.get("host");
+    const proto = h.get("x-forwarded-proto") ?? "https";
+    const origin = host ? `${proto}://${host}` : "";
+    const url = `${origin}/restablecer?email=${encodeURIComponent(email)}&token=${raw}`;
+    await sendPasswordResetEmail(email, url);
+  }
+
+  return { sent: true };
+}
+
+export async function resetPassword(
+  _prev: ResetActionState,
+  formData: FormData,
+): Promise<ResetActionState> {
+  const parsed = resetSchema.safeParse({
+    email: formData.get("email"),
+    token: formData.get("token"),
+    password: formData.get("password"),
+  });
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+
+  const ok = await consumeResetToken(
+    parsed.data.email,
+    parsed.data.token,
+    parsed.data.password,
+  );
+  if (!ok) {
+    return {
+      error: "El enlace no es válido o ha caducado. Solicita uno nuevo.",
+    };
+  }
+
+  redirect("/login?reset=1");
 }

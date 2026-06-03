@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import Link from "next/link";
 import { Loader2 } from "lucide-react";
 
 import {
@@ -124,7 +125,15 @@ export function AuthForm({
             <FieldError messages={loginState.fieldErrors?.email} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="login-password">Contraseña</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="login-password">Contraseña</Label>
+              <Link
+                href="/recuperar"
+                className="text-muted-foreground hover:text-primary text-xs transition-colors"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
             <Input
               id="login-password"
               name="password"
