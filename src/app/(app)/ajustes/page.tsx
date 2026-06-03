@@ -22,6 +22,7 @@ async function AjustesContent() {
   if (!session?.user?.id) redirect("/login");
 
   let name = session.user.name ?? "";
+  const email = session.user.email ?? "";
   let favoriteTeam: string | null = null;
   let teams;
   try {
@@ -48,6 +49,11 @@ async function AjustesContent() {
   }
 
   return (
-    <AjustesView initialName={name} initialTeam={favoriteTeam} teams={teams} />
+    <AjustesView
+      initialName={name}
+      initialTeam={favoriteTeam}
+      teams={teams}
+      email={email}
+    />
   );
 }

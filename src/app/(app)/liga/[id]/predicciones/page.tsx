@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
-import { Target } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getMatchesViewForLeague, getLastPredictionForMatch } from "@/lib/queries";

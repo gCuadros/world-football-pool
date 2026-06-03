@@ -1,14 +1,27 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Users, Plus, ArrowRight, Trophy } from "lucide-react";
+import { Plus, ArrowRight } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/current-user";
-import { getUserLeagues } from "@/lib/leaderboard";
+import { getUserLeagues, getLeagueLeaderboard } from "@/lib/leaderboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LigasActions } from "@/components/ligas/ligas-actions";
+import { Onboarding } from "@/components/ligas/onboarding";
+import { ActiveLeagueBanner } from "@/components/ligas/active-league-banner";
 
 export const metadata = { title: "Mis Ligas · Quiniela Mundial 2026" };
+
+type LeagueWithStats = {
+  id: string;
+  name: string;
+  inviteCode: string;
+  memberCount: number;
+  isOwner: boolean;
+  rank: number | null;
+  points: number;
+  accuracy: number;
+};
 
 export default function LigasPage() {
   return (
@@ -24,87 +37,121 @@ async function LigasContent() {
 
   const leagues = await getUserLeagues(user.id);
 
+  if (leagues.length === 0) {
+    return <Onboarding />;
+  }
+
+  const withStats: LeagueWithStats[] = await Promise.all(
+    leagues.map(async (l) => {
+      const rows = await getLeagueLeaderboard(l.id, user.id);
+      const me = rows.find((r) => r.userId === user.id);
+      return {
+        id: l.id,
+        name: l.name,
+        inviteCode: l.inviteCode,
+        memberCount: l.memberCount,
+        isOwner: l.isOwner,
+        rank: me?.rank ?? null,
+        points: me?.points ?? 0,
+        accuracy: me?.accuracy ?? 0,
+      };
+    }),
+  );
+
+  const active = withStats[0];
+
   return (
-    <div className="mx-auto max-w-2xl space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Users className="text-primary size-5" />
-          <h1 className="text-xl font-bold">Mis Ligas</h1>
-        </div>
-      </div>
-
-      {/* Ligas existentes */}
-      {leagues.length > 0 && (
-        <div className="space-y-3">
-          {leagues.map((league) => (
-            <Link
-              key={league.id}
-              href={`/liga/${league.id}`}
-              className="border-border bg-card hover:bg-card/80 group flex items-center gap-4 rounded-xl border p-4 transition-colors"
-            >
-              <div className="bg-primary/10 flex size-10 shrink-0 items-center justify-center rounded-xl">
-                <Trophy className="text-primary size-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold">{league.name}</p>
-                <p className="text-muted-foreground text-sm">
-                  {league.memberCount} {league.memberCount === 1 ? "miembro" : "miembros"}
-                  {league.isOwner && (
-                    <span className="text-primary ml-2 text-xs font-medium">Admin</span>
-                  )}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground font-mono text-xs">
-                  {league.inviteCode}
-                </span>
-                <ArrowRight className="text-muted-foreground group-hover:text-foreground size-4 transition-colors" />
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-
-      {/* Onboarding / Sin ligas */}
-      {leagues.length === 0 && (
-        <div className="border-border rounded-2xl border border-dashed p-8 text-center">
-          <div className="bg-primary/10 mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl">
-            <Users className="text-primary size-7" />
-          </div>
-          <h2 className="mb-2 text-lg font-bold">Únete a una liga para predecir</h2>
-          <p className="text-muted-foreground mb-6 text-sm">
-            Crea tu propia liga o únete a la de un amigo con un código de 6 caracteres.
-            Las predicciones y la clasificación son por liga.
-          </p>
-        </div>
-      )}
-
-      {/* Acciones: unirse / crear */}
+    <div className="space-y-6">
       <LigasActions />
 
-      {leagues.length === 0 && (
-        <p className="text-muted-foreground text-center text-xs">
-          Puedes explorar{" "}
-          <Link href="/resultados" className="text-primary underline">
-            resultados
-          </Link>{" "}
-          y{" "}
-          <Link href="/mundial" className="text-primary underline">
-            el Mundial
-          </Link>{" "}
-          sin unirte a una liga.
-        </p>
-      )}
+      <ActiveLeagueBanner league={active} />
+
+      <h2 className="font-mono text-[15px] font-bold">Todas mis ligas</h2>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {withStats.map((l, i) => (
+          <LeagueCard key={l.id} league={l} active={i === 0} />
+        ))}
+        <NewLeagueCard />
+      </div>
+    </div>
+  );
+}
+
+function LeagueCard({
+  league,
+  active,
+}: {
+  league: LeagueWithStats;
+  active: boolean;
+}) {
+  return (
+    <div
+      className={`flex flex-col gap-3 rounded-2xl border p-5 ${
+        active ? "bg-muted border-primary" : "bg-card border-border"
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        {active ? (
+          <span className="bg-primary text-primary-foreground rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold tracking-wide">
+            ACTIVA
+          </span>
+        ) : (
+          <span className="text-muted-foreground font-mono text-[11px]">
+            {league.inviteCode}
+          </span>
+        )}
+        {league.isOwner && (
+          <span className="text-primary font-mono text-[10px] font-medium tracking-wide uppercase">
+            Admin
+          </span>
+        )}
+      </div>
+
+      <h3 className="truncate font-mono text-base font-bold">{league.name}</h3>
+
+      <div className="text-muted-foreground flex items-center gap-4 font-mono text-xs">
+        <span>{league.rank ? `#${league.rank}` : "—"}</span>
+        <span>{league.points} pts</span>
+        <span>{league.memberCount} jug.</span>
+      </div>
+
+      <Link
+        href={`/liga/${league.id}`}
+        className={`mt-1 flex h-9 items-center justify-center gap-1.5 rounded-lg text-sm font-semibold transition-colors ${
+          active
+            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+            : "bg-secondary text-secondary-foreground border-border hover:bg-secondary/70 border"
+        }`}
+      >
+        Ver liga
+        <ArrowRight className="size-3.5" />
+      </Link>
+    </div>
+  );
+}
+
+function NewLeagueCard() {
+  return (
+    <div className="border-border text-muted-foreground flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-dashed p-5 text-center">
+      <div className="bg-secondary flex size-11 items-center justify-center rounded-xl">
+        <Plus className="text-primary size-5" />
+      </div>
+      <p className="text-foreground text-sm font-semibold">Crear nueva liga</p>
+      <p className="text-xs">Usa los botones de arriba para crear o unirte</p>
     </div>
   );
 }
 
 function LigasSkeleton() {
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <Skeleton className="h-8 w-40" />
-      <Skeleton className="h-20 rounded-xl" />
-      <Skeleton className="h-20 rounded-xl" />
+    <div className="space-y-6">
+      <Skeleton className="ml-auto h-9 w-64" />
+      <Skeleton className="h-28 rounded-2xl" />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-44 rounded-2xl" />
+        ))}
+      </div>
     </div>
   );
 }
