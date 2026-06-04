@@ -4,20 +4,28 @@ import { getMatchesBase } from "@/lib/queries";
 import { ResultadosView } from "@/components/matches/resultados-view";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export const metadata = { title: "Resultados · Quiniela Mundial 2026" };
+export const metadata = { title: "Amistosos · Quiniela Mundial 2026" };
 
-export default function ResultadosPage() {
+export default function AmistososPage() {
   return (
     <Suspense fallback={<LoadingSkeleton />}>
-      <ResultadosContent />
+      <AmistososContent />
     </Suspense>
   );
 }
 
-async function ResultadosContent() {
+async function AmistososContent() {
   const matches = await getMatchesBase();
-  // El Mundial: excluye amistosos (tienen su propia sección).
-  return <ResultadosView matches={matches.filter((m) => m.stage !== "FRIENDLY")} />;
+  const friendlies = matches.filter((m) => m.stage === "FRIENDLY");
+
+  return (
+    <ResultadosView
+      matches={friendlies}
+      title="Amistosos"
+      subtitle="Partidos de selecciones antes del Mundial. Predícelos en la liga «Pseudos Amistosos» para probar la app."
+      showStageFilters={false}
+    />
+  );
 }
 
 function LoadingSkeleton() {

@@ -41,7 +41,17 @@ function SectionHeader({
   );
 }
 
-export function ResultadosView({ matches }: { matches: MatchBase[] }) {
+export function ResultadosView({
+  matches,
+  title = "Resultados",
+  subtitle,
+  showStageFilters = true,
+}: {
+  matches: MatchBase[];
+  title?: string;
+  subtitle?: React.ReactNode;
+  showStageFilters?: boolean;
+}) {
   const now = useNow(30_000);
   const [filter, setFilter] = useState<MatchFilter>("all");
 
@@ -64,14 +74,19 @@ export function ResultadosView({ matches }: { matches: MatchBase[] }) {
     <div className="space-y-6">
       <AutoRefresh enabled={liveCount > 0} />
 
-      <div className="flex items-center gap-3">
-        <Radio className="text-primary size-5" />
-        <h1 className="text-xl font-bold">Resultados</h1>
-        {liveCount > 0 && (
-          <Badge variant="outline" className="border-live/40 text-live font-mono ml-auto">
-            {liveCount} EN DIRECTO
-          </Badge>
-        )}
+      <div>
+        <div className="flex items-center gap-3">
+          <Radio className="text-primary size-5" />
+          <h1 className="text-xl font-bold">{title}</h1>
+          {liveCount > 0 && (
+            <Badge variant="outline" className="border-live/40 text-live font-mono ml-auto">
+              {liveCount} EN DIRECTO
+            </Badge>
+          )}
+        </div>
+        {subtitle ? (
+          <p className="text-muted-foreground mt-1 text-sm">{subtitle}</p>
+        ) : null}
       </div>
 
       {liveCount > 0 && (
@@ -86,7 +101,7 @@ export function ResultadosView({ matches }: { matches: MatchBase[] }) {
         </div>
       )}
 
-      <FilterChips value={filter} onChange={setFilter} />
+      {showStageFilters && <FilterChips value={filter} onChange={setFilter} />}
 
       {filtered.length === 0 ? (
         <div className="border-border text-muted-foreground rounded-xl border border-dashed p-10 text-center text-sm">

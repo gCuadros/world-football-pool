@@ -91,17 +91,27 @@ export async function getMatchesViewForLeague(
   leagueId: string,
 ): Promise<MatchVM[]> {
   const now = new Date();
-  const [base, predictions] = await Promise.all([
+  const [base, predictions, league] = await Promise.all([
     getMatchesBase(),
     prisma.prediction.findMany({
       where: { userId, leagueId },
       select: { matchId: true, homeScore: true, awayScore: true, points: true },
     }),
+    prisma.miniLeague.findUnique({
+      where: { id: leagueId },
+      select: { isFriendly: true },
+    }),
   ]);
+
+  // Una liga de amistosos solo muestra amistosos; las del Mundial los excluyen.
+  const isFriendlyLeague = league?.isFriendly ?? false;
+  const scoped = base.filter((m) =>
+    isFriendlyLeague ? m.stage === "FRIENDLY" : m.stage !== "FRIENDLY",
+  );
 
   const byMatch = new Map(predictions.map((p) => [p.matchId, p]));
 
-  return base.map((m) => {
+  return scoped.map((m) => {
     const p = byMatch.get(m.id);
     return {
       ...m,

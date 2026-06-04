@@ -115,6 +115,7 @@ model MiniLeague {
   id          String             @id @default(cuid())
   name        String
   inviteCode  String             @unique
+  isFriendly  Boolean            @default(false)
   createdById String
   createdAt   DateTime           @default(now())
   createdBy   User               @relation("MiniLeagueCreator", fields: [createdById], references: [id], onDelete: Cascade)
@@ -158,6 +159,7 @@ enum Stage {
   SEMI_FINAL
   THIRD_PLACE
   FINAL
+  FRIENDLY
 }
 
 enum MatchStatus {
