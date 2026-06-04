@@ -43,7 +43,6 @@ const STAGE_ORDER: Stage[] = [
   "FINAL",
 ];
 
-/** Estadísticas detalladas del usuario en una liga sobre sus predicciones ya puntuadas. */
 export async function getUserStatsDetailed(
   userId: string,
   leagueId: string,
@@ -67,14 +66,14 @@ export async function getUserStatsDetailed(
 
   for (const p of preds) {
     const pts = p.points ?? 0;
-    if (pts === 3) exact++;
-    else if (pts === 1) correct++;
+    if (p.exact) exact++;
+    else if (pts > 0) correct++;
     else missed++;
 
     const s = stageMap.get(p.match.stage) ?? { total: 0, hits: 0, exact: 0 };
     s.total++;
     if (pts > 0) s.hits++;
-    if (pts === 3) s.exact++;
+    if (p.exact) s.exact++;
     stageMap.set(p.match.stage, s);
   }
 
@@ -92,7 +91,7 @@ export async function getUserStatsDetailed(
   );
 
   const best: BestPrediction[] = preds
-    .filter((p) => p.points === 3)
+    .filter((p) => p.exact)
     .slice(0, 6)
     .map((p) => ({
       matchId: p.matchId,
@@ -101,10 +100,9 @@ export async function getUserStatsDetailed(
       homeFlag: p.match.homeFlag,
       awayFlag: p.match.awayFlag,
       score: `${p.match.homeScore}-${p.match.awayScore}`,
-      points: 3,
+      points: p.points ?? 0,
     }));
 
-  // Racha mejor (sobre los partidos terminados del torneo en orden)
   const finishedOrder = finishedMatches.map((m) => m.id);
   const byMatch = new Map(preds.map((p) => [p.matchId, p]));
   let bestStreak = 0;
@@ -119,9 +117,10 @@ export async function getUserStatsDetailed(
     }
   }
 
+  const totalPoints = preds.reduce((s, p) => s + (p.points ?? 0), 0);
   const predictionsCount = preds.length;
   return {
-    totalPoints: exact * 3 + correct,
+    totalPoints,
     predictionsCount,
     exact,
     correct,

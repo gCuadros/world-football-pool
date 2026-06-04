@@ -138,7 +138,7 @@ export function MatchCard({
           {imminent ? (
             <Countdown kickoffAt={match.kickoffAt} />
           ) : prediction ? (
-            <PredictionBadge prediction={prediction} />
+            <PredictionBadge prediction={prediction} match={match} />
           ) : status === "UPCOMING" && !match.locked ? (
             <Link
               href="/ligas"

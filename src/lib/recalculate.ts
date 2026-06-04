@@ -1,7 +1,7 @@
 import { revalidateTag } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
-import { calculatePoints } from "@/lib/scoring";
+import { scorePrediction } from "@/lib/scoring";
 import { leagueTag } from "@/lib/cache-tags";
 import { AchievementType } from "@prisma/client";
 
@@ -23,15 +23,18 @@ export async function recalculateMatchPoints(matchId: string): Promise<void> {
   const preds = await prisma.prediction.findMany({ where: { matchId } });
 
   await Promise.all(
-    preds.map((p) =>
-      prisma.prediction.update({
+    preds.map((p) => {
+      const breakdown = scorePrediction(p, match);
+      return prisma.prediction.update({
         where: { id: p.id },
-        data: { points: calculatePoints(p, match) },
-      }),
-    ),
+        data: {
+          points: breakdown?.total ?? null,
+          exact: breakdown?.exact ?? false,
+        },
+      });
+    }),
   );
 
-  // Invalida el caché de cada liga que tiene predicciones en este partido.
   const leagueIds = [...new Set(preds.map((p) => p.leagueId))];
   for (const id of leagueIds) {
     revalidateTag(leagueTag(id), "max");
@@ -40,7 +43,6 @@ export async function recalculateMatchPoints(matchId: string): Promise<void> {
 
 /**
  * Recalcula los logros de un usuario DENTRO DE UNA LIGA concreta.
- * Los logros son por liga: el mismo logro puede ganarse en ligas distintas.
  */
 export async function rebuildAchievements(
   userId: string,
@@ -54,16 +56,14 @@ export async function rebuildAchievements(
   const finishedOrder = finishedMatches.map((m) => m.id);
   const finishedSet = new Set(finishedOrder);
 
-  // Solo predicciones de ESTA liga.
   const preds = await prisma.prediction.findMany({
     where: { userId, leagueId },
-    select: { matchId: true, points: true },
+    select: { matchId: true, points: true, exact: true },
   });
   const finished = preds.filter((p) => finishedSet.has(p.matchId));
 
-  const exactCount = finished.filter((p) => p.points === 3).length;
+  const exactCount = finished.filter((p) => p.exact).length;
 
-  // Racha (ordenada por los partidos finalizados, en orden).
   let bestStreak = 0;
   let runningStreak = 0;
   const byMatch = new Map(finished.map((p) => [p.matchId, p]));
@@ -77,7 +77,6 @@ export async function rebuildAchievements(
     }
   }
 
-  // Ranking en esta liga.
   const allPreds = await prisma.prediction.findMany({
     where: { leagueId, matchId: { in: [...finishedSet] } },
     select: { userId: true, points: true },
@@ -94,7 +93,6 @@ export async function rebuildAchievements(
     [...pointsByUser.values()].filter((pts) => pts > userPoints).length + 1;
   const totalInLeague = pointsByUser.size;
 
-  // Fase de grupos completa: ≥48 predicciones en partidos de grupos.
   const groupMatchIds = new Set(
     finishedMatches
       .filter((m) => m.stage === "GROUP_STAGE")
@@ -123,21 +121,26 @@ export async function rebuildAchievements(
 }
 
 /**
- * Finaliza un partido con un marcador, recalcula puntos y logros de
- * todos los usuarios con predicciones en ese partido (por liga).
+ * Finaliza un partido con marcador y quién avanzó, recalcula puntos y logros.
  */
 export async function finalizeMatch(
   matchId: string,
   homeScore: number,
   awayScore: number,
+  advanced?: "HOME" | "AWAY" | null,
 ): Promise<void> {
   await prisma.match.update({
     where: { id: matchId },
-    data: { homeScore, awayScore, status: "FINISHED", liveMinute: null },
+    data: {
+      homeScore,
+      awayScore,
+      status: "FINISHED",
+      liveMinute: null,
+      ...(advanced !== undefined ? { advanced } : {}),
+    },
   });
   await recalculateMatchPoints(matchId);
 
-  // Recalcula logros por liga: una entrada (userId, leagueId) por predicción.
   const affectedPairs = await prisma.prediction.findMany({
     where: { matchId },
     select: { userId: true, leagueId: true },

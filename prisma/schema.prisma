@@ -79,6 +79,7 @@ model Match {
   awayScore   Int?
   status      MatchStatus  @default(UPCOMING)
   liveMinute  Int?
+  advanced    Side?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   awayCrest   String?
@@ -98,7 +99,9 @@ model Prediction {
   leagueId    String
   homeScore   Int
   awayScore   Int
-  points      Int?
+  points      Float?
+  exact       Boolean    @default(false)
+  advancePick Side?
   submittedAt DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   match       Match      @relation(fields: [matchId], references: [id], onDelete: Cascade)
@@ -160,6 +163,11 @@ enum Stage {
   THIRD_PLACE
   FINAL
   FRIENDLY
+}
+
+enum Side {
+  HOME
+  AWAY
 }
 
 enum MatchStatus {

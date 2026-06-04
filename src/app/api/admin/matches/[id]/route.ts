@@ -14,6 +14,7 @@ const schema = z.object({
   awayScore: z.coerce.number().int().min(0).max(99).optional(),
   status: z.enum(MatchStatus).optional(),
   liveMinute: z.coerce.number().int().min(0).max(130).nullish(),
+  advanced: z.enum(["HOME", "AWAY"]).nullable().optional(),
 });
 
 // PATCH /api/admin/matches/[id] — actualiza marcador/estado de un partido.
@@ -64,6 +65,7 @@ export async function PATCH(
       status: nextStatus,
       liveMinute:
         nextStatus === "LIVE" ? (data.liveMinute ?? match.liveMinute) : null,
+      ...(data.advanced !== undefined ? { advanced: data.advanced } : {}),
     },
   });
 
