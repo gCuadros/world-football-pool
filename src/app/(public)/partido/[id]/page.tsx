@@ -59,11 +59,11 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
   return (
     <div className="mx-auto max-w-3xl space-y-5">
       <Link
-        href="/resultados"
+        href={match.stage === "FRIENDLY" ? "/amistosos" : "/resultados"}
         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
       >
         <ArrowLeft className="size-4" />
-        Resultados
+        {match.stage === "FRIENDLY" ? "Amistosos" : "Resultados"}
       </Link>
 
       <MatchHeader match={match} />

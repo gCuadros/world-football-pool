@@ -160,7 +160,7 @@ export const apiFootballProvider: FootballProvider = {
 };
 
 // ── Amistosos de selecciones (liga 10) ────────────────────────────────────
-const FRIENDLY_LEAGUE = 10;
+export const FRIENDLY_LEAGUE = 10;
 
 /** ¿Es una selección juvenil o femenina? (las excluimos). */
 function isYouthOrWomen(name: string): boolean {
@@ -332,14 +332,20 @@ export type LiveFixture = {
 };
 
 /**
- * Todos los partidos del Mundial en vivo AHORA, en UNA llamada (`live=all`).
- * Pensado para sondeo frecuente barato: devuelve marcador y minuto actuales.
+ * Partidos en vivo AHORA para una o varias ligas. Hace una llamada por liga.
+ * Por defecto solo el Mundial (liga 1); pasar `extraLeagues` para añadir más
+ * (p. ej. [FRIENDLY_LEAGUE] durante la ventana de amistosos).
  */
-export async function getLiveFixtures(): Promise<LiveFixture[]> {
-  const resp = await apiGet<AfFixture[]>(
-    `/fixtures?league=${LEAGUE}&season=${SEASON}&live=all`,
+export async function getLiveFixtures(
+  extraLeagues: number[] = [],
+): Promise<LiveFixture[]> {
+  const leagues = [LEAGUE, ...extraLeagues];
+  const responses = await Promise.all(
+    leagues.map((l) =>
+      apiGet<AfFixture[]>(`/fixtures?league=${l}&season=${SEASON}&live=all`),
+    ),
   );
-  return resp.map((item) => ({
+  return responses.flat().map((item) => ({
     externalId: String(item.fixture.id),
     homeScore: item.goals.home ?? 0,
     awayScore: item.goals.away ?? 0,

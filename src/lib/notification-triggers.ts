@@ -3,7 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { createNotifications } from "@/lib/notifications";
 import { getLeagueLeaderboard } from "@/lib/leaderboard";
-import { getLiveFixtures } from "@/lib/providers/api-football";
+import { getLiveFixtures, FRIENDLY_LEAGUE } from "@/lib/providers/api-football";
 
 function ordinal(n: number): string {
   return `${n}.º`;
@@ -84,7 +84,7 @@ export async function notifyMatchResult(matchId: string): Promise<void> {
  * Devuelve cuántos goles se detectaron. No llama a la API si no se le pide.
  */
 export async function pollLiveGoals(): Promise<{ goals: number; live: number }> {
-  const live = await getLiveFixtures();
+  const live = await getLiveFixtures([FRIENDLY_LEAGUE]);
   if (live.length === 0) return { goals: 0, live: 0 };
 
   const externalIds = live.map((f) => f.externalId);

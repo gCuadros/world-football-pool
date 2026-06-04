@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { Radio } from "lucide-react";
 
 import type { MatchBase } from "@/lib/queries";
@@ -46,11 +47,13 @@ export function ResultadosView({
   title = "Resultados",
   subtitle,
   showStageFilters = true,
+  calendarHref,
 }: {
   matches: MatchBase[];
   title?: string;
   subtitle?: React.ReactNode;
   showStageFilters?: boolean;
+  calendarHref?: string;
 }) {
   const now = useNow(30_000);
   const [filter, setFilter] = useState<MatchFilter>("all");
@@ -82,6 +85,14 @@ export function ResultadosView({
             <Badge variant="outline" className="border-live/40 text-live font-mono ml-auto">
               {liveCount} EN DIRECTO
             </Badge>
+          )}
+          {calendarHref && (
+            <Link
+              href={calendarHref}
+              className="text-muted-foreground hover:text-foreground ml-auto rounded-lg border border-dashed px-3 py-1.5 text-xs transition-colors"
+            >
+              Vista calendario
+            </Link>
           )}
         </div>
         {subtitle ? (

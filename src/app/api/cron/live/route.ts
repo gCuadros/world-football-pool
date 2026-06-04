@@ -8,18 +8,25 @@ import { prisma } from "@/lib/prisma";
 
 /**
  * POST /api/cron/live — sondeo frecuente (p. ej. 60 s) durante ventanas de
- * partidos. Si NO hay partidos en vivo en BD, no llama a la API (barato).
- * Si hay, usa 1 sola llamada `live=all` para actualizar marcadores y notificar
- * goles a quienes los predijeron.
+ * partidos. Salta si no hay LIVE ni UPCOMING recién arrancados (kickoff en las
+ * últimas 4h) para no gastar llamadas API innecesarias.
  */
 export async function POST(req: Request) {
   if (!isAdminRequest(req)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  // Atajo barato: si no hay partidos LIVE en BD, no tocamos la API.
-  const liveInDb = await prisma.match.count({ where: { status: "LIVE" } });
-  if (liveInDb === 0) {
+  // Salta solo si no hay LIVE ni partidos que debieran haber arrancado ya
+  // (UPCOMING con kickoff en las últimas 4h → necesitan transicionar a LIVE).
+  const now = new Date();
+  const kickoffFloor = new Date(now.getTime() - 4 * 3_600_000);
+  const [liveInDb, recentKickoffs] = await Promise.all([
+    prisma.match.count({ where: { status: "LIVE" } }),
+    prisma.match.count({
+      where: { status: "UPCOMING", kickoffAt: { gte: kickoffFloor, lte: now } },
+    }),
+  ]);
+  if (liveInDb === 0 && recentKickoffs === 0) {
     return NextResponse.json({ ok: true, skipped: true, goals: 0 });
   }
 

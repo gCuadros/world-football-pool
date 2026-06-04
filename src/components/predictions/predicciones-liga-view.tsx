@@ -13,6 +13,14 @@ import { PredictionCard } from "@/components/predictions/prediction-card";
 
 type Autofills = Record<string, { homeScore: number; awayScore: number }>;
 
+type TabId = "pending" | "saved" | "locked";
+
+const TAB_LABELS: Record<TabId, string> = {
+  pending: "Pendientes",
+  saved: "Guardadas",
+  locked: "Cerradas",
+};
+
 export function PrediccionesLigaView({
   leagueId,
   leagueName,
@@ -26,6 +34,7 @@ export function PrediccionesLigaView({
 }) {
   const now = useNow(30_000);
   const [filter, setFilter] = useState<MatchFilter>("all");
+  const [tab, setTab] = useState<TabId>("pending");
 
   const liveCount = useMemo(
     () => matches.filter((m) => m.status === "LIVE").length,
@@ -41,6 +50,15 @@ export function PrediccionesLigaView({
   const pending = filtered.filter((m) => m.status === "UPCOMING" && !m.locked && !m.prediction);
   const saved = filtered.filter((m) => m.status === "UPCOMING" && !m.locked && m.prediction);
   const locked = filtered.filter((m) => m.status !== "UPCOMING" || m.locked);
+
+  const counts: Record<TabId, number> = { pending: pending.length, saved: saved.length, locked: locked.length };
+
+  // Si la pestaña activa está vacía pero hay contenido en otra, ir a la primera con contenido.
+  const activeTab: TabId = counts[tab] > 0 ? tab : (
+    (["pending", "saved", "locked"] as TabId[]).find((t) => counts[t] > 0) ?? tab
+  );
+
+  const visibleMatches = { pending, saved, locked }[activeTab];
 
   return (
     <div className="space-y-6">
@@ -62,92 +80,53 @@ export function PrediccionesLigaView({
 
       <FilterChips value={filter} onChange={setFilter} />
 
-      {filtered.length === 0 ? (
+      {/* Tab bar */}
+      <div className="border-border flex gap-1 rounded-xl border p-1">
+        {(["pending", "saved", "locked"] as TabId[]).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={[
+              "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              activeTab === t
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            ].join(" ")}
+          >
+            {TAB_LABELS[t]}
+            <span
+              className={[
+                "rounded px-1.5 py-0.5 font-mono text-[10px]",
+                activeTab === t
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-muted",
+              ].join(" ")}
+            >
+              {counts[t]}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {visibleMatches.length === 0 ? (
         <div className="border-border text-muted-foreground rounded-xl border border-dashed p-10 text-center text-sm">
-          No hay partidos en esta categoría.
+          {filtered.length === 0
+            ? "No hay partidos en esta categoría."
+            : `No hay partidos en "${TAB_LABELS[activeTab]}".`}
         </div>
       ) : (
-        <div className="space-y-8">
-          {pending.length > 0 && (
-            <section>
-              <SectionHeader
-                title="Pendientes"
-                count={pending.length}
-                note="Sin predicción"
-              />
-              <div className="grid gap-3 sm:grid-cols-2">
-                {pending.map((m) => (
-                  <PredictionCard
-                    key={m.id}
-                    match={m}
-                    now={now}
-                    leagueId={leagueId}
-                    autofill={autofills[m.id] ?? null}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {saved.length > 0 && (
-            <section>
-              <SectionHeader title="Guardadas" count={saved.length} />
-              <div className="grid gap-3 sm:grid-cols-2">
-                {saved.map((m) => (
-                  <PredictionCard
-                    key={m.id}
-                    match={m}
-                    now={now}
-                    leagueId={leagueId}
-                    autofill={null}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
-          {locked.length > 0 && (
-            <section>
-              <SectionHeader title="Cerradas / Resultados" count={locked.length} />
-              <div className="grid gap-3 sm:grid-cols-2">
-                {locked.map((m) => (
-                  <PredictionCard
-                    key={m.id}
-                    match={m}
-                    now={now}
-                    leagueId={leagueId}
-                    autofill={null}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
+        <div className="grid gap-3 sm:grid-cols-2">
+          {visibleMatches.map((m) => (
+            <PredictionCard
+              key={m.id}
+              match={m}
+              now={now}
+              leagueId={leagueId}
+              autofill={activeTab === "pending" ? (autofills[m.id] ?? null) : null}
+            />
+          ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function SectionHeader({
-  title,
-  count,
-  note,
-}: {
-  title: string;
-  count: number;
-  note?: string;
-}) {
-  return (
-    <div className="border-primary mb-3 border-l-2 pl-3">
-      <h2 className="flex items-center gap-2 text-base font-bold">
-        {title}
-        <span className="text-muted-foreground font-mono text-xs font-normal">{count}</span>
-        {note && (
-          <span className="text-muted-foreground rounded bg-orange-500/10 px-1.5 py-0.5 font-mono text-[10px] text-orange-500">
-            {note}
-          </span>
-        )}
-      </h2>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import {
   Newspaper,
   Handshake,
   HelpCircle,
+  CalendarDays,
   Users,
   SquarePen,
   User,
@@ -23,6 +24,7 @@ export type NavItem = {
 // EXPLORAR — zona pública (sin login).
 export const EXPLORE_NAV: NavItem[] = [
   { href: "/resultados", label: "Resultados", title: "Resultados en vivo", icon: Radio },
+  { href: "/calendario", label: "Calendario", title: "Calendario", icon: CalendarDays },
   { href: "/mundial", label: "Mundial", title: "Info del Mundial", icon: Globe },
   { href: "/eliminatorias", label: "Eliminatorias", title: "Cuadro de eliminatorias", icon: Network },
   { href: "/amistosos", label: "Amistosos", title: "Amistosos", icon: Handshake },
