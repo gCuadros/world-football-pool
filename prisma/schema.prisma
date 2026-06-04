@@ -118,8 +118,9 @@ model MiniLeague {
   createdById String
   createdAt   DateTime           @default(now())
   createdBy   User               @relation("MiniLeagueCreator", fields: [createdById], references: [id], onDelete: Cascade)
-  members     MiniLeagueMember[]
-  predictions Prediction[]
+  members      MiniLeagueMember[]
+  predictions  Prediction[]
+  achievements Achievement[]
 }
 
 model MiniLeagueMember {
@@ -137,12 +138,15 @@ model MiniLeagueMember {
 model Achievement {
   id         String          @id @default(cuid())
   userId     String
+  leagueId   String
   type       AchievementType
   unlockedAt DateTime        @default(now())
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  league     MiniLeague      @relation(fields: [leagueId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, type])
+  @@unique([userId, leagueId, type])
   @@index([userId])
+  @@index([leagueId])
 }
 
 

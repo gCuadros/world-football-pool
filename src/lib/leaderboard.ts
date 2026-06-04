@@ -196,3 +196,37 @@ export async function getUnlockedAchievements(
   });
   return new Set(rows.map((r) => r.type));
 }
+
+export type LeagueAchievements = {
+  leagueId: string;
+  leagueName: string;
+  unlocked: Set<AchievementType>;
+};
+
+/** Logros del usuario agrupados por liga. */
+export async function getAchievementsByLeague(
+  userId: string,
+): Promise<LeagueAchievements[]> {
+  const rows = await prisma.achievement.findMany({
+    where: { userId },
+    select: {
+      type: true,
+      leagueId: true,
+      league: { select: { name: true } },
+    },
+    orderBy: { unlockedAt: "asc" },
+  });
+
+  const byLeague = new Map<string, LeagueAchievements>();
+  for (const r of rows) {
+    if (!byLeague.has(r.leagueId)) {
+      byLeague.set(r.leagueId, {
+        leagueId: r.leagueId,
+        leagueName: r.league.name,
+        unlocked: new Set(),
+      });
+    }
+    byLeague.get(r.leagueId)!.unlocked.add(r.type);
+  }
+  return [...byLeague.values()];
+}

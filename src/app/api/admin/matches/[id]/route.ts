@@ -73,12 +73,14 @@ export async function PATCH(
     // recalculateMatchPoints revalida los tags de cada liga afectada.
     await recalculateMatchPoints(id);
 
-    const affectedUsers = await prisma.prediction.findMany({
+    const affectedPairs = await prisma.prediction.findMany({
       where: { matchId: id },
-      select: { userId: true },
-      distinct: ["userId"],
+      select: { userId: true, leagueId: true },
+      distinct: ["userId", "leagueId"],
     });
-    await Promise.all(affectedUsers.map((u) => rebuildAchievements(u.userId)));
+    await Promise.all(
+      affectedPairs.map((p) => rebuildAchievements(p.userId, p.leagueId)),
+    );
 
     // Notifica el resultado (idempotente).
     await notifyMatchResult(id);

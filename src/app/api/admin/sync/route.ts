@@ -40,12 +40,14 @@ export async function POST(req: Request) {
       await recalculateMatchPoints(m.id);
     }
 
-    const affectedUsers = await prisma.prediction.findMany({
+    const affectedPairs = await prisma.prediction.findMany({
       where: { match: { status: "FINISHED" } },
-      select: { userId: true },
-      distinct: ["userId"],
+      select: { userId: true, leagueId: true },
+      distinct: ["userId", "leagueId"],
     });
-    await Promise.all(affectedUsers.map((u) => rebuildAchievements(u.userId)));
+    await Promise.all(
+      affectedPairs.map((p) => rebuildAchievements(p.userId, p.leagueId)),
+    );
 
     // Notifica solo los partidos recién finalizados en este sync.
     const newlyFinished = finished.filter((m) => !finishedBefore.has(m.id));
