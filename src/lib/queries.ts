@@ -3,7 +3,7 @@ import "server-only";
 import { cacheTag, cacheLife } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
-import { isPredictionLocked } from "@/lib/scoring";
+import { isPredictionLocked, MULTIPLIERS } from "@/lib/scoring";
 import { TAGS } from "@/lib/cache-tags";
 import {
   getApiFootballEvents,
@@ -317,6 +317,82 @@ export async function getMatchStatistics(
   } catch {
     return [];
   }
+}
+
+const KNOCKOUT_STAGE_ORDER = [
+  "ROUND_OF_32",
+  "ROUND_OF_16",
+  "QUARTER_FINAL",
+  "SEMI_FINAL",
+  "THIRD_PLACE",
+  "FINAL",
+] as const;
+
+type KnockoutStage = (typeof KNOCKOUT_STAGE_ORDER)[number];
+
+export type KnockoutRound = {
+  stage: KnockoutStage;
+  label: string;
+  multiplier: number;
+  matches: MatchBase[];
+};
+
+const KNOCKOUT_LABELS: Record<KnockoutStage, string> = {
+  ROUND_OF_32: "Dieciseisavos",
+  ROUND_OF_16: "Octavos",
+  QUARTER_FINAL: "Cuartos",
+  SEMI_FINAL: "Semifinales",
+  THIRD_PLACE: "3.er Puesto",
+  FINAL: "Final",
+};
+
+/** Partidos de eliminatoria agrupados por ronda, en orden — CACHEADO (`use cache`). */
+export async function getKnockoutMatches(): Promise<KnockoutRound[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(TAGS.matches);
+
+  const rows = await prisma.match.findMany({
+    where: { stage: { in: [...KNOCKOUT_STAGE_ORDER] } },
+    orderBy: { kickoffAt: "asc" },
+  });
+
+  const grouped = new Map<KnockoutStage, MatchBase[]>();
+  for (const m of rows) {
+    const stage = m.stage as KnockoutStage;
+    const list = grouped.get(stage) ?? [];
+    list.push({
+      id: m.id,
+      matchNo: m.matchNo,
+      externalId: m.externalId,
+      homeTeam: m.homeTeam,
+      awayTeam: m.awayTeam,
+      homeFlag: m.homeFlag,
+      awayFlag: m.awayFlag,
+      homeCrest: m.homeCrest,
+      awayCrest: m.awayCrest,
+      kickoffAt: m.kickoffAt.toISOString(),
+      stage: m.stage,
+      group: m.group,
+      stadium: m.stadium,
+      city: m.city,
+      homeScore: m.homeScore,
+      awayScore: m.awayScore,
+      status: m.status,
+      liveMinute: m.liveMinute,
+      advanced: m.advanced,
+    });
+    grouped.set(stage, list);
+  }
+
+  return KNOCKOUT_STAGE_ORDER
+    .filter((s) => grouped.has(s))
+    .map((s) => ({
+      stage: s,
+      label: KNOCKOUT_LABELS[s],
+      multiplier: MULTIPLIERS[s],
+      matches: grouped.get(s)!,
+    }));
 }
 
 /** Head-to-head entre dos equipos (por IDs de API-Football) — CACHEADO. */

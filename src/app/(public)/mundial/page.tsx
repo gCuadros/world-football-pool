@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Image from "next/image";
-import { Globe, Shield, Goal } from "lucide-react";
+import Link from "next/link";
+import { Globe, Shield, Goal, Network } from "lucide-react";
 
 import { getWorldCupStandings, getWorldCupTopScorers } from "@/lib/queries";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,10 +12,17 @@ export const metadata = { title: "Mundial 2026 · Quiniela" };
 export default function MundialPage() {
   return (
     <div className="space-y-10">
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <Globe className="text-primary size-5" />
         <h1 className="text-xl font-bold">Mundial 2026</h1>
         <span className="text-muted-foreground text-sm">USA · Canada · Mexico</span>
+        <Link
+          href="/eliminatorias"
+          className="text-primary hover:text-primary/80 ml-auto flex items-center gap-1.5 font-mono text-[12px] font-medium transition-colors"
+        >
+          <Network className="size-3.5" />
+          Eliminatorias
+        </Link>
       </div>
 
       <Suspense fallback={<GroupsSkeleton />}>

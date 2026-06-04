@@ -28,12 +28,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
+  const KNOCKOUT_STAGES = new Set(["ROUND_OF_32", "ROUND_OF_16", "QUARTER_FINAL", "SEMI_FINAL", "THIRD_PLACE", "FINAL"]);
   const live = await prisma.match.findMany({ where: { status: "LIVE" } });
   const finalized: { matchNo: number; result: string }[] = [];
   for (const m of live) {
     const home = randomGoals();
     const away = randomGoals();
-    await finalizeMatch(m.id, home, away);
+    const isKnockout = KNOCKOUT_STAGES.has(m.stage);
+    const advanced = isKnockout ? (Math.random() > 0.5 ? "HOME" : "AWAY") as "HOME" | "AWAY" : undefined;
+    await finalizeMatch(m.id, home, away, advanced);
     await notifyMatchResult(m.id);
     finalized.push({
       matchNo: m.matchNo,

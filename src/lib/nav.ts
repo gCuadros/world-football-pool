@@ -1,6 +1,7 @@
 import {
   Radio,
   Globe,
+  Network,
   Newspaper,
   Handshake,
   HelpCircle,
@@ -23,6 +24,7 @@ export type NavItem = {
 export const EXPLORE_NAV: NavItem[] = [
   { href: "/resultados", label: "Resultados", title: "Resultados en vivo", icon: Radio },
   { href: "/mundial", label: "Mundial", title: "Info del Mundial", icon: Globe },
+  { href: "/eliminatorias", label: "Eliminatorias", title: "Cuadro de eliminatorias", icon: Network },
   { href: "/amistosos", label: "Amistosos", title: "Amistosos", icon: Handshake },
   { href: "/noticias", label: "Noticias", title: "Noticias", icon: Newspaper },
   { href: "/como-funciona", label: "Cómo funciona", title: "Cómo funciona", icon: HelpCircle },

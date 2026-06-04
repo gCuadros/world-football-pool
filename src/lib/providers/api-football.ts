@@ -83,8 +83,8 @@ type AfFixture = {
   };
   league: { round: string };
   teams: {
-    home: { id: number; name: string; logo: string | null };
-    away: { id: number; name: string; logo: string | null };
+    home: { id: number; name: string; logo: string | null; winner: boolean | null };
+    away: { id: number; name: string; logo: string | null; winner: boolean | null };
   };
   goals: { home: number | null; away: number | null };
 };
@@ -117,6 +117,10 @@ function toFixture(item: AfFixture, group: string | null): Omit<ProviderFixture,
   const away = teamInfo(item.teams.away.name);
   const stage = mapRound(item.league.round);
   const status = mapStatus(item.fixture.status.short);
+  const isKnockout = stage !== "GROUP_STAGE" && stage !== "FRIENDLY";
+  const advanced: "HOME" | "AWAY" | null = isKnockout
+    ? item.teams.home.winner ? "HOME" : item.teams.away.winner ? "AWAY" : null
+    : null;
   return {
     externalId: String(item.fixture.id),
     homeTeam: home.name,
@@ -134,6 +138,7 @@ function toFixture(item: AfFixture, group: string | null): Omit<ProviderFixture,
     awayScore: item.goals.away,
     status,
     liveMinute: status === "LIVE" ? item.fixture.status.elapsed : null,
+    advanced,
   };
 }
 

@@ -19,6 +19,7 @@ export type ProviderFixture = {
   awayScore: number | null;
   status: MatchStatus;
   liveMinute: number | null;
+  advanced?: "HOME" | "AWAY" | null;
 };
 
 /**
