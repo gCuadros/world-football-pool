@@ -39,27 +39,31 @@ export async function recalculateMatchPoints(matchId: string): Promise<void> {
 }
 
 /**
- * Recalcula logros globales del usuario (racha, exactitud…).
- * Los logros siguen siendo por usuario, no por liga, para simplificar.
+ * Recalcula los logros de un usuario DENTRO DE UNA LIGA concreta.
+ * Los logros son por liga: el mismo logro puede ganarse en ligas distintas.
  */
-export async function rebuildAchievements(userId: string): Promise<void> {
+export async function rebuildAchievements(
+  userId: string,
+  leagueId: string,
+): Promise<void> {
   const finishedMatches = await prisma.match.findMany({
     where: { status: "FINISHED" },
     orderBy: { kickoffAt: "asc" },
-    select: { id: true },
+    select: { id: true, stage: true },
   });
   const finishedOrder = finishedMatches.map((m) => m.id);
   const finishedSet = new Set(finishedOrder);
 
+  // Solo predicciones de ESTA liga.
   const preds = await prisma.prediction.findMany({
-    where: { userId },
+    where: { userId, leagueId },
     select: { matchId: true, points: true },
   });
   const finished = preds.filter((p) => finishedSet.has(p.matchId));
 
   const exactCount = finished.filter((p) => p.points === 3).length;
-  const predictionsCount = finished.length;
 
+  // Racha (ordenada por los partidos finalizados, en orden).
   let bestStreak = 0;
   let runningStreak = 0;
   const byMatch = new Map(finished.map((p) => [p.matchId, p]));
@@ -73,23 +77,46 @@ export async function rebuildAchievements(userId: string): Promise<void> {
     }
   }
 
-  // Puesto más bajo entre todas las ligas del usuario.
-  const memberships = await prisma.miniLeagueMember.findMany({
-    where: { userId },
-    select: { miniLeagueId: true },
+  // Ranking en esta liga.
+  const allPreds = await prisma.prediction.findMany({
+    where: { leagueId, matchId: { in: [...finishedSet] } },
+    select: { userId: true, points: true },
   });
+  const pointsByUser = new Map<string, number>();
+  for (const pred of allPreds) {
+    pointsByUser.set(
+      pred.userId,
+      (pointsByUser.get(pred.userId) ?? 0) + (pred.points ?? 0),
+    );
+  }
+  const userPoints = pointsByUser.get(userId) ?? 0;
+  const rank =
+    [...pointsByUser.values()].filter((pts) => pts > userPoints).length + 1;
+  const totalInLeague = pointsByUser.size;
+
+  // Fase de grupos completa: ≥48 predicciones en partidos de grupos.
+  const groupMatchIds = new Set(
+    finishedMatches
+      .filter((m) => m.stage === "GROUP_STAGE")
+      .map((m) => m.id),
+  );
+  const groupPredCount = finished.filter((p) =>
+    groupMatchIds.has(p.matchId),
+  ).length;
 
   const types: AchievementType[] = [];
   if (exactCount >= 1) types.push(AchievementType.PERFECT_SCORE);
   if (bestStreak >= 3) types.push(AchievementType.STREAK_3);
   if (bestStreak >= 5) types.push(AchievementType.STREAK_5);
   if (bestStreak >= 10) types.push(AchievementType.STREAK_10);
-  if (predictionsCount >= 48 && memberships.length > 0)
-    types.push(AchievementType.ALL_GROUP_STAGE);
+  if (totalInLeague >= 10 && rank <= 10) types.push(AchievementType.TOP_10);
+  if (totalInLeague >= 3 && rank <= 3) types.push(AchievementType.TOP_3);
+  if (groupPredCount >= 48) types.push(AchievementType.ALL_GROUP_STAGE);
+  if (rank === 1 && totalInLeague >= 3) types.push(AchievementType.CHAMPION_CALL);
 
   if (types.length > 0) {
     await prisma.achievement.createMany({
-      data: types.map((type) => ({ userId, type })),
+      data: types.map((type) => ({ userId, leagueId, type })),
       skipDuplicates: true,
     });
   }
@@ -97,7 +124,7 @@ export async function rebuildAchievements(userId: string): Promise<void> {
 
 /**
  * Finaliza un partido con un marcador, recalcula puntos y logros de
- * todos los usuarios con predicciones en ese partido.
+ * todos los usuarios con predicciones en ese partido (por liga).
  */
 export async function finalizeMatch(
   matchId: string,
@@ -110,10 +137,13 @@ export async function finalizeMatch(
   });
   await recalculateMatchPoints(matchId);
 
-  const affectedUsers = await prisma.prediction.findMany({
+  // Recalcula logros por liga: una entrada (userId, leagueId) por predicción.
+  const affectedPairs = await prisma.prediction.findMany({
     where: { matchId },
-    select: { userId: true },
-    distinct: ["userId"],
+    select: { userId: true, leagueId: true },
+    distinct: ["userId", "leagueId"],
   });
-  await Promise.all(affectedUsers.map((u) => rebuildAchievements(u.userId)));
+  await Promise.all(
+    affectedPairs.map((p) => rebuildAchievements(p.userId, p.leagueId)),
+  );
 }
