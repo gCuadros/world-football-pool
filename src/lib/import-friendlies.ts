@@ -16,9 +16,28 @@ export type FriendlyImportResult = {
  * desde hoy hasta el inicio del Mundial. Re-ejecutable: actualiza marcadores
  * y, al detectar partidos recién finalizados, recalcula puntos, logros y
  * dispara notificaciones (mismo pipeline que el Mundial).
+ *
+ * `from` se calcula automáticamente como el más antiguo entre:
+ * - hoy (UTC)
+ * - el kickoffAt más antiguo de amistosos que aún no son FINISHED en BD
+ * para no perder partidos que se quedaron atascados en LIVE de días anteriores.
  */
 export async function importFriendlies(): Promise<FriendlyImportResult> {
-  const all = await getFriendlyFixtures();
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Si hay amistosos LIVE/UPCOMING de días anteriores, ampliar el from.
+  const earliest = await prisma.match.findFirst({
+    where: { stage: "FRIENDLY", status: { in: ["LIVE", "UPCOMING"] } },
+    orderBy: { kickoffAt: "asc" },
+    select: { kickoffAt: true },
+  });
+  const from = earliest
+    ? earliest.kickoffAt.toISOString().slice(0, 10) < today
+      ? earliest.kickoffAt.toISOString().slice(0, 10)
+      : today
+    : today;
+
+  const all = await getFriendlyFixtures({ from });
 
   // Solo amistosos que involucren al menos una selección del Mundial.
   const wc = await prisma.match.findMany({
