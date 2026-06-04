@@ -24,17 +24,19 @@ async function AjustesContent() {
   let name = session.user.name ?? "";
   const email = session.user.email ?? "";
   let favoriteTeam: string | null = null;
+  let avatar: string | null = null;
   let teams;
   try {
     const [user, teamList] = await Promise.all([
       prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { name: true, favoriteTeam: true },
+        select: { name: true, favoriteTeam: true, avatar: true },
       }),
       getTeams(),
     ]);
     name = user?.name ?? name;
     favoriteTeam = user?.favoriteTeam ?? null;
+    avatar = user?.avatar ?? null;
     teams = teamList;
   } catch {
     return (
@@ -52,6 +54,7 @@ async function AjustesContent() {
     <AjustesView
       initialName={name}
       initialTeam={favoriteTeam}
+      initialAvatar={avatar}
       teams={teams}
       email={email}
     />

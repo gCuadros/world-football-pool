@@ -58,10 +58,16 @@ function SectionHeader({
 
 type View = "calendar" | "list";
 
-export function MatchesView({ matches }: { matches: MatchBase[] }) {
+export function MatchesView({
+  matches,
+  favoriteTeam,
+}: {
+  matches: MatchBase[];
+  favoriteTeam?: string | null;
+}) {
   const now = useNow(30_000);
   const [view, setView] = useState<View>("calendar");
-  const [selectedTeam, setSelectedTeam] = useState("");
+  const [selectedTeam, setSelectedTeam] = useState(favoriteTeam ?? "");
   const [stageFilter, setStageFilter] = useState<MatchFilter>("all");
 
   const liveCount = useMemo(
@@ -69,7 +75,6 @@ export function MatchesView({ matches }: { matches: MatchBase[] }) {
     [matches],
   );
 
-  // Lista de equipos únicos, ordenados.
   const teams = useMemo(() => {
     const set = new Set<string>();
     for (const m of matches) {
@@ -79,7 +84,6 @@ export function MatchesView({ matches }: { matches: MatchBase[] }) {
     return Array.from(set).sort((a, b) => a.localeCompare(b, "es"));
   }, [matches]);
 
-  // Filtrar por equipo primero (compartido entre vistas).
   const byTeam = useMemo(
     () =>
       selectedTeam
@@ -88,14 +92,12 @@ export function MatchesView({ matches }: { matches: MatchBase[] }) {
     [matches, selectedTeam],
   );
 
-  // Vista lista: filtrar también por fase.
   const listFiltered = useMemo(() => {
     if (stageFilter === "all") return byTeam;
     if (stageFilter === "live") return byTeam.filter((m) => m.status === "LIVE");
     return byTeam.filter((m) => m.stage === stageFilter);
   }, [byTeam, stageFilter]);
 
-  // Vista calendario: agrupar por día.
   const byDay = useMemo(() => {
     const map = new Map<string, MatchBase[]>();
     for (const m of byTeam) {
@@ -107,7 +109,6 @@ export function MatchesView({ matches }: { matches: MatchBase[] }) {
     return map;
   }, [byTeam]);
 
-  // Vista lista: secciones por estado.
   const live = listFiltered.filter((m) => m.status === "LIVE");
   const upcoming = listFiltered.filter((m) => m.status === "UPCOMING");
   const finished = [...listFiltered.filter((m) => m.status === "FINISHED")].reverse();
@@ -116,9 +117,8 @@ export function MatchesView({ matches }: { matches: MatchBase[] }) {
     <div className="space-y-5">
       <AutoRefresh enabled={liveCount > 0} />
 
-      {/* Header */}
+      {/* Toggle vista */}
       <div className="flex flex-wrap items-center gap-3">
-        {/* Toggle vista */}
         <div className="border-border flex gap-0.5 rounded-xl border p-1">
           <button
             onClick={() => setView("calendar")}
@@ -153,27 +153,43 @@ export function MatchesView({ matches }: { matches: MatchBase[] }) {
         )}
       </div>
 
-      {/* Filtro de equipo — siempre visible */}
-      <div className="relative max-w-xs">
-        <select
-          value={selectedTeam}
-          onChange={(e) => setSelectedTeam(e.target.value)}
-          className="border-border bg-card text-foreground w-full appearance-none rounded-lg border px-3 py-2 pr-8 text-sm"
-        >
-          <option value="">Todos los equipos</option>
-          {teams.map((t) => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
-        <ChevronDown className="text-muted-foreground pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2" />
+      {/* Filtros de equipo */}
+      <div className="flex flex-wrap items-center gap-2">
+        {favoriteTeam && (
+          <button
+            onClick={() => setSelectedTeam((t) => (t === favoriteTeam ? "" : favoriteTeam))}
+            className={cn(
+              "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+              selectedTeam === favoriteTeam
+                ? "border-primary bg-primary text-primary-foreground"
+                : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground",
+            )}
+          >
+            ⭐ {favoriteTeam}
+          </button>
+        )}
+
+        <div className="relative">
+          <select
+            value={selectedTeam}
+            onChange={(e) => setSelectedTeam(e.target.value)}
+            className="border-border bg-card text-foreground appearance-none rounded-full border py-1.5 pl-3 pr-7 text-xs"
+          >
+            <option value="">Todos los equipos</option>
+            {teams.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <ChevronDown className="text-muted-foreground pointer-events-none absolute right-2 top-1/2 size-3 -translate-y-1/2" />
+        </div>
       </div>
 
-      {/* ── Vista Calendario ─────────────────────────────────────────────── */}
+      {/* ── Vista Calendario ────────────────────────────────────────────────── */}
       {view === "calendar" && (
         <>
           {liveCount > 0 && (
             <div className="border-live/30 bg-live/10 flex items-center gap-3 rounded-xl border px-4 py-3">
-              <span className="relative flex size-2.5">
+              <span className="relative flex size-2.5 shrink-0">
                 <span className="bg-live absolute inline-flex size-full animate-ping rounded-full opacity-75" />
                 <span className="bg-live relative inline-flex size-2.5 rounded-full" />
               </span>
@@ -184,7 +200,7 @@ export function MatchesView({ matches }: { matches: MatchBase[] }) {
           )}
 
           {byDay.size === 0 ? (
-            <EmptyState text={selectedTeam ? `No hay partidos para ${selectedTeam}.` : "No hay partidos."} />
+            <EmptyState />
           ) : (
             <div className="space-y-8">
               {Array.from(byDay.entries()).map(([key, dayMatches]) => (
@@ -207,13 +223,13 @@ export function MatchesView({ matches }: { matches: MatchBase[] }) {
         </>
       )}
 
-      {/* ── Vista Lista ──────────────────────────────────────────────────── */}
+      {/* ── Vista Lista ──────────────────────────────────────────────────────── */}
       {view === "list" && (
         <>
           <FilterChips value={stageFilter} onChange={setStageFilter} />
 
           {listFiltered.length === 0 ? (
-            <EmptyState text="No hay partidos en esta categoría." />
+            <EmptyState />
           ) : (
             <div className="space-y-8">
               {live.length > 0 && (
@@ -248,10 +264,10 @@ export function MatchesView({ matches }: { matches: MatchBase[] }) {
   );
 }
 
-function EmptyState({ text }: { text: string }) {
+function EmptyState() {
   return (
     <div className="border-border text-muted-foreground rounded-xl border border-dashed p-10 text-center text-sm">
-      {text}
+      No hay partidos para mostrar.
     </div>
   );
 }

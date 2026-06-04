@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Loader2, Sun, Moon, Monitor, LogOut } from "lucide-react";
+import { Loader2, Sun, Moon, Monitor, LogOut, Camera } from "lucide-react";
 import { toast } from "sonner";
 
 import { updateProfile } from "@/app/(app)/ajustes/actions";
@@ -26,29 +26,73 @@ function initialsOf(name: string, email: string): string {
     .toUpperCase();
 }
 
+/** Comprime una imagen a base64 (máx 200×200, calidad 0.75, ~15-25KB). */
+async function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 200;
+      const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+      const w = Math.round(img.width * ratio);
+      const h = Math.round(img.height * ratio);
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("Canvas no disponible"));
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.75));
+    };
+    img.onerror = () => reject(new Error("No se pudo leer la imagen"));
+    img.src = url;
+  });
+}
+
 export function AjustesView({
   initialName,
   initialTeam,
+  initialAvatar,
   teams,
   email,
 }: {
   initialName: string;
   initialTeam: string | null;
+  initialAvatar: string | null;
   teams: Team[];
   email: string;
 }) {
   const router = useRouter();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(initialName);
   const [team, setTeam] = useState(initialTeam ?? "");
+  const [avatar, setAvatar] = useState<string | null>(initialAvatar);
   const [pending, start] = useTransition();
   const [signingOut, startSignOut] = useTransition();
   const { theme, setTheme } = useTheme();
 
-  const dirty = name !== initialName || team !== (initialTeam ?? "");
+  const dirty = name !== initialName || team !== (initialTeam ?? "") || avatar !== initialAvatar;
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressImage(file);
+      // Validar tamaño (~75KB máx en base64)
+      if (compressed.length > 100_000) {
+        toast.error("La imagen es demasiado grande. Intenta con una más pequeña.");
+        return;
+      }
+      setAvatar(compressed);
+    } catch {
+      toast.error("No se pudo procesar la imagen.");
+    }
+  }
 
   function handleSave() {
     start(async () => {
-      const res = await updateProfile(name, team || null);
+      const res = await updateProfile(name, team || null, avatar);
       if (res.ok) {
         toast.success("Perfil actualizado");
         router.refresh();
@@ -71,14 +115,48 @@ export function AjustesView({
         <div className="space-y-6">
           {/* Tarjeta de perfil */}
           <section className="border-border bg-card flex items-center gap-4 rounded-2xl border p-5">
-            <div className="bg-primary flex size-14 shrink-0 items-center justify-center rounded-full font-mono text-lg font-bold text-white">
-              {initialsOf(name, email)}
+            <div className="relative shrink-0">
+              {avatar ? (
+                <img
+                  src={avatar}
+                  alt={name}
+                  className="size-14 rounded-full object-cover"
+                />
+              ) : (
+                <div className="bg-primary flex size-14 items-center justify-center rounded-full font-mono text-lg font-bold text-white">
+                  {initialsOf(name, email)}
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="bg-card border-border absolute -right-1 -bottom-1 flex size-6 items-center justify-center rounded-full border shadow-sm transition-opacity hover:opacity-80"
+                title="Cambiar foto"
+              >
+                <Camera className="size-3" />
+              </button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
             </div>
             <div className="min-w-0">
               <h2 className="truncate font-mono text-lg font-bold">
                 {name || "Sin nombre"}
               </h2>
               <p className="text-muted-foreground truncate text-sm">{email}</p>
+              {avatar && avatar !== initialAvatar && (
+                <button
+                  type="button"
+                  onClick={() => setAvatar(initialAvatar)}
+                  className="text-muted-foreground mt-1 text-xs underline underline-offset-2"
+                >
+                  Descartar foto
+                </button>
+              )}
             </div>
           </section>
 

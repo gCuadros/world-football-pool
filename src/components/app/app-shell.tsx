@@ -59,6 +59,7 @@ async function loadNavUser(): Promise<SidebarUser> {
     name: user.name,
     email: user.email,
     initials: user.initials,
+    avatar: user.avatar,
     rank,
     leagueName,
     leagues: leagues.map((l) => ({ id: l.id, name: l.name })),

@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Flame, ChevronLeft, ChevronRight } from "lucide-react";
 
 import type { LeaderboardRow } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const PAGE_SIZE = 10;
 
@@ -45,8 +46,12 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
             >
               {row.rank}
             </span>
-            <div className="flex min-w-0 items-center gap-2.5">
-              <Avatar className="size-7">
+            <Link
+              href={`/perfil/${row.userId}`}
+              className="flex min-w-0 items-center gap-2.5 hover:opacity-80 transition-opacity"
+            >
+              <Avatar className="size-7 shrink-0">
+                {row.avatar && <AvatarImage src={row.avatar} />}
                 <AvatarFallback
                   className={cn(
                     "font-mono text-[10px]",
@@ -66,7 +71,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                   </span>
                 ) : null}
               </span>
-            </div>
+            </Link>
             <span className="text-right font-mono font-bold">{row.points}</span>
             <span className="text-muted-foreground hidden text-right font-mono text-xs sm:block">
               {row.accuracy}%

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Trophy, LogIn, type LucideIcon } from "lucide-react";
 
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+
 import {
   EXPLORE_NAV,
   LEAGUE_NAV,
@@ -17,6 +19,7 @@ export type SidebarUser = {
   name: string;
   email: string;
   initials: string;
+  avatar?: string | null;
   rank: number | null;
   leagueName: string | null;
   leagues: { id: string; name: string }[];
@@ -155,10 +158,13 @@ export function NavContent({
       {/* Footer: usuario (logged) o CTA Entrar (guest) */}
       <div className="border-sidebar-border border-t p-5">
         {user.isLoggedIn ? (
-          <div className="flex items-center gap-2.5">
-            <div className="bg-primary flex size-9 shrink-0 items-center justify-center rounded-full font-mono text-[13px] font-bold text-white">
-              {user.initials}
-            </div>
+          <Link href="/ajustes" onClick={onNavigate} className="flex items-center gap-2.5 rounded-xl transition-colors hover:opacity-80">
+            <Avatar className="size-9 shrink-0">
+              {user.avatar && <AvatarImage src={user.avatar} />}
+              <AvatarFallback className="bg-primary font-mono text-[13px] font-bold text-white">
+                {user.initials}
+              </AvatarFallback>
+            </Avatar>
             <div className="min-w-0 flex-1">
               <p className="text-sidebar-accent-foreground truncate text-[13px] font-medium">
                 {user.name}
@@ -169,7 +175,7 @@ export function NavContent({
                   : "Sin liga activa"}
               </p>
             </div>
-          </div>
+          </Link>
         ) : (
           <Link
             href="/login"

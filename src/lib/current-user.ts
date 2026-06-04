@@ -7,6 +7,7 @@ export type CurrentUser = {
   name: string;
   email: string;
   initials: string;
+  avatar: string | null;
 };
 
 function initials(name: string | null | undefined, email: string): string {
@@ -39,5 +40,6 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     name,
     email,
     initials: initials(session.user.name, email),
+    avatar: session.user.image ?? null,
   };
 });

@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 
+import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 import { getMatchesBase } from "@/lib/queries";
 import { MatchesView } from "@/components/matches/matches-view";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,8 +17,18 @@ export default function ResultadosPage() {
 }
 
 async function ResultadosContent() {
-  const matches = await getMatchesBase();
-  return <MatchesView matches={matches} />;
+  const [matches, session] = await Promise.all([getMatchesBase(), auth()]);
+
+  let favoriteTeam: string | null = null;
+  if (session?.user?.id) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { favoriteTeam: true },
+    });
+    favoriteTeam = user?.favoriteTeam ?? null;
+  }
+
+  return <MatchesView matches={matches} favoriteTeam={favoriteTeam} />;
 }
 
 function LoadingSkeleton() {

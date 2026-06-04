@@ -49,6 +49,7 @@ const ALL_NAV = [...EXPLORE_NAV, ...LEAGUE_NAV, ...ACCOUNT_NAV];
 export function titleForPath(pathname: string): string {
   const ligaMatch = pathname.match(/^\/liga\/([^/]+)(\/predicciones)?$/);
   if (ligaMatch) return ligaMatch[2] ? "Mis Predicciones" : "Clasificación";
+  if (pathname.startsWith("/perfil")) return "Perfil";
 
   const match = ALL_NAV.find(
     (item) => pathname === item.href || pathname.startsWith(item.href + "/"),
