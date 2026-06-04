@@ -1,7 +1,7 @@
 import type { NextAuthConfig } from "next-auth";
 
 // Rutas accesibles sin sesión (zona pública del Mundial).
-const PUBLIC_PATHS = ["/", "/resultados", "/mundial", "/amistosos", "/eliminatorias", "/partido", "/noticias", "/unirse", "/como-funciona"];
+const PUBLIC_PATHS = ["/", "/resultados", "/calendario", "/mundial", "/amistosos", "/eliminatorias", "/partido", "/noticias", "/unirse", "/como-funciona"];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(

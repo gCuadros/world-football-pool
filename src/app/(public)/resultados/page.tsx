@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 
 import { getMatchesBase } from "@/lib/queries";
 import { ResultadosView } from "@/components/matches/resultados-view";
@@ -17,7 +18,12 @@ export default function ResultadosPage() {
 async function ResultadosContent() {
   const matches = await getMatchesBase();
   // El Mundial: excluye amistosos (tienen su propia sección).
-  return <ResultadosView matches={matches.filter((m) => m.stage !== "FRIENDLY")} />;
+  return (
+    <ResultadosView
+      matches={matches.filter((m) => m.stage !== "FRIENDLY")}
+      calendarHref="/calendario"
+    />
+  );
 }
 
 function LoadingSkeleton() {
