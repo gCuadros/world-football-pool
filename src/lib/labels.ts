@@ -8,6 +8,7 @@ export const STAGE_LABELS: Record<Stage, string> = {
   SEMI_FINAL: "Semifinales",
   THIRD_PLACE: "Tercer puesto",
   FINAL: "Final",
+  FRIENDLY: "Amistoso",
 };
 
 export const STAGE_SHORT: Record<Stage, string> = {
@@ -18,6 +19,7 @@ export const STAGE_SHORT: Record<Stage, string> = {
   SEMI_FINAL: "Semis",
   THIRD_PLACE: "3.º",
   FINAL: "Final",
+  FRIENDLY: "Amistoso",
 };
 
 // Filtros de la página de partidos. `value` mapea a status o stage.
