@@ -29,6 +29,7 @@ function buildData(f: ProviderFixture) {
     awayScore: f.awayScore,
     status: f.status,
     liveMinute,
+    ...(f.advanced !== undefined ? { advanced: f.advanced } : {}),
   };
 }
 
