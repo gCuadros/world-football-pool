@@ -25,6 +25,15 @@ const QUICK_PICKS: [number, number][] = [
   [0, 1],
 ];
 
+const KNOCKOUT_STAGES = new Set([
+  "ROUND_OF_32",
+  "ROUND_OF_16",
+  "QUARTER_FINAL",
+  "SEMI_FINAL",
+  "THIRD_PLACE",
+  "FINAL",
+]);
+
 function TeamLabel({
   flag,
   crest,
@@ -78,6 +87,50 @@ function Stepper({
   );
 }
 
+function AdvanceSelector({
+  homeTeam,
+  awayTeam,
+  value,
+  onChange,
+  disabled,
+}: {
+  homeTeam: string;
+  awayTeam: string;
+  value: "HOME" | "AWAY" | null;
+  onChange: (v: "HOME" | "AWAY" | null) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-muted-foreground font-mono text-[10px] tracking-wide uppercase">
+        ¿Quién pasa? <span className="text-primary font-semibold">+3 pts</span>
+      </p>
+      <div className="flex gap-1.5">
+        {(["HOME", "AWAY"] as const).map((side) => {
+          const team = side === "HOME" ? homeTeam : awayTeam;
+          const active = value === side;
+          return (
+            <button
+              key={side}
+              type="button"
+              disabled={disabled}
+              onClick={() => onChange(active ? null : side)}
+              className={cn(
+                "flex-1 truncate rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
+                active
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border text-muted-foreground hover:border-primary/40",
+              )}
+            >
+              {team}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function PredictionCard({
   match,
   now,
@@ -97,15 +150,21 @@ export function PredictionCard({
   const resolved = match.status === "FINISHED";
   const live = match.status === "LIVE";
   const hasScore = match.homeScore !== null && match.awayScore !== null;
+  const isKnockout = KNOCKOUT_STAGES.has(match.stage);
 
-  // Pre-rellena con predicción existente en la liga, o con autorrelleno de otra liga.
   const initial = match.prediction ?? autofill ?? { homeScore: 0, awayScore: 0 };
   const [home, setHome] = useState(initial.homeScore);
   const [away, setAway] = useState(initial.awayScore);
+  const [advancePick, setAdvancePick] = useState<"HOME" | "AWAY" | null>(
+    match.prediction?.advancePick ?? null,
+  );
 
   const saved = match.prediction;
   const dirty =
-    !saved || saved.homeScore !== home || saved.awayScore !== away;
+    !saved ||
+    saved.homeScore !== home ||
+    saved.awayScore !== away ||
+    (isKnockout && saved.advancePick !== advancePick);
 
   const stageTag =
     match.stage === "GROUP_STAGE" && match.group
@@ -114,7 +173,13 @@ export function PredictionCard({
 
   function handleSave() {
     startTransition(async () => {
-      const res = await savePrediction(leagueId, match.id, home, away);
+      const res = await savePrediction(
+        leagueId,
+        match.id,
+        home,
+        away,
+        isKnockout ? advancePick : null,
+      );
       if (res.ok) {
         toast.success(`Predicción guardada: ${home}-${away}`);
         router.refresh();
@@ -199,6 +264,17 @@ export function PredictionCard({
             })}
           </div>
 
+          {/* Selector de quién pasa (solo eliminatorias) */}
+          {isKnockout && (
+            <AdvanceSelector
+              homeTeam={match.homeTeam}
+              awayTeam={match.awayTeam}
+              value={advancePick}
+              onChange={setAdvancePick}
+              disabled={pending}
+            />
+          )}
+
           <button
             type="button"
             disabled={pending || !dirty}
@@ -247,7 +323,7 @@ export function PredictionCard({
 
           {/* Predicción / puntos */}
           {match.prediction ? (
-            <PredictionBadge prediction={match.prediction} />
+            <PredictionBadge prediction={match.prediction} match={match} />
           ) : (
             <div className="text-muted-foreground bg-muted rounded-lg px-2.5 py-1.5 text-xs font-medium">
               No predijiste este partido

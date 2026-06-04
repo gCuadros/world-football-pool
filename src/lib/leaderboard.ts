@@ -65,14 +65,14 @@ export async function getLeagueLeaderboard(
     }),
     prisma.prediction.findMany({
       where: { leagueId },
-      select: { userId: true, matchId: true, points: true },
+      select: { userId: true, matchId: true, points: true, exact: true },
     }),
   ]);
 
   const finishedOrder = finishedMatches.map((m) => m.id);
   const finishedSet = new Set(finishedOrder);
 
-  const predsByUser = new Map<string, { matchId: string; points: number | null }[]>();
+  const predsByUser = new Map<string, { matchId: string; points: number | null; exact: boolean }[]>();
   for (const p of predictions) {
     const arr = predsByUser.get(p.userId) ?? [];
     arr.push(p);
@@ -84,8 +84,8 @@ export async function getLeagueLeaderboard(
     const finished = userPreds.filter((p) => finishedSet.has(p.matchId));
 
     const totalPoints = finished.reduce((s, p) => s + (p.points ?? 0), 0);
-    const exactCount = finished.filter((p) => p.points === 3).length;
-    const correctCount = finished.filter((p) => p.points === 1).length;
+    const exactCount = finished.filter((p) => p.exact).length;
+    const correctCount = finished.filter((p) => (p.points ?? 0) > 0 && !p.exact).length;
     const predictionsCount = finished.length;
     const accuracy =
       predictionsCount > 0

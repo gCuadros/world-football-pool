@@ -23,6 +23,8 @@ export type PredictionVM = {
   homeScore: number;
   awayScore: number;
   points: number | null;
+  exact: boolean;
+  advancePick: "HOME" | "AWAY" | null;
 };
 
 export type MatchBase = {
@@ -44,6 +46,7 @@ export type MatchBase = {
   awayScore: number | null;
   status: MatchStatus;
   liveMinute: number | null;
+  advanced: "HOME" | "AWAY" | null;
 };
 
 export type MatchVM = MatchBase & {
@@ -82,6 +85,7 @@ export async function getMatchesBase(): Promise<MatchBase[]> {
     awayScore: m.awayScore,
     status: m.status,
     liveMinute: m.liveMinute,
+    advanced: m.advanced,
   }));
 }
 
@@ -95,7 +99,7 @@ export async function getMatchesViewForLeague(
     getMatchesBase(),
     prisma.prediction.findMany({
       where: { userId, leagueId },
-      select: { matchId: true, homeScore: true, awayScore: true, points: true },
+      select: { matchId: true, homeScore: true, awayScore: true, points: true, exact: true, advancePick: true },
     }),
     prisma.miniLeague.findUnique({
       where: { id: leagueId },
@@ -116,7 +120,7 @@ export async function getMatchesViewForLeague(
     return {
       ...m,
       prediction: p
-        ? { homeScore: p.homeScore, awayScore: p.awayScore, points: p.points }
+        ? { homeScore: p.homeScore, awayScore: p.awayScore, points: p.points, exact: p.exact, advancePick: p.advancePick }
         : null,
       locked: isPredictionLocked(new Date(m.kickoffAt), now),
     };
@@ -131,7 +135,7 @@ export async function getLastPredictionForMatch(
   const pred = await prisma.prediction.findFirst({
     where: { userId, matchId },
     orderBy: { updatedAt: "desc" },
-    select: { homeScore: true, awayScore: true, points: true },
+    select: { homeScore: true, awayScore: true, points: true, exact: true, advancePick: true },
   });
   return pred ?? null;
 }

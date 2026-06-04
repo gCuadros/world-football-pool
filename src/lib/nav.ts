@@ -3,6 +3,7 @@ import {
   Globe,
   Newspaper,
   Handshake,
+  HelpCircle,
   Users,
   SquarePen,
   User,
@@ -24,6 +25,7 @@ export const EXPLORE_NAV: NavItem[] = [
   { href: "/mundial", label: "Mundial", title: "Info del Mundial", icon: Globe },
   { href: "/amistosos", label: "Amistosos", title: "Amistosos", icon: Handshake },
   { href: "/noticias", label: "Noticias", title: "Noticias", icon: Newspaper },
+  { href: "/como-funciona", label: "Cómo funciona", title: "Cómo funciona", icon: HelpCircle },
 ];
 
 // MIS LIGAS — zona privada. "Predicciones" es dinámica (liga activa) y se compone

@@ -14,33 +14,28 @@ const schema = z.object({
   matchId: z.string().min(1),
   homeScore: z.coerce.number().int().min(0).max(99),
   awayScore: z.coerce.number().int().min(0).max(99),
+  advancePick: z.enum(["HOME", "AWAY"]).nullable().optional(),
 });
 
 export type SavePredictionResult = { ok: true } | { ok: false; error: string };
 
-/**
- * Crea o actualiza la predicción del usuario para un partido EN UNA LIGA.
- * Valida: sesión válida, membresía en la liga, partido no cerrado.
- * Autorrelleno: si el usuario ya tiene predicción en otra liga para ese partido,
- * el cliente puede haberla pre-rellenado; el servidor solo valida lo enviado.
- */
 export async function savePrediction(
   leagueId: string,
   matchId: string,
   homeScore: number,
   awayScore: number,
+  advancePick?: "HOME" | "AWAY" | null,
 ): Promise<SavePredictionResult> {
   const session = await auth();
   if (!session?.user?.id) {
     return { ok: false, error: "Sesión no válida." };
   }
 
-  const parsed = schema.safeParse({ leagueId, matchId, homeScore, awayScore });
+  const parsed = schema.safeParse({ leagueId, matchId, homeScore, awayScore, advancePick });
   if (!parsed.success) {
     return { ok: false, error: "Datos no válidos." };
   }
 
-  // Verificar membresía en la liga.
   const membership = await prisma.miniLeagueMember.findUnique({
     where: {
       userId_miniLeagueId: {
@@ -82,10 +77,12 @@ export async function savePrediction(
       matchId: parsed.data.matchId,
       homeScore: parsed.data.homeScore,
       awayScore: parsed.data.awayScore,
+      advancePick: parsed.data.advancePick ?? null,
     },
     update: {
       homeScore: parsed.data.homeScore,
       awayScore: parsed.data.awayScore,
+      advancePick: parsed.data.advancePick ?? null,
     },
   });
 
