@@ -131,14 +131,14 @@ export async function StatsSection({ externalId }: { externalId: string | null }
 
   return (
     <SectionCard title="Estadísticas" icon="📊">
-      <div className="mb-3 flex items-center justify-between text-xs font-semibold">
-        <span className="flex items-center gap-1.5">
-          <TeamCrest crest={null} flag={home.teamFlag} name={home.team} size={16} />
-          {home.team}
+      <div className="mb-3 flex items-center gap-2 text-xs font-semibold">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5">
+          <TeamCrest crest={null} flag={home.teamFlag} name={home.team} size={16} className="shrink-0" />
+          <span className="truncate">{home.team}</span>
         </span>
-        <span className="flex items-center gap-1.5">
-          {away.team}
-          <TeamCrest crest={null} flag={away.teamFlag} name={away.team} size={16} />
+        <span className="flex min-w-0 flex-1 items-center justify-end gap-1.5">
+          <span className="truncate text-right">{away.team}</span>
+          <TeamCrest crest={null} flag={away.teamFlag} name={away.team} size={16} className="shrink-0" />
         </span>
       </div>
       <div className="space-y-2.5">

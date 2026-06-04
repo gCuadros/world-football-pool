@@ -24,6 +24,7 @@ export type LeaderboardRow = {
   userId: string;
   name: string;
   initials: string;
+  avatar: string | null;
   points: number;
   accuracy: number;
   predictionsCount: number;
@@ -56,7 +57,7 @@ export async function getLeagueLeaderboard(
   const [members, finishedMatches, predictions] = await Promise.all([
     prisma.miniLeagueMember.findMany({
       where: { miniLeagueId: leagueId },
-      include: { user: { select: { id: true, name: true, email: true } } },
+      include: { user: { select: { id: true, name: true, email: true, avatar: true } } },
     }),
     prisma.match.findMany({
       where: { status: "FINISHED" },
@@ -113,6 +114,7 @@ export async function getLeagueLeaderboard(
       userId: user.id,
       name: user.name ?? user.email,
       initials: initials(user.name, user.email),
+      avatar: user.avatar ?? null,
       points: totalPoints,
       accuracy,
       predictionsCount,

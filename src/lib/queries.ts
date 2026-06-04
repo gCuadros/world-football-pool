@@ -395,6 +395,107 @@ export async function getKnockoutMatches(): Promise<KnockoutRound[]> {
     }));
 }
 
+// ── Perfil público ────────────────────────────────────────────────────────────
+
+export type PublicPrediction = {
+  matchId: string;
+  homeTeam: string;
+  awayTeam: string;
+  homeFlag: string | null;
+  awayFlag: string | null;
+  kickoffAt: string;
+  homeScore: number; // predicción
+  awayScore: number; // predicción
+  actualHome: number | null; // resultado real
+  actualAway: number | null; // resultado real
+  points: number | null;
+  exact: boolean;
+};
+
+export type PublicProfile = {
+  id: string;
+  name: string;
+  avatar: string | null;
+  favoriteTeam: string | null;
+  createdAt: string;
+};
+
+/**
+ * Predicciones públicas de un usuario: solo partidos FINISHED (no revela
+ * predicciones futuras que darían ventaja). Deduplica por partido (muestra
+ * la predicción con más puntos si predijo en varias ligas).
+ */
+export async function getPublicPredictions(
+  userId: string,
+): Promise<{ profile: PublicProfile | null; predictions: PublicPrediction[] }> {
+  const [user, preds] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, avatar: true, favoriteTeam: true, createdAt: true },
+    }),
+    prisma.prediction.findMany({
+      where: {
+        userId,
+        match: { status: "FINISHED" },
+      },
+      include: {
+        match: {
+          select: {
+            id: true,
+            homeTeam: true,
+            awayTeam: true,
+            homeFlag: true,
+            awayFlag: true,
+            kickoffAt: true,
+            homeScore: true,
+            awayScore: true,
+          },
+        },
+      },
+      orderBy: { match: { kickoffAt: "desc" } },
+    }),
+  ]);
+
+  if (!user) return { profile: null, predictions: [] };
+
+  // Deduplicar por matchId: quedarse con la predicción con más puntos.
+  const byMatch = new Map<string, typeof preds[number]>();
+  for (const p of preds) {
+    const existing = byMatch.get(p.matchId);
+    if (!existing || (p.points ?? 0) > (existing.points ?? 0)) {
+      byMatch.set(p.matchId, p);
+    }
+  }
+
+  const predictions: PublicPrediction[] = [...byMatch.values()]
+    .slice(0, 40)
+    .map((p) => ({
+      matchId: p.matchId,
+      homeTeam: p.match.homeTeam,
+      awayTeam: p.match.awayTeam,
+      homeFlag: p.match.homeFlag,
+      awayFlag: p.match.awayFlag,
+      kickoffAt: p.match.kickoffAt.toISOString(),
+      homeScore: p.homeScore,
+      awayScore: p.awayScore,
+      actualHome: p.match.homeScore,
+      actualAway: p.match.awayScore,
+      points: p.points,
+      exact: p.exact,
+    }));
+
+  return {
+    profile: {
+      id: user.id,
+      name: user.name ?? user.id,
+      avatar: user.avatar,
+      favoriteTeam: user.favoriteTeam,
+      createdAt: user.createdAt.toISOString(),
+    },
+    predictions,
+  };
+}
+
 /** Head-to-head entre dos equipos (por IDs de API-Football) — CACHEADO. */
 export async function getMatchH2H(
   homeId: number,
