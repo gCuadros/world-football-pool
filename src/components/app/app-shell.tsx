@@ -2,6 +2,7 @@ import { Suspense } from "react";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getFirstLeagueInfo, getUserLeagues } from "@/lib/leaderboard";
+import { prisma } from "@/lib/prisma";
 import { getUnreadCount, getRecentNotifications } from "@/lib/notifications";
 import { Sidebar } from "@/components/app/sidebar";
 import { Topbar } from "@/components/app/topbar";
@@ -48,10 +49,11 @@ async function loadNavUser(): Promise<SidebarUser> {
     };
   }
 
-  // Logged: rank/liga del shell + lista de ligas para el selector lateral.
-  const [{ rank, leagueName }, leagues] = await Promise.all([
+  // Logged: rank/liga del shell + lista de ligas + avatar fresco desde BD.
+  const [{ rank, leagueName }, leagues, dbUser] = await Promise.all([
     getFirstLeagueInfo(user.id),
     getUserLeagues(user.id),
+    prisma.user.findUnique({ where: { id: user.id }, select: { avatar: true } }),
   ]);
 
   return {
@@ -59,7 +61,7 @@ async function loadNavUser(): Promise<SidebarUser> {
     name: user.name,
     email: user.email,
     initials: user.initials,
-    avatar: user.avatar,
+    avatar: dbUser?.avatar ?? null,
     rank,
     leagueName,
     leagues: leagues.map((l) => ({ id: l.id, name: l.name })),
