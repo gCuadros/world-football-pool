@@ -1,10 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { TAGS } from "@/lib/cache-tags";
 
 const schema = z.object({
   name: z.string().trim().min(2, "Mínimo 2 caracteres").max(60),
@@ -44,5 +45,6 @@ export async function updateProfile(
 
   revalidatePath("/ajustes");
   revalidatePath("/predicciones");
+  revalidateTag(TAGS.users, "max");
   return { ok: true };
 }

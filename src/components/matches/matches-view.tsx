@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { CalendarDays, List, ChevronDown } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { CalendarDays, List, ChevronDown, RefreshCw } from "lucide-react";
 
 import type { MatchBase, MatchVM } from "@/lib/queries";
 import type { MatchFilter } from "@/lib/labels";
@@ -65,9 +66,11 @@ export function MatchesView({
   matches: MatchBase[];
   favoriteTeam?: string | null;
 }) {
+  const router = useRouter();
+  const [refreshing, startRefresh] = useTransition();
   const now = useNow(30_000);
   const [view, setView] = useState<View>("calendar");
-  const [selectedTeam, setSelectedTeam] = useState(favoriteTeam ?? "");
+  const [selectedTeam, setSelectedTeam] = useState("");
   const [stageFilter, setStageFilter] = useState<MatchFilter>("all");
 
   const liveCount = useMemo(
@@ -151,10 +154,33 @@ export function MatchesView({
             {liveCount} EN DIRECTO
           </Badge>
         )}
+
+        <button
+          onClick={() => startRefresh(() => { router.refresh(); })}
+          disabled={refreshing}
+          className="text-muted-foreground hover:text-foreground ml-auto transition-colors disabled:opacity-40"
+          title="Actualizar"
+        >
+          <RefreshCw className={cn("size-4", refreshing && "animate-spin")} />
+        </button>
       </div>
 
       {/* Filtros de equipo */}
       <div className="flex flex-wrap items-center gap-2">
+        {/* Chip "Todos" — siempre visible, activo cuando no hay filtro */}
+        <button
+          onClick={() => setSelectedTeam("")}
+          className={cn(
+            "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+            selectedTeam === ""
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground",
+          )}
+        >
+          Todos
+        </button>
+
+        {/* Chip del equipo favorito (solo si el usuario está logueado y tiene favorito) */}
         {favoriteTeam && (
           <button
             onClick={() => setSelectedTeam((t) => (t === favoriteTeam ? "" : favoriteTeam))}
@@ -169,6 +195,7 @@ export function MatchesView({
           </button>
         )}
 
+        {/* Selector completo de equipo */}
         <div className="relative">
           <select
             value={selectedTeam}

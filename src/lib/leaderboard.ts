@@ -3,7 +3,7 @@ import "server-only";
 import { cacheTag, cacheLife } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
-import { leagueTag } from "@/lib/cache-tags";
+import { TAGS, leagueTag } from "@/lib/cache-tags";
 import type { AchievementType } from "@prisma/client";
 
 function initials(name: string | null | undefined, email: string): string {
@@ -52,7 +52,7 @@ export async function getLeagueLeaderboard(
 ): Promise<LeaderboardRow[]> {
   "use cache";
   cacheLife("minutes");
-  cacheTag(leagueTag(leagueId));
+  cacheTag(leagueTag(leagueId), TAGS.users);
 
   const [members, finishedMatches, predictions] = await Promise.all([
     prisma.miniLeagueMember.findMany({
