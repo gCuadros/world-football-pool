@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { getLeagueLeaderboard } from "@/lib/leaderboard";
 import { prisma } from "@/lib/prisma";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { ShareLeague } from "@/components/ligas/share-league";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -95,7 +95,7 @@ async function LigaContent({ params }: { params: Promise<{ id: string }> }) {
                 className={`flex items-center gap-3 px-5 py-3 ${row.isCurrentUser ? "bg-primary/5" : ""}`}
               >
                 {/* Posición */}
-                <div className="w-8 text-center">
+                <div className="w-8 shrink-0 text-center">
                   {row.rank <= 3 ? (
                     <span className="font-mono text-base">
                       {row.rank === 1 ? "🥇" : row.rank === 2 ? "🥈" : "🥉"}
@@ -107,31 +107,35 @@ async function LigaContent({ params }: { params: Promise<{ id: string }> }) {
                   )}
                 </div>
 
-                {/* Avatar */}
-                <Avatar className="size-8 shrink-0">
-                  <AvatarFallback className="bg-primary/10 text-primary font-mono text-xs">
-                    {row.initials}
-                  </AvatarFallback>
-                </Avatar>
-
-                {/* Nombre */}
-                <div className="min-w-0 flex-1">
-                  <p className={`truncate text-sm font-medium ${row.isCurrentUser ? "text-primary" : ""}`}>
-                    {row.name}
-                    {row.isCurrentUser && (
-                      <span className="text-primary/60 ml-1.5 text-xs">(tú)</span>
-                    )}
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    {row.predictionsCount} pred · {row.accuracy}% prec
-                    {row.currentStreak > 1 && (
-                      <span className="text-primary ml-1">🔥 {row.currentStreak}</span>
-                    )}
-                  </p>
-                </div>
+                {/* Avatar + Nombre — clicable al perfil */}
+                <Link
+                  href={`/perfil/${row.userId}`}
+                  className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-80 transition-opacity"
+                >
+                  <Avatar className="size-8 shrink-0">
+                    {row.avatar && <AvatarImage src={row.avatar} />}
+                    <AvatarFallback className="bg-primary/10 text-primary font-mono text-xs">
+                      {row.initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className={`truncate text-sm font-medium ${row.isCurrentUser ? "text-primary" : ""}`}>
+                      {row.name}
+                      {row.isCurrentUser && (
+                        <span className="text-primary/60 ml-1.5 text-xs">(tú)</span>
+                      )}
+                    </p>
+                    <p className="text-muted-foreground text-xs">
+                      {row.predictionsCount} pred · {row.accuracy}% prec
+                      {row.currentStreak > 1 && (
+                        <span className="text-primary ml-1">🔥 {row.currentStreak}</span>
+                      )}
+                    </p>
+                  </div>
+                </Link>
 
                 {/* Puntos */}
-                <div className="text-right">
+                <div className="shrink-0 text-right">
                   <p className="font-mono text-lg font-bold">{row.points}</p>
                   <p className="text-muted-foreground font-mono text-xs">pts</p>
                 </div>
