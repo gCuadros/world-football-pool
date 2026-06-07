@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getUnreadCount, getRecentNotifications } from "@/lib/notifications";
 import { Sidebar } from "@/components/app/sidebar";
 import { Topbar } from "@/components/app/topbar";
+import { BottomNav } from "@/components/app/bottom-nav";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SidebarUser } from "@/components/app/nav-content";
 
@@ -25,10 +26,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Suspense fallback={<TopbarSkeleton />}>
           <TopbarSlot />
         </Suspense>
-        <main className="flex-1 p-4 lg:p-6">
+        <main className="flex-1 p-4 pb-24 lg:p-6 lg:pb-6">
           <div className="mx-auto w-full max-w-6xl">{children}</div>
         </main>
       </div>
+      <Suspense>
+        <BottomNavSlot />
+      </Suspense>
     </div>
   );
 }
@@ -82,6 +86,16 @@ async function TopbarSlot() {
     getRecentNotifications(me!.id),
   ]);
   return <Topbar user={user} notifications={{ count, items }} />;
+}
+
+async function BottomNavSlot() {
+  const user = await loadNavUser();
+  let notificationCount: number | undefined;
+  if (user.isLoggedIn) {
+    const me = await getCurrentUser();
+    if (me) notificationCount = await getUnreadCount(me.id);
+  }
+  return <BottomNav user={user} notificationCount={notificationCount} />;
 }
 
 function SidebarSkeleton() {
