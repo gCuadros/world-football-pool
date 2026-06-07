@@ -157,3 +157,15 @@
     @apply font-heading tracking-tight;
   }
 }
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: max(4rem, env(safe-area-inset-bottom));
+  }
+  .pb-safe-inset {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .bottom-safe {
+    bottom: env(safe-area-inset-bottom);
+  }
+}

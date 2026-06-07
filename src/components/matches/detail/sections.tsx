@@ -5,6 +5,7 @@ import {
   getCommunityDistribution,
 } from "@/lib/queries";
 import { TeamCrest } from "@/components/matches/team-crest";
+import { PitchLineup } from "@/components/matches/detail/pitch-lineup";
 
 // Tarjeta contenedora de sección con título.
 function SectionCard({
@@ -35,47 +36,7 @@ export async function LineupsSection({ externalId }: { externalId: string | null
 
   return (
     <SectionCard title="Alineaciones" icon="👕">
-      <div className="grid gap-6 sm:grid-cols-2">
-        {lineups.map((l) => (
-          <div key={l.team} className="space-y-3">
-            <div className="flex items-center gap-2">
-              <TeamCrest crest={l.teamLogo} flag={l.teamFlag} name={l.team} size={20} />
-              <span className="truncate font-semibold">{l.team}</span>
-              {l.formation && (
-                <span className="text-muted-foreground ml-auto font-mono text-xs">
-                  {l.formation}
-                </span>
-              )}
-            </div>
-            <div className="space-y-1">
-              {l.startXI.map((p, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground w-6 shrink-0 text-right font-mono text-xs">
-                    {p.number ?? ""}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate">{p.name}</span>
-                  {p.pos && (
-                    <span className="text-muted-foreground shrink-0 font-mono text-[10px]">
-                      {p.pos}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-            {l.substitutes.length > 0 && (
-              <p className="text-muted-foreground text-xs">
-                <span className="font-medium">Suplentes:</span>{" "}
-                {l.substitutes.map((s) => s.name).join(", ")}
-              </p>
-            )}
-            {l.coach && (
-              <p className="text-muted-foreground text-xs">
-                <span className="font-medium">Entrenador:</span> {l.coach}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
+      <PitchLineup lineups={lineups} />
     </SectionCard>
   );
 }

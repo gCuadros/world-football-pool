@@ -76,6 +76,7 @@ export default function ComoFuncionaPage() {
 
       <Section title="Multiplicadores por fase">
         <div className="bg-card border-border overflow-hidden rounded-xl border">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-border border-b">
@@ -107,6 +108,7 @@ export default function ComoFuncionaPage() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
         <p className="text-muted-foreground text-xs">
           Total = puntos base × multiplicador. Se permiten decimales (p. ej. 5 × 1,5 = 7,5 pts).
@@ -115,6 +117,7 @@ export default function ComoFuncionaPage() {
 
       <Section title="Ejemplos">
         <div className="bg-card border-border overflow-hidden rounded-xl border">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-border border-b">
@@ -139,6 +142,7 @@ export default function ComoFuncionaPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </Section>
 

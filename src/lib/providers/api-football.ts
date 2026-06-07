@@ -421,6 +421,7 @@ export type LineupPlayer = {
   name: string;
   number: number | null;
   pos: string | null;
+  grid: string | null;
 };
 export type TeamLineup = {
   team: string;
@@ -433,7 +434,7 @@ export type TeamLineup = {
 };
 
 type AfLineupPlayer = {
-  player: { name: string | null; number: number | null; pos: string | null };
+  player: { name: string | null; number: number | null; pos: string | null; grid: string | null };
 };
 type AfLineup = {
   team: { name: string; logo: string | null };
@@ -451,6 +452,7 @@ export async function getApiFootballLineups(
     name: p.player.name ?? "—",
     number: p.player.number,
     pos: p.player.pos,
+    grid: p.player.grid ?? null,
   });
   return resp.map((l) => {
     const info = teamInfo(l.team.name);
