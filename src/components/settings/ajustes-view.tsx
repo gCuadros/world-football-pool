@@ -3,13 +3,12 @@
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Loader2, Sun, Moon, Monitor, LogOut, Camera, Bell } from "lucide-react";
+import { Loader2, Sun, Moon, Monitor, LogOut, Camera } from "lucide-react";
 import { toast } from "sonner";
 
 import {
   updateProfile,
   updateNotificationPrefs,
-  sendTestNotification,
   type NotificationPrefs,
 } from "@/app/(app)/ajustes/actions";
 import { signOutAction } from "@/app/(app)/actions";
@@ -22,7 +21,7 @@ import { cn } from "@/lib/utils";
 type Team = { name: string; flag: string | null };
 
 const NOTIF_TYPES: {
-  key: keyof Omit<NotificationPrefs, "followedTeams">;
+  key: keyof Omit<NotificationPrefs, "followedTeams" | "notifyMatchStart" | "notifyMatchStartAll">;
   label: string;
   desc: string;
 }[] = [
@@ -136,12 +135,13 @@ export function AjustesView({
     notifyResults: initialPrefs.notifyResults,
     notifyReminders: initialPrefs.notifyReminders,
     notifyLeague: initialPrefs.notifyLeague,
+    notifyMatchStart: initialPrefs.notifyMatchStart,
+    notifyMatchStartAll: initialPrefs.notifyMatchStartAll,
   });
   const [followed, setFollowed] = useState<Set<string>>(
     () => new Set(initialPrefs.followedTeams),
   );
   const [savingPrefs, startSavePrefs] = useTransition();
-  const [testing, startTest] = useTransition();
 
   function toggleTeam(name: string) {
     setFollowed((prev) => {
@@ -164,14 +164,6 @@ export function AjustesView({
       } else {
         toast.error(res.error);
       }
-    });
-  }
-
-  function sendTest() {
-    startTest(async () => {
-      const res = await sendTestNotification();
-      if (res.ok) toast.success("Enviada. Revisa tus notificaciones.");
-      else toast.error(res.error);
     });
   }
 
@@ -341,17 +333,6 @@ export function AjustesView({
 
             <PushToggle />
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={sendTest}
-              disabled={testing}
-              className="w-full"
-            >
-              {testing ? <Loader2 className="size-4 animate-spin" /> : <Bell className="size-4" />}
-              Enviar notificación de prueba
-            </Button>
-
             {/* Tipos de aviso */}
             <div className="border-border space-y-3 border-t pt-4">
               <h3 className="text-muted-foreground font-mono text-2xs font-semibold tracking-wide uppercase">
@@ -366,6 +347,34 @@ export function AjustesView({
                   onChange={(v) => setPrefs((p) => ({ ...p, [t.key]: v }))}
                 />
               ))}
+              <ToggleRow
+                label="Antes del partido"
+                desc="Aviso ~20 min antes del kickoff."
+                checked={prefs.notifyMatchStart}
+                onChange={(v) => setPrefs((p) => ({ ...p, notifyMatchStart: v }))}
+              />
+              {prefs.notifyMatchStart && (
+                <div className="flex gap-2 pl-1">
+                  {[
+                    { value: false, label: "Solo si no he predicho" },
+                    { value: true, label: "Todos los partidos" },
+                  ].map((opt) => (
+                    <button
+                      key={String(opt.value)}
+                      type="button"
+                      onClick={() => setPrefs((p) => ({ ...p, notifyMatchStartAll: opt.value }))}
+                      className={cn(
+                        "rounded-full border px-3 py-1 text-xs font-medium transition motion-safe:active:scale-[0.97]",
+                        prefs.notifyMatchStartAll === opt.value
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border text-muted-foreground hover:border-primary/40",
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Equipos a seguir */}
@@ -402,15 +411,24 @@ export function AjustesView({
                   );
                 })}
               </div>
-              {followed.size > 0 && (
+              <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => setFollowed(new Set())}
+                  onClick={() => setFollowed(new Set(teams.map((t) => t.name)))}
                   className="text-muted-foreground text-xs underline underline-offset-2"
                 >
-                  Quitar todos
+                  Seguir todos
                 </button>
-              )}
+                {followed.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setFollowed(new Set())}
+                    className="text-muted-foreground text-xs underline underline-offset-2"
+                  >
+                    Quitar todos
+                  </button>
+                )}
+              </div>
             </div>
 
             <Button onClick={savePrefs} disabled={savingPrefs} className="w-full">

@@ -30,6 +30,7 @@ import {
 const ICONS: Record<NotificationType, LucideIcon> = {
   PREDICTION_REMINDER: Clock,
   MATCH_RESULT: Trophy,
+  MATCH_STARTING: Clock,
   LEAGUE_RANK: TrendingUp,
   LEAGUE_JOIN: Users,
   LIVE_GOAL: Goal,

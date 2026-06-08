@@ -31,6 +31,8 @@ async function AjustesContent() {
     notifyResults: true,
     notifyReminders: true,
     notifyLeague: true,
+    notifyMatchStart: true,
+    notifyMatchStartAll: false,
     followedTeams: [] as string[],
   };
   try {
@@ -45,6 +47,8 @@ async function AjustesContent() {
           notifyResults: true,
           notifyReminders: true,
           notifyLeague: true,
+          notifyMatchStart: true,
+          notifyMatchStartAll: true,
           followedTeams: true,
         },
       }),
@@ -60,6 +64,8 @@ async function AjustesContent() {
         notifyResults: user.notifyResults,
         notifyReminders: user.notifyReminders,
         notifyLeague: user.notifyLeague,
+        notifyMatchStart: user.notifyMatchStart,
+        notifyMatchStartAll: user.notifyMatchStartAll,
         followedTeams: user.followedTeams,
       };
     }

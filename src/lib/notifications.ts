@@ -27,6 +27,7 @@ type UserPrefs = {
   notifyResults: boolean;
   notifyReminders: boolean;
   notifyLeague: boolean;
+  notifyMatchStart: boolean;
   followedTeams: string[];
 };
 
@@ -39,6 +40,8 @@ function typeEnabled(type: NotificationType, p: UserPrefs): boolean {
       return p.notifyResults;
     case "PREDICTION_REMINDER":
       return p.notifyReminders;
+    case "MATCH_STARTING":
+      return p.notifyMatchStart;
     case "LEAGUE_RANK":
     case "LEAGUE_JOIN":
       return p.notifyLeague;
@@ -64,6 +67,7 @@ async function filterByPreferences(
       notifyResults: true,
       notifyReminders: true,
       notifyLeague: true,
+      notifyMatchStart: true,
       followedTeams: true,
     },
   });
