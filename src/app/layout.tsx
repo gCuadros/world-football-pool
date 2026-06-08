@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { SwRegister } from "@/components/app/sw-register";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -63,6 +64,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <SwRegister />
           <Toaster richColors position="top-center" />
         </ThemeProvider>
       </body>

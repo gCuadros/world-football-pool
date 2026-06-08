@@ -3,10 +3,15 @@
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Loader2, Sun, Moon, Monitor, LogOut, Camera } from "lucide-react";
+import { Loader2, Sun, Moon, Monitor, LogOut, Camera, Bell } from "lucide-react";
 import { toast } from "sonner";
 
-import { updateProfile } from "@/app/(app)/ajustes/actions";
+import {
+  updateProfile,
+  updateNotificationPrefs,
+  sendTestNotification,
+  type NotificationPrefs,
+} from "@/app/(app)/ajustes/actions";
 import { signOutAction } from "@/app/(app)/actions";
 import { PushToggle } from "@/components/notifications/push-toggle";
 import { Input } from "@/components/ui/input";
@@ -15,6 +20,57 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type Team = { name: string; flag: string | null };
+
+const NOTIF_TYPES: {
+  key: keyof Omit<NotificationPrefs, "followedTeams">;
+  label: string;
+  desc: string;
+}[] = [
+  { key: "notifyLiveGoals", label: "Goles en vivo", desc: "Cuando se marca en un partido que predijiste." },
+  { key: "notifyResults", label: "Resultados", desc: "Tus puntos al terminar un partido." },
+  { key: "notifyReminders", label: "Recordatorios", desc: "Avisos para predecir antes del cierre." },
+  { key: "notifyLeague", label: "Ligas", desc: "Ranking y nuevos miembros." },
+];
+
+function ToggleRow({
+  label,
+  desc,
+  checked,
+  onChange,
+}: {
+  label: string;
+  desc: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="flex w-full items-center gap-3 text-left motion-safe:active:scale-[0.99]"
+    >
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium">{label}</span>
+        <span className="text-muted-foreground block text-xs">{desc}</span>
+      </span>
+      <span
+        className={cn(
+          "relative h-6 w-10 shrink-0 rounded-full transition-colors",
+          checked ? "bg-primary" : "bg-muted",
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-transform",
+            checked ? "translate-x-[18px]" : "translate-x-0.5",
+          )}
+        />
+      </span>
+    </button>
+  );
+}
 
 function initialsOf(name: string, email: string): string {
   const base = name.trim() || email;
@@ -56,12 +112,14 @@ export function AjustesView({
   initialAvatar,
   teams,
   email,
+  initialPrefs,
 }: {
   initialName: string;
   initialTeam: string | null;
   initialAvatar: string | null;
   teams: Team[];
   email: string;
+  initialPrefs: NotificationPrefs;
 }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -71,6 +129,51 @@ export function AjustesView({
   const [pending, start] = useTransition();
   const [signingOut, startSignOut] = useTransition();
   const { theme, setTheme } = useTheme();
+
+  // Preferencias de notificación.
+  const [prefs, setPrefs] = useState({
+    notifyLiveGoals: initialPrefs.notifyLiveGoals,
+    notifyResults: initialPrefs.notifyResults,
+    notifyReminders: initialPrefs.notifyReminders,
+    notifyLeague: initialPrefs.notifyLeague,
+  });
+  const [followed, setFollowed] = useState<Set<string>>(
+    () => new Set(initialPrefs.followedTeams),
+  );
+  const [savingPrefs, startSavePrefs] = useTransition();
+  const [testing, startTest] = useTransition();
+
+  function toggleTeam(name: string) {
+    setFollowed((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  }
+
+  function savePrefs() {
+    startSavePrefs(async () => {
+      const res = await updateNotificationPrefs({
+        ...prefs,
+        followedTeams: [...followed],
+      });
+      if (res.ok) {
+        toast.success("Preferencias guardadas");
+        router.refresh();
+      } else {
+        toast.error(res.error);
+      }
+    });
+  }
+
+  function sendTest() {
+    startTest(async () => {
+      const res = await sendTestNotification();
+      if (res.ok) toast.success("Enviada. Revisa tus notificaciones.");
+      else toast.error(res.error);
+    });
+  }
 
   const dirty = name !== initialName || team !== (initialTeam ?? "") || avatar !== initialAvatar;
 
@@ -228,12 +331,92 @@ export function AjustesView({
           </section>
 
           {/* Notificaciones */}
-          <section className="border-border bg-card rounded-2xl border p-5">
-            <h2 className="mb-1 font-bold">Notificaciones</h2>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Recibe avisos de goles, resultados y recordatorios en este dispositivo.
-            </p>
+          <section className="border-border bg-card space-y-5 rounded-2xl border p-5">
+            <div>
+              <h2 className="mb-1 font-bold">Notificaciones</h2>
+              <p className="text-muted-foreground text-sm">
+                Activa en este dispositivo y elige qué quieres recibir.
+              </p>
+            </div>
+
             <PushToggle />
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={sendTest}
+              disabled={testing}
+              className="w-full"
+            >
+              {testing ? <Loader2 className="size-4 animate-spin" /> : <Bell className="size-4" />}
+              Enviar notificación de prueba
+            </Button>
+
+            {/* Tipos de aviso */}
+            <div className="border-border space-y-3 border-t pt-4">
+              <h3 className="text-muted-foreground font-mono text-2xs font-semibold tracking-wide uppercase">
+                Qué recibir
+              </h3>
+              {NOTIF_TYPES.map((t) => (
+                <ToggleRow
+                  key={t.key}
+                  label={t.label}
+                  desc={t.desc}
+                  checked={prefs[t.key]}
+                  onChange={(v) => setPrefs((p) => ({ ...p, [t.key]: v }))}
+                />
+              ))}
+            </div>
+
+            {/* Equipos a seguir */}
+            <div className="border-border space-y-3 border-t pt-4">
+              <div>
+                <h3 className="text-muted-foreground font-mono text-2xs font-semibold tracking-wide uppercase">
+                  Equipos a seguir
+                </h3>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {followed.size === 0
+                    ? "Recibes avisos de todos los partidos."
+                    : `Solo avisos de ${followed.size} ${followed.size === 1 ? "equipo" : "equipos"}.`}
+                </p>
+              </div>
+              <div className="flex max-h-44 flex-wrap gap-1.5 overflow-y-auto">
+                {teams.map((t) => {
+                  const on = followed.has(t.name);
+                  return (
+                    <button
+                      key={t.name}
+                      type="button"
+                      onClick={() => toggleTeam(t.name)}
+                      aria-pressed={on}
+                      className={cn(
+                        "flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition motion-safe:active:scale-[0.97]",
+                        on
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border text-muted-foreground hover:border-primary/40",
+                      )}
+                    >
+                      {t.flag ? <span>{t.flag}</span> : null}
+                      <span className="truncate">{t.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {followed.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setFollowed(new Set())}
+                  className="text-muted-foreground text-xs underline underline-offset-2"
+                >
+                  Quitar todos
+                </button>
+              )}
+            </div>
+
+            <Button onClick={savePrefs} disabled={savingPrefs} className="w-full">
+              {savingPrefs ? <Loader2 className="size-4 animate-spin" /> : null}
+              Guardar preferencias
+            </Button>
           </section>
 
           {/* Zona de peligro */}

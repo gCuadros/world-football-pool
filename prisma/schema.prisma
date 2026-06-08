@@ -20,6 +20,11 @@ model User {
   updatedAt           DateTime             @updatedAt
   favoriteTeam        String?
   favoriteLeagueId    String?
+  notifyLiveGoals     Boolean              @default(true)
+  notifyResults       Boolean              @default(true)
+  notifyReminders     Boolean              @default(true)
+  notifyLeague        Boolean              @default(true)
+  followedTeams       String[]
   accounts           Account[]
   achievements       Achievement[]
   miniLeaguesCreated MiniLeague[]       @relation("MiniLeagueCreator")

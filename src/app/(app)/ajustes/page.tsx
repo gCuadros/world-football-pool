@@ -26,11 +26,27 @@ async function AjustesContent() {
   let favoriteTeam: string | null = null;
   let avatar: string | null = null;
   let teams;
+  let prefs = {
+    notifyLiveGoals: true,
+    notifyResults: true,
+    notifyReminders: true,
+    notifyLeague: true,
+    followedTeams: [] as string[],
+  };
   try {
     const [user, teamList] = await Promise.all([
       prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { name: true, favoriteTeam: true, avatar: true },
+        select: {
+          name: true,
+          favoriteTeam: true,
+          avatar: true,
+          notifyLiveGoals: true,
+          notifyResults: true,
+          notifyReminders: true,
+          notifyLeague: true,
+          followedTeams: true,
+        },
       }),
       getTeams(),
     ]);
@@ -38,6 +54,15 @@ async function AjustesContent() {
     favoriteTeam = user?.favoriteTeam ?? null;
     avatar = user?.avatar ?? null;
     teams = teamList;
+    if (user) {
+      prefs = {
+        notifyLiveGoals: user.notifyLiveGoals,
+        notifyResults: user.notifyResults,
+        notifyReminders: user.notifyReminders,
+        notifyLeague: user.notifyLeague,
+        followedTeams: user.followedTeams,
+      };
+    }
   } catch {
     return (
       <div className="border-warning/40 bg-warning/10 rounded-2xl border p-8">
@@ -57,6 +82,7 @@ async function AjustesContent() {
       initialAvatar={avatar}
       teams={teams}
       email={email}
+      initialPrefs={prefs}
     />
   );
 }
