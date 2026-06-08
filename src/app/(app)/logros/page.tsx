@@ -111,7 +111,7 @@ async function LogrosContent() {
                       <p className="text-muted-foreground mt-0.5 text-xs">{a.description}</p>
                       <span
                         className={cn(
-                          "mt-2 inline-block font-mono text-[10px] tracking-wide uppercase",
+                          "mt-2 inline-block font-mono text-3xs tracking-wide uppercase",
                           has ? "text-success" : "text-muted-foreground/60",
                         )}
                       >

@@ -151,7 +151,7 @@ async function LigaContent({ params }: { params: Promise<{ id: string }> }) {
 function StatPill({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-muted/50 rounded-xl p-3 text-center">
-      <p className="text-muted-foreground font-mono text-[10px] tracking-wide uppercase">{label}</p>
+      <p className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">{label}</p>
       <p className="font-mono text-xl font-bold">{value}</p>
     </div>
   );

@@ -83,7 +83,7 @@ export function CommunityBreakdown({
                       >
                         {s.label}
                         {mine ? (
-                          <span className="bg-primary/10 text-primary ml-1.5 rounded px-1 py-0.5 text-[10px]">
+                          <span className="bg-primary/10 text-primary ml-1.5 rounded px-1 py-0.5 text-3xs">
                             Tu pred
                           </span>
                         ) : null}
@@ -104,7 +104,7 @@ export function CommunityBreakdown({
                   </div>
                 );
               })}
-              <div className="text-muted-foreground flex justify-between pt-1 font-mono text-[10px]">
+              <div className="text-muted-foreground flex justify-between pt-1 font-mono text-3xs">
                 <span>Local {data.results.home}%</span>
                 <span>Empate {data.results.draw}%</span>
                 <span>Visitante {data.results.away}%</span>

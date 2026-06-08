@@ -19,7 +19,7 @@ export default function MundialPage() {
         <span className="text-muted-foreground text-sm">USA · Canada · Mexico</span>
         <Link
           href="/eliminatorias"
-          className="text-primary hover:text-primary/80 ml-auto flex items-center gap-1.5 font-mono text-[12px] font-medium transition-colors"
+          className="text-primary hover:text-primary/80 ml-auto flex items-center gap-1.5 font-mono text-xs font-medium transition-colors"
         >
           <Network className="size-3.5" />
           Eliminatorias
@@ -67,7 +67,7 @@ async function StandingsSection() {
             </div>
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-muted-foreground border-border border-b font-mono text-[10px] tracking-wide uppercase">
+                <tr className="text-muted-foreground border-border border-b font-mono text-3xs tracking-wide uppercase">
                   <th className="px-3 py-1.5 text-left" colSpan={2}>Equipo</th>
                   <th className="px-1 py-1.5 text-center">PJ</th>
                   <th className="px-1 py-1.5 text-center">GF</th>
@@ -129,7 +129,7 @@ async function TopScorersSection() {
       <div className="border-border bg-card overflow-hidden rounded-xl border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-muted-foreground border-border bg-muted/30 border-b font-mono text-[10px] tracking-wide uppercase">
+            <tr className="text-muted-foreground border-border bg-muted/30 border-b font-mono text-3xs tracking-wide uppercase">
               <th className="px-2 py-2 text-left sm:px-3">#</th>
               <th className="px-2 py-2 text-left sm:px-3">Jugador</th>
               <th className="hidden px-3 py-2 text-left sm:table-cell">Equipo</th>

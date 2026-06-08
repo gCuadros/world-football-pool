@@ -75,7 +75,7 @@ export function MatchEvents({ matchId }: { matchId: string }) {
                 <span className="min-w-0 flex-1 truncate">
                   {e.player ?? e.detail}
                 </span>
-                <span className="text-muted-foreground shrink-0 truncate text-[10px]">
+                <span className="text-muted-foreground shrink-0 truncate text-3xs">
                   {e.team}
                 </span>
               </div>

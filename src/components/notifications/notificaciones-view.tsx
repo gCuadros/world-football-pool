@@ -108,7 +108,7 @@ export function NotificacionesView({ notifs }: { notifs: NotificationVM[] }) {
 
       {[...groups.entries()].map(([day, items]) => (
         <section key={day} className="space-y-2">
-          <p className="text-muted-foreground font-mono text-[11px] tracking-widest uppercase">
+          <p className="text-muted-foreground font-mono text-2xs tracking-widest uppercase">
             {day}
           </p>
           {items.map((n) => {
@@ -131,7 +131,7 @@ export function NotificacionesView({ notifs }: { notifs: NotificationVM[] }) {
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   {!n.read && <span className="bg-primary size-2 rounded-full" />}
-                  <span className="text-muted-foreground font-mono text-[10px]">
+                  <span className="text-muted-foreground font-mono text-3xs">
                     {time(n.isoDate)}
                   </span>
                 </div>

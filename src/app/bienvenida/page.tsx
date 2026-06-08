@@ -24,7 +24,7 @@ async function BienvenidaContent() {
   return (
     <div className="from-primary/10 to-background flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b px-4 py-10">
       <div className="w-full max-w-2xl space-y-6 text-center">
-        <span className="bg-primary text-primary-foreground inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-[10px] font-bold tracking-[0.15em]">
+        <span className="bg-primary text-primary-foreground inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-3xs font-bold tracking-[0.15em]">
           <Trophy className="size-3.5" />
           FIFA WORLD CUP 2026
         </span>

@@ -19,7 +19,7 @@ function SectionCard({
 }) {
   return (
     <section className="border-border bg-card rounded-2xl border p-5">
-      <h2 className="mb-4 flex items-center gap-2 font-mono text-[15px] font-bold">
+      <h2 className="mb-4 flex items-center gap-2 font-mono text-base font-bold">
         {icon && <span>{icon}</span>}
         {title}
       </h2>
@@ -138,7 +138,7 @@ export async function CommunitySection({ matchId }: { matchId: string }) {
 
   return (
     <SectionCard title="Cómo predijo la comunidad" icon="👥">
-      <p className="text-muted-foreground mb-3 font-mono text-[11px] tracking-wide uppercase">
+      <p className="text-muted-foreground mb-3 font-mono text-2xs tracking-wide uppercase">
         {community.total} {community.total === 1 ? "predicción" : "predicciones"}
       </p>
       <div className="mb-3 flex items-center gap-4 font-mono text-sm">
@@ -151,7 +151,7 @@ export async function CommunitySection({ matchId }: { matchId: string }) {
           {community.scores.map((s) => (
             <span
               key={s.label}
-              className="bg-muted rounded-md px-2 py-0.5 font-mono text-[11px]"
+              className="bg-muted rounded-md px-2 py-0.5 font-mono text-2xs"
             >
               {s.label} · {s.pct}%
             </span>

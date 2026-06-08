@@ -66,7 +66,7 @@ function Stepper({
         type="button"
         disabled={disabled || value <= 0}
         onClick={() => onChange(Math.max(0, value - 1))}
-        className="border-border text-muted-foreground hover:border-primary/40 hover:text-foreground flex size-7 items-center justify-center rounded-md border transition-colors disabled:opacity-40"
+        className="border-border text-muted-foreground hover:border-primary/40 hover:text-foreground flex size-7 items-center justify-center rounded-md border transition disabled:opacity-40 motion-safe:active:scale-90"
         aria-label="Restar"
       >
         <Minus className="size-3.5" />
@@ -78,7 +78,7 @@ function Stepper({
         type="button"
         disabled={disabled || value >= 20}
         onClick={() => onChange(Math.min(20, value + 1))}
-        className="border-border text-muted-foreground hover:border-primary/40 hover:text-foreground flex size-7 items-center justify-center rounded-md border transition-colors disabled:opacity-40"
+        className="border-border text-muted-foreground hover:border-primary/40 hover:text-foreground flex size-7 items-center justify-center rounded-md border transition disabled:opacity-40 motion-safe:active:scale-90"
         aria-label="Sumar"
       >
         <Plus className="size-3.5" />
@@ -102,7 +102,7 @@ function AdvanceSelector({
 }) {
   return (
     <div className="space-y-1.5">
-      <p className="text-muted-foreground font-mono text-[10px] tracking-wide uppercase">
+      <p className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">
         ¿Quién pasa? <span className="text-primary font-semibold">+3 pts</span>
       </p>
       <div className="flex gap-1.5">
@@ -116,7 +116,7 @@ function AdvanceSelector({
               disabled={disabled}
               onClick={() => onChange(active ? null : side)}
               className={cn(
-                "flex-1 truncate rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
+                "flex-1 truncate rounded-md border px-2 py-1.5 text-xs font-medium transition motion-safe:active:scale-[0.97]",
                 active
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border text-muted-foreground hover:border-primary/40",
@@ -198,19 +198,19 @@ export function PredictionCard({
     >
       {/* Cabecera */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-muted-foreground font-mono text-[10px] tracking-wide uppercase">
+        <span className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">
           {stageTag} · {match.stadium}
         </span>
         {live ? (
-          <span className="text-live font-mono text-[11px] font-bold">
+          <span className="text-live font-mono text-2xs font-bold">
             {match.liveMinute ? `${match.liveMinute}'` : "EN VIVO"}
           </span>
         ) : resolved ? (
-          <span className="text-muted-foreground font-mono text-[11px]">
+          <span className="text-muted-foreground font-mono text-2xs">
             Final
           </span>
         ) : (
-          <span className="text-muted-foreground font-mono text-[11px]">
+          <span className="text-muted-foreground font-mono text-2xs">
             {formatRelativeDay(match.kickoffAt, now)} · {formatTime(match.kickoffAt)}
           </span>
         )}
@@ -233,7 +233,7 @@ export function PredictionCard({
 
           {/* Nota de autorrelleno */}
           {!match.prediction && autofill && (
-            <p className="text-muted-foreground text-[11px]">
+            <p className="text-muted-foreground text-2xs">
               ✦ Pre-rellenado desde otra liga
             </p>
           )}
@@ -252,7 +252,7 @@ export function PredictionCard({
                     setAway(a);
                   }}
                   className={cn(
-                    "rounded-md border px-2 py-1 font-mono text-[11px] transition-colors",
+                    "rounded-md border px-2 py-1 font-mono text-2xs transition motion-safe:active:scale-[0.97]",
                     active
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border text-muted-foreground hover:border-primary/40",
@@ -279,7 +279,7 @@ export function PredictionCard({
             type="button"
             disabled={pending || !dirty}
             onClick={handleSave}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium transition-colors disabled:opacity-50"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium transition disabled:opacity-50 motion-safe:active:scale-[0.99]"
           >
             {pending ? (
               <Loader2 className="size-4 animate-spin" />

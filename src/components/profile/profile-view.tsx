@@ -37,7 +37,7 @@ function StatCard({
     <div className="border-border bg-card flex flex-col items-center gap-1 rounded-xl border p-3 text-center">
       <Icon className="text-primary size-4" />
       <span className="text-lg font-bold font-mono">{value}</span>
-      <span className="text-muted-foreground text-[10px] uppercase tracking-wide">{label}</span>
+      <span className="text-muted-foreground text-3xs uppercase tracking-wide">{label}</span>
     </div>
   );
 }

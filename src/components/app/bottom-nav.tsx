@@ -67,7 +67,7 @@ export function BottomNav({ user }: { user: SidebarUser }) {
             key={href}
             href={href}
             className={cn(
-              "relative flex flex-1 flex-col items-center justify-center gap-0.5 min-w-0 text-[10px] font-medium transition-colors",
+              "relative flex flex-1 flex-col items-center justify-center gap-0.5 min-w-0 text-3xs font-medium transition-colors",
               active ? "text-primary" : "text-muted-foreground active:text-foreground",
             )}
           >

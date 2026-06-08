@@ -79,7 +79,7 @@ export function NotificationBell({
       >
         <Bell className="size-4" />
         {count > 0 && (
-          <span className="bg-live text-live-foreground absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full px-1 font-mono text-[10px] font-bold">
+          <span className="bg-live text-live-foreground absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full px-1 font-mono text-3xs font-bold">
             {count > 9 ? "9+" : count}
           </span>
         )}
@@ -124,7 +124,7 @@ export function NotificationBell({
                   </div>
                   <div className="flex flex-col items-end gap-1">
                     {!n.read && <span className="bg-primary size-2 rounded-full" />}
-                    <span className="text-muted-foreground font-mono text-[10px]">
+                    <span className="text-muted-foreground font-mono text-3xs">
                       {relative(n.isoDate)}
                     </span>
                   </div>

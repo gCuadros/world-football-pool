@@ -31,7 +31,7 @@ export function Segmented<T extends string>({
           aria-selected={value === opt.value}
           onClick={() => onChange(opt.value)}
           className={cn(
-            "flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all min-h-[44px] sm:min-h-0 sm:py-1.5",
+            "flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition min-h-[44px] sm:min-h-0 sm:py-1.5 motion-safe:active:scale-[0.97]",
             value === opt.value
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground",

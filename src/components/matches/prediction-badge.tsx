@@ -72,7 +72,7 @@ export function PredictionBadge({
         </span>
       </div>
       {advanceNote && (
-        <span className="opacity-70 pl-5 text-[11px]">{advanceNote}</span>
+        <span className="opacity-70 pl-5 text-2xs">{advanceNote}</span>
       )}
     </div>
   );

@@ -51,11 +51,11 @@ export function Podium({ rows }: { rows: LeaderboardRow[] }) {
             <p className="mt-1 truncate text-sm font-semibold">{row.name}</p>
             <p className="text-primary font-mono text-lg font-bold">
               {row.points}
-              <span className="text-muted-foreground ml-1 text-[10px] font-normal">
+              <span className="text-muted-foreground ml-1 text-3xs font-normal">
                 pts
               </span>
             </p>
-            <p className="text-muted-foreground font-mono text-[10px]">
+            <p className="text-muted-foreground font-mono text-3xs">
               {row.accuracy}% precisión
             </p>
           </div>

@@ -53,6 +53,10 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Micro-escala tipográfica (formaliza los 10/11px de micro-etiquetas mono,
+     antes valores arbitrarios). Orden: 3xs(10) < 2xs(11) < xs(12). */
+  --text-3xs: 0.625rem;
+  --text-2xs: 0.6875rem;
 }
 
 :root {
@@ -67,7 +71,7 @@
   --secondary: #cce2ff;
   --secondary-foreground: #0b1f3a;
   --muted: #dceafb;
-  --muted-foreground: #4a6b8a;
+  --muted-foreground: #3f5e82;
   --accent: #cce2ff;
   --accent-foreground: #0066b2;
   --destructive: #b3261e;
@@ -141,6 +145,14 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+  }
+  /* Foco visible de base para todos los controles interactivos (a11y/teclado).
+     Va en la capa `base` con `:where()` (especificidad 0), así cualquier
+     componente que defina su propio anillo de foco (p. ej. el primitivo Button)
+     lo sobrescribe desde la capa `utilities`. */
+  :where(a, button, [role="button"], [role="tab"], [role="switch"], [role="menuitem"], input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
   body {
     @apply bg-background text-foreground;
