@@ -31,25 +31,31 @@ function NavLink({
   icon: Icon,
   active,
   onNavigate,
+  indent,
 }: {
   href: string;
   label: string;
   icon: LucideIcon;
   active: boolean;
   onNavigate?: () => void;
+  indent?: boolean;
 }) {
   return (
     <Link
       href={href}
       onClick={onNavigate}
       className={cn(
-        "flex items-center gap-3.5 rounded-full px-3.5 py-2.5 text-[15px] transition-colors",
+        "flex items-center gap-3.5 rounded-full py-2.5 text-[15px] transition-colors",
+        indent ? "px-2 pl-7" : "px-3.5",
         active
           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
           : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
       )}
     >
-      <Icon className="size-[22px] shrink-0" strokeWidth={1.75} />
+      <Icon
+        className={cn("shrink-0", indent ? "size-[18px]" : "size-[22px]")}
+        strokeWidth={1.75}
+      />
       <span className="truncate">{label}</span>
     </Link>
   );
@@ -129,6 +135,20 @@ export function NavContent({
                 onNavigate={onNavigate}
               />
             ))}
+            {user.leagues.map((league) => (
+              <NavLink
+                key={league.id}
+                href={`/liga/${league.id}`}
+                label={league.name}
+                icon={Trophy}
+                active={
+                  pathname.startsWith(`/liga/${league.id}`) &&
+                  !pathname.includes("/predicciones")
+                }
+                onNavigate={onNavigate}
+                indent
+              />
+            ))}
             {activeLeagueId && (
               <NavLink
                 href={`/liga/${activeLeagueId}/predicciones`}
@@ -136,6 +156,7 @@ export function NavContent({
                 icon={PREDICCIONES_ICON}
                 active={/^\/liga\/[^/]+\/predicciones/.test(pathname)}
                 onNavigate={onNavigate}
+                indent
               />
             )}
 

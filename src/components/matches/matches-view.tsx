@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, List, ChevronDown, RefreshCw } from "lucide-react";
+import { CalendarDays, List, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
 
 import type { MatchBase, MatchVM } from "@/lib/queries";
 import type { MatchFilter } from "@/lib/labels";
@@ -72,6 +72,7 @@ export function MatchesView({
   const [view, setView] = useState<View>("calendar");
   const [selectedTeam, setSelectedTeam] = useState("");
   const [stageFilter, setStageFilter] = useState<MatchFilter>("all");
+  const [showPast, setShowPast] = useState(false);
 
   const liveCount = useMemo(
     () => matches.filter((m) => m.status === "LIVE").length,
@@ -101,16 +102,47 @@ export function MatchesView({
     return byTeam.filter((m) => m.stage === stageFilter);
   }, [byTeam, stageFilter]);
 
+  const todayKey = dateKey(now.toISOString());
+
+  const pastDayCount = useMemo(() => {
+    const days = new Set<string>();
+    for (const m of byTeam) {
+      if (m.status === "FINISHED" && dateKey(m.kickoffAt) < todayKey) {
+        days.add(dateKey(m.kickoffAt));
+      }
+    }
+    return days.size;
+  }, [byTeam, todayKey]);
+
+  const calendarMatches = useMemo(
+    () =>
+      showPast
+        ? byTeam
+        : byTeam.filter(
+            (m) => m.status !== "FINISHED" || dateKey(m.kickoffAt) >= todayKey,
+          ),
+    [byTeam, showPast, todayKey],
+  );
+
+  const STATUS_PRIORITY: Record<string, number> = { LIVE: 0, UPCOMING: 1, FINISHED: 2 };
+
   const byDay = useMemo(() => {
     const map = new Map<string, MatchBase[]>();
-    for (const m of byTeam) {
+    for (const m of calendarMatches) {
       const key = dateKey(m.kickoffAt);
       const arr = map.get(key) ?? [];
       arr.push(m);
       map.set(key, arr);
     }
+    for (const arr of map.values()) {
+      arr.sort(
+        (a, b) =>
+          (STATUS_PRIORITY[a.status] ?? 2) - (STATUS_PRIORITY[b.status] ?? 2) ||
+          a.kickoffAt.localeCompare(b.kickoffAt),
+      );
+    }
     return map;
-  }, [byTeam]);
+  }, [calendarMatches]);
 
   const live = listFiltered.filter((m) => m.status === "LIVE");
   const upcoming = listFiltered.filter((m) => m.status === "UPCOMING");
@@ -226,6 +258,17 @@ export function MatchesView({
             </div>
           )}
 
+          {/* Botón para mostrar jornadas anteriores */}
+          {!showPast && pastDayCount > 0 && (
+            <button
+              onClick={() => setShowPast(true)}
+              className="border-border text-muted-foreground hover:border-primary/40 hover:text-primary flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-3 text-sm transition-colors"
+            >
+              <ChevronUp className="size-4" />
+              Ver {pastDayCount} {pastDayCount === 1 ? "jornada anterior" : "jornadas anteriores"}
+            </button>
+          )}
+
           {byDay.size === 0 ? (
             <EmptyState />
           ) : (
@@ -246,6 +289,17 @@ export function MatchesView({
                 </section>
               ))}
             </div>
+          )}
+
+          {/* Ocultar anteriores cuando están visibles */}
+          {showPast && pastDayCount > 0 && (
+            <button
+              onClick={() => setShowPast(false)}
+              className="text-muted-foreground hover:text-foreground flex w-full items-center justify-center gap-1.5 py-2 text-xs transition-colors"
+            >
+              <ChevronDown className="size-3.5" />
+              Ocultar anteriores
+            </button>
           )}
         </>
       )}
