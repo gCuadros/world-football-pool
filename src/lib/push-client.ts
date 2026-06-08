@@ -39,17 +39,16 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
 }
 
 /**
- * Registra el SW, pide permiso y suscribe a Web Push. Envía la suscripción al
- * servidor. Devuelve true si quedó suscrito.
+ * Registra el SW, reutiliza/crea la suscripción Web Push y la envía al servidor
+ * (idempotente). Requiere permiso ya concedido. Se usa tanto al activar como al
+ * abrir la PWA instalada, para que ese contexto registre su propia suscripción.
  */
-export async function subscribeToPush(): Promise<boolean> {
+export async function ensurePushSubscribed(): Promise<boolean> {
   if (!isPushSupported()) return false;
+  if (Notification.permission !== "granted") return false;
 
   const vapid = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   if (!vapid) return false;
-
-  const permission = await Notification.requestPermission();
-  if (permission !== "granted") return false;
 
   const reg = await navigator.serviceWorker.register("/sw.js");
   await navigator.serviceWorker.ready;
@@ -73,6 +72,20 @@ export async function subscribeToPush(): Promise<boolean> {
     }),
   });
   return res.ok;
+}
+
+/**
+ * Pide permiso (gesto de usuario) y suscribe a Web Push. Devuelve true si quedó
+ * suscrito.
+ */
+export async function subscribeToPush(): Promise<boolean> {
+  if (!isPushSupported()) return false;
+  if (!process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY) return false;
+
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") return false;
+
+  return ensurePushSubscribed();
 }
 
 /** Cancela la suscripción local y la elimina del servidor. */

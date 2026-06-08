@@ -72,6 +72,7 @@ export async function notifyMatchResult(matchId: string): Promise<void> {
         link: `/liga/${p.leagueId}`,
         matchId,
         leagueId: p.leagueId,
+        teams: [match.homeTeam, match.awayTeam],
       };
     });
 
@@ -130,6 +131,7 @@ export async function pollLiveGoals(): Promise<{ goals: number; live: number }> 
           body: f.minute ? `Minuto ${f.minute}'` : "En directo",
           link: "/resultados",
           matchId: m.id,
+          teams: [m.homeTeam, m.awayTeam],
         })),
       );
     }
@@ -189,6 +191,7 @@ export async function generatePredictionReminders(
         body: "Cierra pronto. ¡No te quedes sin puntos!",
         link: "/ligas",
         matchId: match.id,
+        teams: [match.homeTeam, match.awayTeam],
       });
     }
   }
