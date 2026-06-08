@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Radio, Users, User, LogIn, Globe, SquarePen } from "lucide-react";
+import { Home, Radio, Users, User, LogIn, Globe, SquarePen, Trophy } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import type { SidebarUser } from "@/components/app/nav-content";
@@ -24,6 +24,12 @@ const GUEST_ITEMS: NavItem[] = [
 export function BottomNav({ user }: { user: SidebarUser }) {
   const pathname = usePathname();
   const activeLeagueId = user.activeLeagueId;
+  const activeLeague = user.leagues.find((l) => l.id === activeLeagueId);
+
+  // Tab de liga: la favorita/activa (su nombre y página). Sin liga → la lista.
+  const leagueItem: NavItem = activeLeague
+    ? { href: `/liga/${activeLeague.id}`, label: activeLeague.name, icon: Trophy }
+    : { href: "/ligas", label: "Ligas", icon: Users };
 
   const items: NavItem[] = user.isLoggedIn
     ? [
@@ -32,13 +38,21 @@ export function BottomNav({ user }: { user: SidebarUser }) {
         ...(activeLeagueId
           ? [{ href: `/liga/${activeLeagueId}/predicciones`, label: "Predecir", icon: SquarePen }]
           : []),
-        { href: "/ligas", label: "Ligas", icon: Users },
+        leagueItem,
         { href: "/ajustes", label: "Perfil", icon: User },
       ]
     : GUEST_ITEMS;
 
-  const isActive = (href: string, exact?: boolean) =>
-    exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
+  const isActive = (href: string, exact?: boolean) => {
+    if (exact) return pathname === href;
+    const matches = pathname === href || pathname.startsWith(href + "/");
+    // El tab de liga (/liga/{id}) no se resalta en su subruta /predicciones,
+    // que tiene su propio tab.
+    if (href.startsWith("/liga/") && !href.includes("/predicciones")) {
+      return matches && !pathname.includes("/predicciones");
+    }
+    return matches;
+  };
 
   return (
     <nav
