@@ -8,6 +8,10 @@ import type { PublicProfile, PublicPrediction } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
+function isRealAvatar(a: string | null): boolean {
+  return !!a && (a.startsWith("data:") || a.startsWith("http"));
+}
+
 function initials(name: string): string {
   return name
     .trim()
@@ -74,25 +78,32 @@ export function ProfileView({
       </Link>
 
       {/* Header del perfil */}
-      <section className="border-border bg-card rounded-2xl border p-6">
-        <div className="flex items-center gap-4">
-          <Avatar size="lg" className="size-16">
-            {profile.avatar && <AvatarImage src={profile.avatar} />}
-            <AvatarFallback className="bg-primary font-mono text-lg font-bold text-white">
-              {initials(profile.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <h1 className="truncate text-xl font-bold">{profile.name}</h1>
-            {profile.favoriteTeam && (
-              <p className="text-muted-foreground text-sm">
-                ⭐ {profile.favoriteTeam}
-              </p>
-            )}
-            <p className="text-muted-foreground text-xs">
-              Miembro desde {memberSince}
-            </p>
+      <section className="border-border bg-card overflow-hidden rounded-2xl border">
+        {/* Portada */}
+        <img
+          src={profile.coverImage ?? "/front-page-default.webp"}
+          alt=""
+          className="h-40 w-full object-cover"
+        />
+        {/* Avatar + info */}
+        <div className="px-5 pb-5">
+          <div className="-mt-8 mb-3">
+            <Avatar size="lg" className="size-16 ring-4 ring-[hsl(var(--card))]">
+              <AvatarImage src={isRealAvatar(profile.avatar) ? profile.avatar! : "/avatar-default.webp"} />
+              <AvatarFallback className="bg-primary font-mono text-lg font-bold text-white">
+                {initials(profile.name)}
+              </AvatarFallback>
+            </Avatar>
           </div>
+          <h1 className="truncate text-xl font-bold">{profile.name}</h1>
+          {profile.favoriteTeam && (
+            <p className="text-muted-foreground text-sm">
+              ⭐ {profile.favoriteTeam}
+            </p>
+          )}
+          <p className="text-muted-foreground text-xs">
+            Miembro desde {memberSince}
+          </p>
         </div>
       </section>
 

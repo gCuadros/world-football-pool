@@ -15,6 +15,11 @@ const schema = z.object({
     .max(100_000, "La imagen es demasiado grande.")
     .nullable()
     .optional(),
+  coverImage: z
+    .string()
+    .max(300_000, "La imagen de portada es demasiado grande.")
+    .nullable()
+    .optional(),
 });
 
 export type ProfileResult = { ok: true } | { ok: false; error: string };
@@ -23,11 +28,12 @@ export async function updateProfile(
   name: string,
   favoriteTeam: string | null,
   avatar?: string | null,
+  coverImage?: string | null,
 ): Promise<ProfileResult> {
   const session = await auth();
   if (!session?.user?.id) return { ok: false, error: "Sesión no válida." };
 
-  const parsed = schema.safeParse({ name, favoriteTeam: favoriteTeam || null, avatar });
+  const parsed = schema.safeParse({ name, favoriteTeam: favoriteTeam || null, avatar, coverImage });
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0].message };
   }
@@ -39,6 +45,9 @@ export async function updateProfile(
       favoriteTeam: parsed.data.favoriteTeam,
       ...(parsed.data.avatar !== undefined
         ? { avatar: parsed.data.avatar, image: parsed.data.avatar }
+        : {}),
+      ...(parsed.data.coverImage !== undefined
+        ? { coverImage: parsed.data.coverImage }
         : {}),
     },
   });
