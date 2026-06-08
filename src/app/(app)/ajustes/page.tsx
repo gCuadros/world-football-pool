@@ -25,6 +25,7 @@ async function AjustesContent() {
   const email = session.user.email ?? "";
   let favoriteTeam: string | null = null;
   let avatar: string | null = null;
+  let coverImage: string | null = null;
   let teams;
   let prefs = {
     notifyLiveGoals: true,
@@ -43,6 +44,7 @@ async function AjustesContent() {
           name: true,
           favoriteTeam: true,
           avatar: true,
+          coverImage: true,
           notifyLiveGoals: true,
           notifyResults: true,
           notifyReminders: true,
@@ -57,6 +59,7 @@ async function AjustesContent() {
     name = user?.name ?? name;
     favoriteTeam = user?.favoriteTeam ?? null;
     avatar = user?.avatar ?? null;
+    coverImage = user?.coverImage ?? null;
     teams = teamList;
     if (user) {
       prefs = {
@@ -86,6 +89,7 @@ async function AjustesContent() {
       initialName={name}
       initialTeam={favoriteTeam}
       initialAvatar={avatar}
+      initialCoverImage={coverImage}
       teams={teams}
       email={email}
       initialPrefs={prefs}

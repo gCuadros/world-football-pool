@@ -416,6 +416,7 @@ export type PublicProfile = {
   id: string;
   name: string;
   avatar: string | null;
+  coverImage: string | null;
   favoriteTeam: string | null;
   createdAt: string;
 };
@@ -431,7 +432,7 @@ export async function getPublicPredictions(
   const [user, preds] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, avatar: true, favoriteTeam: true, createdAt: true },
+      select: { id: true, name: true, avatar: true, coverImage: true, favoriteTeam: true, createdAt: true },
     }),
     prisma.prediction.findMany({
       where: {
@@ -489,6 +490,7 @@ export async function getPublicPredictions(
       id: user.id,
       name: user.name ?? user.id,
       avatar: user.avatar,
+      coverImage: user.coverImage,
       favoriteTeam: user.favoriteTeam,
       createdAt: user.createdAt.toISOString(),
     },

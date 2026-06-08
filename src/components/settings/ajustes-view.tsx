@@ -3,7 +3,7 @@
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Loader2, Sun, Moon, Monitor, LogOut, Camera } from "lucide-react";
+import { Loader2, Sun, Moon, Monitor, LogOut, Camera, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -105,10 +105,35 @@ async function compressImage(file: File): Promise<string> {
   });
 }
 
+async function compressCover(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX_W = 1200;
+      const MAX_H = 400;
+      const ratio = Math.min(MAX_W / img.width, MAX_H / img.height, 1);
+      const w = Math.round(img.width * ratio);
+      const h = Math.round(img.height * ratio);
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("Canvas no disponible"));
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.8));
+    };
+    img.onerror = () => reject(new Error("No se pudo leer la imagen"));
+    img.src = url;
+  });
+}
+
 export function AjustesView({
   initialName,
   initialTeam,
   initialAvatar,
+  initialCoverImage,
   teams,
   email,
   initialPrefs,
@@ -116,15 +141,18 @@ export function AjustesView({
   initialName: string;
   initialTeam: string | null;
   initialAvatar: string | null;
+  initialCoverImage: string | null;
   teams: Team[];
   email: string;
   initialPrefs: NotificationPrefs;
 }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
+  const coverRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(initialName);
   const [team, setTeam] = useState(initialTeam ?? "");
   const [avatar, setAvatar] = useState<string | null>(initialAvatar);
+  const [cover, setCover] = useState<string | null>(initialCoverImage);
   const [pending, start] = useTransition();
   const [signingOut, startSignOut] = useTransition();
   const { theme, setTheme } = useTheme();
@@ -167,14 +195,17 @@ export function AjustesView({
     });
   }
 
-  const dirty = name !== initialName || team !== (initialTeam ?? "") || avatar !== initialAvatar;
+  const dirty =
+    name !== initialName ||
+    team !== (initialTeam ?? "") ||
+    avatar !== initialAvatar ||
+    cover !== initialCoverImage;
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       const compressed = await compressImage(file);
-      // Validar tamaño (~75KB máx en base64)
       if (compressed.length > 100_000) {
         toast.error("La imagen es demasiado grande. Intenta con una más pequeña.");
         return;
@@ -185,9 +216,24 @@ export function AjustesView({
     }
   }
 
+  async function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressCover(file);
+      if (compressed.length > 300_000) {
+        toast.error("La portada es demasiado grande. Intenta con una imagen más pequeña.");
+        return;
+      }
+      setCover(compressed);
+    } catch {
+      toast.error("No se pudo procesar la imagen.");
+    }
+  }
+
   function handleSave() {
     start(async () => {
-      const res = await updateProfile(name, team || null, avatar);
+      const res = await updateProfile(name, team || null, avatar, cover);
       if (res.ok) {
         toast.success("Perfil actualizado");
         router.refresh();
@@ -208,50 +254,80 @@ export function AjustesView({
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         {/* Columna principal: perfil + info */}
         <div className="space-y-6">
-          {/* Tarjeta de perfil */}
-          <section className="border-border bg-card flex items-center gap-4 rounded-2xl border p-5">
-            <div className="relative shrink-0">
-              {avatar ? (
-                <img
-                  src={avatar}
-                  alt={name}
-                  className="size-14 rounded-full object-cover"
-                />
-              ) : (
-                <div className="bg-primary flex size-14 items-center justify-center rounded-full font-mono text-lg font-bold text-white">
-                  {initialsOf(name, email)}
-                </div>
-              )}
+          {/* Portada */}
+          <section className="border-border bg-card overflow-hidden rounded-2xl border">
+            <div className="relative">
+              <img
+                src={cover ?? "/front-page-default.webp"}
+                alt=""
+                className="h-32 w-full object-cover"
+              />
               <button
                 type="button"
-                onClick={() => fileRef.current?.click()}
-                className="bg-card border-border absolute -right-1 -bottom-1 flex size-6 items-center justify-center rounded-full border shadow-sm transition-opacity hover:opacity-80"
-                title="Cambiar foto"
+                onClick={() => coverRef.current?.click()}
+                className="bg-black/40 hover:bg-black/60 absolute right-2 bottom-2 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition"
+                title="Cambiar portada"
               >
-                <Camera className="size-3" />
+                <ImageIcon className="size-3.5" />
+                Cambiar portada
               </button>
               <input
-                ref={fileRef}
+                ref={coverRef}
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={handleFileChange}
+                onChange={handleCoverChange}
               />
             </div>
-            <div className="min-w-0">
-              <h2 className="truncate font-mono text-lg font-bold">
-                {name || "Sin nombre"}
-              </h2>
-              <p className="text-muted-foreground truncate text-sm">{email}</p>
-              {avatar && avatar !== initialAvatar && (
+            <div className="flex items-center gap-4 p-4">
+              <div className="relative -mt-10 shrink-0">
+                <img
+                  src={avatar?.startsWith("data:") ? avatar : "/avatar-default.webp"}
+                  alt={name}
+                  className="size-14 rounded-full object-cover ring-4 ring-[hsl(var(--card))]"
+                />
                 <button
                   type="button"
-                  onClick={() => setAvatar(initialAvatar)}
-                  className="text-muted-foreground mt-1 text-xs underline underline-offset-2"
+                  onClick={() => fileRef.current?.click()}
+                  className="bg-card border-border absolute -right-1 -bottom-1 flex size-6 items-center justify-center rounded-full border shadow-sm transition-opacity hover:opacity-80"
+                  title="Cambiar foto"
                 >
-                  Descartar foto
+                  <Camera className="size-3" />
                 </button>
-              )}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate font-mono text-lg font-bold">
+                  {name || "Sin nombre"}
+                </h2>
+                <p className="text-muted-foreground truncate text-sm">{email}</p>
+                <div className="mt-1 flex gap-3">
+                  {avatar?.startsWith("data:") && avatar !== initialAvatar && (
+                    <button
+                      type="button"
+                      onClick={() => setAvatar(initialAvatar)}
+                      className="text-muted-foreground text-xs underline underline-offset-2"
+                    >
+                      Descartar foto
+                    </button>
+                  )}
+                  {cover !== initialCoverImage && (
+                    <button
+                      type="button"
+                      onClick={() => setCover(initialCoverImage)}
+                      className="text-muted-foreground text-xs underline underline-offset-2"
+                    >
+                      Descartar portada
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </section>
 
