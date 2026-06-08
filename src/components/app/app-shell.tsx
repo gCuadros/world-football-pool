@@ -89,13 +89,7 @@ async function TopbarSlot() {
 }
 
 async function BottomNavSlot() {
-  const user = await loadNavUser();
-  let notificationCount: number | undefined;
-  if (user.isLoggedIn) {
-    const me = await getCurrentUser();
-    if (me) notificationCount = await getUnreadCount(me.id);
-  }
-  return <BottomNav user={user} notificationCount={notificationCount} />;
+  return <BottomNav user={await loadNavUser()} />;
 }
 
 function SidebarSkeleton() {
