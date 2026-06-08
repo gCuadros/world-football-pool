@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useTheme } from "next-themes";
 import { Loader2, Sun, Moon, Monitor, LogOut, Camera, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ import { PushToggle } from "@/components/notifications/push-toggle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 type Team = { name: string; flag: string | null };
@@ -71,20 +73,10 @@ function ToggleRow({
   );
 }
 
-function initialsOf(name: string, email: string): string {
-  const base = name.trim() || email;
-  return base
-    .split(/\s+/)
-    .map((p) => p[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
-
 /** Comprime una imagen a base64 (máx 200×200, calidad 0.75, ~15-25KB). */
 async function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
+    const img = new window.Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       const MAX = 200;
@@ -107,7 +99,7 @@ async function compressImage(file: File): Promise<string> {
 
 async function compressCover(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
+    const img = new window.Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       const MAX_W = 1200;
@@ -256,11 +248,14 @@ export function AjustesView({
         <div className="space-y-6">
           {/* Portada */}
           <section className="border-border bg-card overflow-hidden rounded-2xl border">
-            <div className="relative">
-              <img
+            <div className="relative h-32 w-full">
+              <Image
                 src={cover ?? "/front-page-default.webp"}
                 alt=""
-                className="h-32 w-full object-cover"
+                fill
+                sizes="(min-width: 1024px) 60vw, 100vw"
+                className="object-cover"
+                unoptimized={cover?.startsWith("data:") ?? false}
               />
               <button
                 type="button"
@@ -281,11 +276,12 @@ export function AjustesView({
             </div>
             <div className="flex items-center gap-4 p-4">
               <div className="relative -mt-10 shrink-0">
-                <img
-                  src={avatar?.startsWith("data:") ? avatar : "/avatar-default.webp"}
-                  alt={name}
-                  className="size-14 rounded-full object-cover ring-4 ring-[hsl(var(--card))]"
-                />
+                <Avatar className="size-14 ring-4 ring-card">
+                  <AvatarImage
+                    src={avatar?.startsWith("data:") ? avatar : "/avatar-default.webp"}
+                    alt={name}
+                  />
+                </Avatar>
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
