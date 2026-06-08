@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus, ArrowRight } from "lucide-react";
@@ -27,9 +27,9 @@ type LeagueWithStats = {
 
 export default function LigasPage() {
   return (
-    <Suspense fallback={<LigasSkeleton />}>
+    <Reveal fallback={<LigasSkeleton />}>
       <LigasContent />
-    </Suspense>
+    </Reveal>
   );
 }
 

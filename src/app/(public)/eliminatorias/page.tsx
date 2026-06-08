@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import Link from "next/link";
 import { Network } from "lucide-react";
 
@@ -17,9 +17,9 @@ export default function EliminatoriasPage() {
         <h1 className="text-xl font-bold">Cuadro de Eliminatorias</h1>
       </div>
 
-      <Suspense fallback={<BracketSkeleton />}>
+      <Reveal fallback={<BracketSkeleton />}>
         <BracketContent />
-      </Suspense>
+      </Reveal>
     </div>
   );
 }

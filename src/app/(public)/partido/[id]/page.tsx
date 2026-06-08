@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, ViewTransition } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -7,6 +7,7 @@ import { getMatchesBase, type MatchBase } from "@/lib/queries";
 import { STAGE_LABELS } from "@/lib/labels";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Reveal } from "@/components/ui/reveal";
 import {
   LineupsSection,
   TimelineSection,
@@ -42,9 +43,9 @@ export default function PartidoPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Reveal fallback={<PageSkeleton />}>
       <PartidoContent params={params} />
-    </Suspense>
+    </Reveal>
   );
 }
 
@@ -123,7 +124,9 @@ function MatchHeader({ match }: { match: MatchBase }) {
       <div className="flex items-center justify-center gap-4 sm:gap-8">
         {/* Local */}
         <div className="flex flex-1 flex-col items-center gap-2 text-center">
-          <TeamCrest crest={match.homeCrest} flag={match.homeFlag} name={match.homeTeam} size={56} />
+          <ViewTransition name={`match-${match.id}-crest-home`} default="none">
+            <TeamCrest crest={match.homeCrest} flag={match.homeFlag} name={match.homeTeam} size={56} />
+          </ViewTransition>
           <span className="text-sm font-semibold sm:text-base">{match.homeTeam}</span>
         </div>
 
@@ -145,7 +148,9 @@ function MatchHeader({ match }: { match: MatchBase }) {
 
         {/* Visitante */}
         <div className="flex flex-1 flex-col items-center gap-2 text-center">
-          <TeamCrest crest={match.awayCrest} flag={match.awayFlag} name={match.awayTeam} size={56} />
+          <ViewTransition name={`match-${match.id}-crest-away`} default="none">
+            <TeamCrest crest={match.awayCrest} flag={match.awayFlag} name={match.awayTeam} size={56} />
+          </ViewTransition>
           <span className="text-sm font-semibold sm:text-base">{match.awayTeam}</span>
         </div>
       </div>

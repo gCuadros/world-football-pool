@@ -5,6 +5,7 @@ import { Globe, Shield, Goal, Network } from "lucide-react";
 
 import { getWorldCupStandings, getWorldCupTopScorers } from "@/lib/queries";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Reveal } from "@/components/ui/reveal";
 import { TeamCrest } from "@/components/matches/team-crest";
 
 export const metadata = { title: "Mundial 2026 · Quiniela" };
@@ -25,9 +26,9 @@ export default function MundialPage() {
         </Link>
       </div>
 
-      <Suspense fallback={<GroupsSkeleton />}>
+      <Reveal fallback={<GroupsSkeleton />}>
         <StandingsSection />
-      </Suspense>
+      </Reveal>
 
       <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
         <TopScorersSection />

@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
@@ -11,9 +11,9 @@ export const metadata = { title: "Ajustes" };
 
 export default function AjustesPage() {
   return (
-    <Suspense fallback={<Loading />}>
+    <Reveal fallback={<Loading />}>
       <AjustesContent />
-    </Suspense>
+    </Reveal>
   );
 }
 

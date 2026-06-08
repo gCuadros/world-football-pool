@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ["lucide-react"],
+    // Transiciones de vista entre rutas (React `<ViewTransition>` del canal
+    // canary que usa el App Router; no requiere instalar react@canary).
+    viewTransition: true,
   },
 };
 

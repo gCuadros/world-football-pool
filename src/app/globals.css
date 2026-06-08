@@ -170,24 +170,50 @@
   }
 }
 
-/* ── Transición de entrada al cambiar de ruta (fade + slide sutil) ──────── */
-@keyframes route-enter {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+/* ── View Transitions ───────────────────────────────────────────────────── */
+/* Cross-fade sutil entre rutas (snapshot raíz). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.25s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.route-enter {
-  animation: route-enter 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+/* Revelado skeleton → contenido (componente <Reveal>): el skeleton sale rápido,
+   el contenido entra un poco después y más suave. */
+::view-transition-old(.reveal-out) {
+  animation:
+    150ms ease-out both vt-fade reverse,
+    150ms ease-out both vt-slide-y reverse;
+}
+::view-transition-new(.reveal-in) {
+  animation:
+    210ms ease-in 150ms both vt-fade,
+    400ms ease-in both vt-slide-y;
+}
+@keyframes vt-fade {
+  from {
+    filter: blur(3px);
+    opacity: 0;
+  }
+  to {
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+@keyframes vt-slide-y {
+  from {
+    transform: translateY(10px);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .route-enter {
-    animation: none;
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }

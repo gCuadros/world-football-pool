@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Target, Trophy } from "lucide-react";
@@ -18,9 +18,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default function LigaPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <Suspense fallback={<LigaSkeleton />}>
+    <Reveal fallback={<LigaSkeleton />}>
       <LigaContent params={params} />
-    </Suspense>
+    </Reveal>
   );
 }
 
