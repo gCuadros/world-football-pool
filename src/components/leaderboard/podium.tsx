@@ -2,7 +2,7 @@ import { Crown } from "lucide-react";
 
 import type { LeaderboardRow } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 const ORDER = [1, 0, 2]; // 2.º, 1.º, 3.º para el efecto de podio
 
@@ -29,16 +29,7 @@ export function Podium({ rows }: { rows: LeaderboardRow[] }) {
                 <Crown className="text-primary absolute -top-5 left-1/2 size-5 -translate-x-1/2" />
               ) : null}
               <Avatar className={cn(isFirst ? "size-14" : "size-11")}>
-                <AvatarFallback
-                  className={cn(
-                    "font-mono font-bold",
-                    row.isCurrentUser
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground",
-                  )}
-                >
-                  {row.initials}
-                </AvatarFallback>
+                <AvatarImage src={row.avatar?.startsWith("data:") ? row.avatar : "/avatar-default.webp"} />
               </Avatar>
             </div>
             <span

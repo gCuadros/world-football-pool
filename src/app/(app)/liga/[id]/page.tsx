@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { getLeagueLeaderboard } from "@/lib/leaderboard";
 import { prisma } from "@/lib/prisma";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { ShareLeague } from "@/components/ligas/share-league";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -113,10 +113,7 @@ async function LigaContent({ params }: { params: Promise<{ id: string }> }) {
                   className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-80 transition-opacity"
                 >
                   <Avatar className="size-8 shrink-0">
-                    {row.avatar && <AvatarImage src={row.avatar} />}
-                    <AvatarFallback className="bg-primary/10 text-primary font-mono text-xs">
-                      {row.initials}
-                    </AvatarFallback>
+                    <AvatarImage src={row.avatar?.startsWith("data:") ? row.avatar : "/avatar-default.webp"} />
                   </Avatar>
                   <div className="min-w-0">
                     <p className={`truncate text-sm font-medium ${row.isCurrentUser ? "text-primary" : ""}`}>

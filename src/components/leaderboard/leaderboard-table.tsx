@@ -6,7 +6,7 @@ import { Flame, ChevronLeft, ChevronRight } from "lucide-react";
 
 import type { LeaderboardRow } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 const PAGE_SIZE = 10;
 
@@ -51,17 +51,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
               className="flex min-w-0 items-center gap-2.5 hover:opacity-80 transition-opacity"
             >
               <Avatar className="size-7 shrink-0">
-                {row.avatar && <AvatarImage src={row.avatar} />}
-                <AvatarFallback
-                  className={cn(
-                    "font-mono text-3xs",
-                    row.isCurrentUser
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground",
-                  )}
-                >
-                  {row.initials}
-                </AvatarFallback>
+                <AvatarImage src={row.avatar?.startsWith("data:") ? row.avatar : "/avatar-default.webp"} />
               </Avatar>
               <span className="truncate font-medium">
                 {row.name}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Trophy, LogIn, type LucideIcon } from "lucide-react";
 
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 import {
   EXPLORE_NAV,
@@ -183,10 +183,7 @@ export function NavContent({
         {user.isLoggedIn ? (
           <Link href="/ajustes" onClick={onNavigate} className="flex items-center gap-2.5 rounded-xl transition-colors hover:opacity-80">
             <Avatar className="size-9 shrink-0">
-              {user.avatar && <AvatarImage src={user.avatar} />}
-              <AvatarFallback className="bg-primary font-mono text-sm font-bold text-white">
-                {user.initials}
-              </AvatarFallback>
+              <AvatarImage src={user.avatar?.startsWith("data:") ? user.avatar : "/avatar-default.webp"} />
             </Avatar>
             <div className="min-w-0 flex-1">
               <p className="text-sidebar-accent-foreground truncate text-sm font-medium">
