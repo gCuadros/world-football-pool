@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { getCurrentUser } from "@/lib/current-user";
+import { Reveal } from "@/components/ui/reveal";
 import { getDashboardData } from "@/lib/dashboard";
 import { AppShell } from "@/components/app/app-shell";
 import { Dashboard } from "@/components/dashboard/dashboard";
@@ -22,9 +23,9 @@ async function HomeRouter() {
 
   return (
     <AppShell>
-      <Suspense fallback={<DashboardSkeleton />}>
+      <Reveal fallback={<DashboardSkeleton />}>
         <DashboardSlot userId={user.id} userName={user.name} />
-      </Suspense>
+      </Reveal>
     </AppShell>
   );
 }

@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, ViewTransition } from "react";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getFirstLeagueInfo, getUserLeagues } from "@/lib/leaderboard";
@@ -27,7 +27,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <TopbarSlot />
         </Suspense>
         <main className="flex-1 p-4 pb-24 lg:p-6 lg:pb-6">
-          <div className="mx-auto w-full max-w-6xl">{children}</div>
+          <ViewTransition>
+            <div className="mx-auto w-full max-w-6xl">{children}</div>
+          </ViewTransition>
         </main>
       </div>
       <Suspense>

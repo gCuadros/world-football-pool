@@ -1,5 +1,6 @@
 "use client";
 
+import { ViewTransition } from "react";
 import Link from "next/link";
 import { ArrowRight, Lock } from "lucide-react";
 
@@ -18,6 +19,7 @@ function TeamRow({
   score,
   scoreTone,
   winner,
+  crestName,
 }: {
   flag: string | null;
   crest: string | null;
@@ -25,10 +27,21 @@ function TeamRow({
   score: number | null;
   scoreTone: string;
   winner: boolean;
+  /** view-transition-name para el morph escudo → ficha del partido. */
+  crestName?: string;
 }) {
+  const crestEl = (
+    <TeamCrest crest={crest} flag={flag} name={name} size={24} className="shrink-0" />
+  );
   return (
     <div className="flex items-center gap-2.5">
-      <TeamCrest crest={crest} flag={flag} name={name} size={24} className="shrink-0" />
+      {crestName ? (
+        <ViewTransition name={crestName} default="none">
+          {crestEl}
+        </ViewTransition>
+      ) : (
+        crestEl
+      )}
       <span
         className={cn(
           "min-w-0 flex-1 truncate text-sm",
@@ -114,6 +127,7 @@ export function MatchCard({
           score={hasScore ? homeScore : null}
           scoreTone={scoreTone}
           winner={homeWins}
+          crestName={publicMode ? `match-${match.id}-crest-home` : undefined}
         />
         <TeamRow
           flag={match.awayFlag}
@@ -122,6 +136,7 @@ export function MatchCard({
           score={hasScore ? awayScore : null}
           scoreTone={scoreTone}
           winner={awayWins}
+          crestName={publicMode ? `match-${match.id}-crest-away` : undefined}
         />
       </div>
 

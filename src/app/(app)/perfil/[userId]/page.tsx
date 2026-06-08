@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import { notFound } from "next/navigation";
 
 import { getPublicPredictions } from "@/lib/queries";
@@ -21,9 +21,9 @@ export default function PerfilPage({
   params: Promise<{ userId: string }>;
 }) {
   return (
-    <Suspense fallback={<PerfilSkeleton />}>
+    <Reveal fallback={<PerfilSkeleton />}>
       <PerfilContent params={params} />
-    </Suspense>
+    </Reveal>
   );
 }
 

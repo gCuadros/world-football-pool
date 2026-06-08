@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import { notFound, redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/current-user";
@@ -19,9 +19,9 @@ export default function PrediccionesLigaPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <Suspense fallback={<PrediccionesSkeleton />}>
+    <Reveal fallback={<PrediccionesSkeleton />}>
       <PrediccionesContent params={params} />
-    </Suspense>
+    </Reveal>
   );
 }
 

@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import { Newspaper, ExternalLink } from "lucide-react";
 
 import { getNews, type NewsItem } from "@/lib/news";
@@ -15,9 +15,9 @@ export default function NoticiasPage() {
         <span className="text-muted-foreground text-sm">Fútbol y Mundial 2026</span>
       </div>
 
-      <Suspense fallback={<NewsSkeleton />}>
+      <Reveal fallback={<NewsSkeleton />}>
         <NewsList />
-      </Suspense>
+      </Reveal>
     </div>
   );
 }

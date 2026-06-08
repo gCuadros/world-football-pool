@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Lock, Check, Trophy } from "lucide-react";
@@ -13,9 +13,9 @@ export const metadata = { title: "Logros" };
 
 export default function LogrosPage() {
   return (
-    <Suspense fallback={<Loading />}>
+    <Reveal fallback={<Loading />}>
       <LogrosContent />
-    </Suspense>
+    </Reveal>
   );
 }
 

@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/current-user";
@@ -10,9 +10,9 @@ export const metadata = { title: "Notificaciones" };
 
 export default function NotificacionesPage() {
   return (
-    <Suspense fallback={<Loading />}>
+    <Reveal fallback={<Loading />}>
       <NotificacionesContent />
-    </Suspense>
+    </Reveal>
   );
 }
 

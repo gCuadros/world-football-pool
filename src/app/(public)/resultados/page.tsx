@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -10,9 +10,9 @@ export const metadata = { title: "Partidos · Quiniela Mundial 2026" };
 
 export default function ResultadosPage() {
   return (
-    <Suspense fallback={<LoadingSkeleton />}>
+    <Reveal fallback={<LoadingSkeleton />}>
       <ResultadosContent />
-    </Suspense>
+    </Reveal>
   );
 }
 
