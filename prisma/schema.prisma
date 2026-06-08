@@ -19,6 +19,7 @@ model User {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   favoriteTeam        String?
+  favoriteLeagueId    String?
   accounts           Account[]
   achievements       Achievement[]
   miniLeaguesCreated MiniLeague[]       @relation("MiniLeagueCreator")

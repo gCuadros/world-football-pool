@@ -169,3 +169,25 @@
     bottom: env(safe-area-inset-bottom);
   }
 }
+
+/* ── Transición de entrada al cambiar de ruta (fade + slide sutil) ──────── */
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.route-enter {
+  animation: route-enter 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-enter {
+    animation: none;
+  }
+}

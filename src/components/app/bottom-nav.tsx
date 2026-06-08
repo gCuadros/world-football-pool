@@ -23,7 +23,7 @@ const GUEST_ITEMS: NavItem[] = [
 
 export function BottomNav({ user }: { user: SidebarUser }) {
   const pathname = usePathname();
-  const activeLeagueId = user.leagues[0]?.id ?? null;
+  const activeLeagueId = user.activeLeagueId;
 
   const items: NavItem[] = user.isLoggedIn
     ? [
