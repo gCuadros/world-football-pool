@@ -28,7 +28,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </Suspense>
         <main className="flex-1 p-4 pb-24 lg:p-6 lg:pb-6">
           <ViewTransition>
-            <div className="mx-auto w-full max-w-6xl">{children}</div>
+            <div className="mx-auto w-full max-w-6xl overflow-x-clip">{children}</div>
           </ViewTransition>
         </main>
       </div>
