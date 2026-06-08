@@ -96,11 +96,11 @@ export function MatchCard({
     <>
       {/* Cabecera */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-muted-foreground font-mono text-[10px] tracking-wide uppercase">
+        <span className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">
           {stageTag}
         </span>
         {isLive ? (
-          <span className="text-live flex items-center gap-1.5 font-mono text-[11px] font-bold">
+          <span className="text-live flex items-center gap-1.5 font-mono text-2xs font-bold">
             <span className="relative flex size-2">
               <span className="bg-live absolute inline-flex size-full animate-ping rounded-full opacity-75" />
               <span className="bg-live relative inline-flex size-2 rounded-full" />
@@ -108,11 +108,11 @@ export function MatchCard({
             {match.liveMinute ? `${match.liveMinute}'` : "EN VIVO"}
           </span>
         ) : isFinished ? (
-          <span className="text-muted-foreground font-mono text-[11px] font-medium">
+          <span className="text-muted-foreground font-mono text-2xs font-medium">
             Final
           </span>
         ) : (
-          <span className="text-muted-foreground font-mono text-[11px]">
+          <span className="text-muted-foreground font-mono text-2xs">
             {formatRelativeDay(match.kickoffAt, now)} · {formatTime(match.kickoffAt)}
           </span>
         )}
@@ -140,7 +140,7 @@ export function MatchCard({
         />
       </div>
 
-      <div className="text-muted-foreground truncate font-mono text-[10px]">
+      <div className="text-muted-foreground truncate font-mono text-3xs">
         {match.stadium}
         {match.city ? ` · ${match.city}` : ""}
       </div>

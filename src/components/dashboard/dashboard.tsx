@@ -183,11 +183,11 @@ function MiniMatch({
       className={`bg-card hover:border-primary/40 flex flex-col gap-2 rounded-xl border p-3 transition-colors ${live ? "border-live/40" : "border-border"}`}
     >
       <div className="flex items-center justify-between">
-        <span className="text-muted-foreground font-mono text-[10px] tracking-wide uppercase">
+        <span className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">
           {stageTag}
         </span>
         {live && (
-          <span className="text-live font-mono text-[10px] font-bold">
+          <span className="text-live font-mono text-3xs font-bold">
             {match.liveMinute ? `${match.liveMinute}'` : "EN VIVO"}
           </span>
         )}

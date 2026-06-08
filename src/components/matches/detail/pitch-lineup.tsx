@@ -40,10 +40,10 @@ function lastName(name: string): string {
 function PlayerChip({ player }: { player: LineupPlayer }) {
   return (
     <div className="flex flex-col items-center gap-0.5">
-      <div className="flex size-8 items-center justify-center rounded-full bg-white/20 text-[11px] font-bold text-white shadow backdrop-blur-sm">
+      <div className="flex size-8 items-center justify-center rounded-full bg-white/20 text-2xs font-bold text-white shadow backdrop-blur-sm">
         {player.number ?? "?"}
       </div>
-      <span className="max-w-[52px] truncate text-center text-[9px] font-medium leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
+      <span className="max-w-[52px] truncate text-center text-3xs font-medium leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
         {lastName(player.name)}
       </span>
     </div>
@@ -107,9 +107,9 @@ function PitchView({ lineups }: { lineups: TeamLineup[] }) {
         <div className="flex flex-1 flex-col">
           <div className="flex items-center gap-1.5 px-3 pt-2.5">
             <TeamCrest crest={away.teamLogo} flag={away.teamFlag} name={away.team} size={14} />
-            <span className="truncate text-[10px] font-semibold text-white/80">{away.team}</span>
+            <span className="truncate text-3xs font-semibold text-white/80">{away.team}</span>
             {away.formation && (
-              <span className="ml-auto font-mono text-[9px] text-white/40">{away.formation}</span>
+              <span className="ml-auto font-mono text-3xs text-white/40">{away.formation}</span>
             )}
           </div>
           <PitchHalf lineup={away} flipped={true} />
@@ -120,9 +120,9 @@ function PitchView({ lineups }: { lineups: TeamLineup[] }) {
           <PitchHalf lineup={home} flipped={false} />
           <div className="flex items-center gap-1.5 px-3 pb-2.5">
             <TeamCrest crest={home.teamLogo} flag={home.teamFlag} name={home.team} size={14} />
-            <span className="truncate text-[10px] font-semibold text-white/80">{home.team}</span>
+            <span className="truncate text-3xs font-semibold text-white/80">{home.team}</span>
             {home.formation && (
-              <span className="ml-auto font-mono text-[9px] text-white/40">{home.formation}</span>
+              <span className="ml-auto font-mono text-3xs text-white/40">{home.formation}</span>
             )}
           </div>
         </div>
@@ -153,7 +153,7 @@ function ListView({ lineups }: { lineups: TeamLineup[] }) {
                 </span>
                 <span className="min-w-0 flex-1 truncate">{p.name}</span>
                 {p.pos && (
-                  <span className="text-muted-foreground shrink-0 font-mono text-[10px]">
+                  <span className="text-muted-foreground shrink-0 font-mono text-3xs">
                     {p.pos}
                   </span>
                 )}

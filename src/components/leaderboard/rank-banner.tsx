@@ -29,7 +29,7 @@ export function RankBanner({ info }: { info: RankInfo }) {
       />
       <div className="relative flex flex-col gap-5 sm:flex-row sm:flex-wrap sm:items-center">
         <div>
-          <p className="text-primary-foreground/60 font-mono text-[11px] tracking-widest uppercase">
+          <p className="text-primary-foreground/60 font-mono text-2xs tracking-widest uppercase">
             Tu posición
           </p>
           <div className="flex items-end gap-3">
@@ -55,7 +55,7 @@ export function RankBanner({ info }: { info: RankInfo }) {
           {stats.map((s) => (
             <div key={s.label} className="text-center">
               <p className="font-mono text-xl font-bold sm:text-2xl">{s.value}</p>
-              <p className="text-primary-foreground/60 font-mono text-[10px] tracking-wide uppercase">
+              <p className="text-primary-foreground/60 font-mono text-3xs tracking-wide uppercase">
                 {s.label}
               </p>
             </div>

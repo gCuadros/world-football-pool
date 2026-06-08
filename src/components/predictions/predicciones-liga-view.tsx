@@ -148,7 +148,7 @@ export function PrediccionesLigaView({
                 key={t}
                 onClick={() => setTab(t)}
                 className={cn(
-                  "flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition motion-safe:active:scale-[0.97]",
                   activeTab === t
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -157,7 +157,7 @@ export function PrediccionesLigaView({
                 <span className="truncate">{TAB_LABELS[t]}</span>
                 <span
                   className={cn(
-                    "shrink-0 rounded px-1.5 py-0.5 font-mono text-[10px]",
+                    "shrink-0 rounded px-1.5 py-0.5 font-mono text-3xs",
                     activeTab === t
                       ? "bg-primary-foreground/20 text-primary-foreground"
                       : "bg-muted",

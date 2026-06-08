@@ -78,7 +78,7 @@ async function LigasContent() {
 
       <ActiveLeagueBanner league={active} />
 
-      <h2 className="font-mono text-[15px] font-bold">Todas mis ligas</h2>
+      <h2 className="font-mono text-base font-bold">Todas mis ligas</h2>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {withStats.map((l) => (
           <LeagueCard key={l.id} league={l} active={l.id === activeId} />
@@ -104,17 +104,17 @@ function LeagueCard({
     >
       <div className="flex items-center justify-between gap-2">
         {active ? (
-          <span className="bg-primary text-primary-foreground rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold tracking-wide">
+          <span className="bg-primary text-primary-foreground rounded-full px-2.5 py-0.5 font-mono text-3xs font-bold tracking-wide">
             ACTIVA
           </span>
         ) : (
-          <span className="text-muted-foreground font-mono text-[11px]">
+          <span className="text-muted-foreground font-mono text-2xs">
             {league.inviteCode}
           </span>
         )}
         <div className="ml-auto flex items-center gap-1">
           {league.isOwner && (
-            <span className="text-primary font-mono text-[10px] font-medium tracking-wide uppercase">
+            <span className="text-primary font-mono text-3xs font-medium tracking-wide uppercase">
               Admin
             </span>
           )}

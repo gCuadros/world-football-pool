@@ -45,14 +45,14 @@ export function LigasActions() {
       <div className="flex flex-wrap items-center justify-end gap-2.5">
         <button
           onClick={() => setMode((m) => (m === "join" ? "idle" : "join"))}
-          className="bg-secondary text-secondary-foreground border-border hover:bg-secondary/70 flex items-center gap-2 rounded-lg border px-4 py-2 text-[13px] font-medium transition-colors"
+          className="bg-secondary text-secondary-foreground border-border hover:bg-secondary/70 flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors"
         >
           <LogIn className="size-4" />
           Unirse con código
         </button>
         <button
           onClick={() => setMode((m) => (m === "create" ? "idle" : "create"))}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
         >
           <Plus className="size-4" />
           Nueva liga

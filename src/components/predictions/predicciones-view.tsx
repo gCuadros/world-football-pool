@@ -103,7 +103,7 @@ export function PrediccionesView({
           ].map((s) => (
             <div key={s.label} className="text-center">
               <p className="font-mono text-xl font-bold">{s.value}</p>
-              <p className="text-muted-foreground font-mono text-[10px] tracking-wide uppercase">
+              <p className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">
                 {s.label}
               </p>
             </div>
@@ -128,7 +128,7 @@ export function PrediccionesView({
               )}
             >
               {f.label}
-              <span className={cn("font-mono text-[10px]", active ? "opacity-80" : "opacity-60")}>
+              <span className={cn("font-mono text-3xs", active ? "opacity-80" : "opacity-60")}>
                 {f.count}
               </span>
             </button>

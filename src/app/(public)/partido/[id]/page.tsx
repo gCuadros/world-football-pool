@@ -107,11 +107,11 @@ function MatchHeader({ match }: { match: MatchBase }) {
   return (
     <div className="border-border bg-card rounded-2xl border p-6">
       <div className="mb-4 flex items-center justify-center gap-2">
-        <span className="text-muted-foreground font-mono text-[11px] tracking-widest uppercase">
+        <span className="text-muted-foreground font-mono text-2xs tracking-widest uppercase">
           {stageTag}
         </span>
         {isLive && (
-          <span className="text-live flex items-center gap-1.5 font-mono text-[11px] font-bold">
+          <span className="text-live flex items-center gap-1.5 font-mono text-2xs font-bold">
             <span className="relative flex size-2">
               <span className="bg-live absolute inline-flex size-full animate-ping rounded-full opacity-75" />
               <span className="bg-live relative inline-flex size-2 rounded-full" />
@@ -142,7 +142,7 @@ function MatchHeader({ match }: { match: MatchBase }) {
             <span className="text-muted-foreground font-mono text-lg font-bold">VS</span>
           )}
           {isFinished && (
-            <span className="text-muted-foreground mt-1 font-mono text-[11px]">Final</span>
+            <span className="text-muted-foreground mt-1 font-mono text-2xs">Final</span>
           )}
         </div>
 
