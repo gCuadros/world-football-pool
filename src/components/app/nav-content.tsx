@@ -23,6 +23,8 @@ export type SidebarUser = {
   rank: number | null;
   leagueName: string | null;
   leagues: { id: string; name: string }[];
+  /** Liga activa: la favorita si es válida, si no la primera. */
+  activeLeagueId: string | null;
 };
 
 function NavLink({
@@ -84,7 +86,7 @@ export function NavContent({
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
 
-  const activeLeagueId = user.leagues[0]?.id ?? null;
+  const activeLeagueId = user.activeLeagueId;
 
   return (
     <div className="flex h-full flex-col">
