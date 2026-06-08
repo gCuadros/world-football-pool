@@ -10,6 +10,7 @@ import { titleForPath } from "@/lib/nav";
 import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/app/(app)/actions";
 import { MobileNav } from "@/components/app/mobile-nav";
+import { RefreshButton } from "@/components/app/refresh-button";
 import type { SidebarUser } from "@/components/app/nav-content";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import type { NotificationVM } from "@/lib/notifications";
@@ -44,6 +45,9 @@ export function Topbar({
       </div>
 
       <div className="ml-auto flex items-center gap-1 sm:gap-2">
+        {/* Actualizar (solo móvil): gesto de refresco tipo PWA. */}
+        <RefreshButton className="lg:hidden" />
+
         <Button
           variant="ghost"
           size="icon"
