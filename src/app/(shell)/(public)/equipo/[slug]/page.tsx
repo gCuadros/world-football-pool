@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,6 +11,8 @@ import { TeamCrest } from "@/components/matches/team-crest";
 import { TeamLink } from "@/components/matches/team-link";
 import { MatchCard } from "@/components/matches/match-card";
 import { GroupTable } from "@/components/mundial/group-table";
+import { RivalHistory } from "@/components/equipo/rival-history";
+import { LastLineup } from "@/components/equipo/last-lineup";
 import { ClickCard } from "@/components/ui/click-card";
 import { CountUp } from "@/components/ui/count-up";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -57,6 +60,13 @@ async function EquipoContent({
   const live = data.matches.find((m) => m.status === "LIVE");
   const featured = live ?? upcoming[0] ?? null;
   const upcomingRest = upcoming.filter((m) => m.id !== featured?.id);
+  const rivalName = featured
+    ? featured.homeTeam === data.name
+      ? featured.awayTeam
+      : featured.homeTeam
+    : null;
+  // Último partido jugado con cobertura de la API (para el once inicial).
+  const lastCovered = [...played].reverse().find((m) => m.externalId);
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -170,6 +180,17 @@ async function EquipoContent({
         </section>
       )}
 
+      {/* Pronóstico e historial ante el próximo rival (API externa → stream) */}
+      {featured?.externalId && rivalName && (
+        <Suspense fallback={<Skeleton className="h-40 rounded-2xl" />}>
+          <RivalHistory
+            externalId={featured.externalId}
+            teamName={data.name}
+            rivalName={rivalName}
+          />
+        </Suspense>
+      )}
+
       {/* Clasificación del grupo completa */}
       {data.groupTable && (
         <section className="space-y-3">
@@ -226,6 +247,13 @@ async function EquipoContent({
             ))}
           </div>
         </section>
+      )}
+
+      {/* Último once inicial (API externa → stream) */}
+      {lastCovered?.externalId && (
+        <Suspense fallback={<Skeleton className="h-48 rounded-2xl" />}>
+          <LastLineup externalId={lastCovered.externalId} teamName={data.name} />
+        </Suspense>
       )}
 
       {/* Partidos disputados */}
