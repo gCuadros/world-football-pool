@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { savePrediction } from "@/app/(app)/predicciones/actions";
+import { savePrediction } from "@/app/(shell)/(app)/predicciones/actions";
 
 // POST /api/predictions — crea/actualiza una predicción.
 // Body: { leagueId, matchId, homeScore, awayScore }.

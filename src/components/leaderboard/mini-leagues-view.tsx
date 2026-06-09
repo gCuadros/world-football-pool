@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import type { LeagueVM, LeaderboardRow } from "@/lib/leaderboard";
 type MiniLeagueVM = LeagueVM & { rows: LeaderboardRow[] };
-import { createLeague, joinLeague } from "@/app/(app)/mini-ligas/actions";
+import { createLeague, joinLeague } from "@/app/(shell)/(app)/mini-ligas/actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";

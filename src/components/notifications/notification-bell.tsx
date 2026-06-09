@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import {
   markAllReadAction,
   markNotificationReadAction,
-} from "@/app/(app)/notificaciones/actions";
+} from "@/app/(shell)/(app)/notificaciones/actions";
 
 const ICONS: Record<NotificationType, LucideIcon> = {
   PREDICTION_REMINDER: Clock,

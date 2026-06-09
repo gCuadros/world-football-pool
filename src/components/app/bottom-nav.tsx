@@ -27,9 +27,10 @@ export function BottomNav({ user }: { user: SidebarUser }) {
   const activeLeagueId = user.activeLeagueId;
   const activeLeague = user.leagues.find((l) => l.id === activeLeagueId);
 
-  // Tab de liga: la favorita/activa (su nombre y página). Sin liga → la lista.
+  // Tab de liga: lleva a la favorita/activa pero con etiqueta fija "Liga"
+  // (el nombre lo ponen los usuarios y puede ser largo o raro para un tab).
   const leagueItem: NavItem = activeLeague
-    ? { href: `/liga/${activeLeague.id}`, label: activeLeague.name, icon: Trophy }
+    ? { href: `/liga/${activeLeague.id}`, label: "Liga", icon: Trophy }
     : { href: "/ligas", label: "Ligas", icon: Users };
 
   const items: NavItem[] = user.isLoggedIn
@@ -58,7 +59,7 @@ export function BottomNav({ user }: { user: SidebarUser }) {
   return (
     <nav
       aria-label="Navegación principal"
-      className="border-border/50 dark:border-white/5 bg-background/90 fixed bottom-0 left-0 right-0 z-30 flex select-none items-stretch border-t backdrop-blur-xl shadow-nav lg:hidden"
+      className="border-border/50 dark:border-white/5 bg-background/90 vt-bottom-nav fixed bottom-0 left-0 right-0 z-30 flex select-none items-stretch border-t backdrop-blur-xl shadow-nav lg:hidden"
       // Altura = 4rem de tabs + safe-area: el inset se suma fuera, no comprime
       // los iconos (con h-16 fijo los tabs quedarían a 30px en iPhone).
       style={{

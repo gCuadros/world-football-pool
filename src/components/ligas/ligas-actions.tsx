@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogIn, Plus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
-import { createLeague, joinLeague } from "@/app/(app)/mini-ligas/actions";
+import { createLeague, joinLeague } from "@/app/(shell)/(app)/mini-ligas/actions";
 
 // Botones de cabecera "Unirse con código" / "Nueva liga" + panel de formulario.
 // Diseño: topbar de la pantalla 08 "Mis Ligas".

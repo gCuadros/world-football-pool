@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { joinLeague } from "@/app/(app)/mini-ligas/actions";
+import { joinLeague } from "@/app/(shell)/(app)/mini-ligas/actions";
 
 // POST /api/mini-leagues/join — unirse con código. Body: { code }.
 export async function POST(req: Request) {

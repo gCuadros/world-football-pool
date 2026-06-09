@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { joinLeague } from "@/app/(app)/mini-ligas/actions";
+import { joinLeague } from "@/app/(shell)/(app)/mini-ligas/actions";
 
 export function JoinLeagueButton({ code }: { code: string }) {
   const router = useRouter();

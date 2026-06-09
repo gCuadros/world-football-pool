@@ -11,8 +11,8 @@ import {
   updateProfile,
   updateNotificationPrefs,
   type NotificationPrefs,
-} from "@/app/(app)/ajustes/actions";
-import { signOutAction } from "@/app/(app)/actions";
+} from "@/app/(shell)/(app)/ajustes/actions";
+import { signOutAction } from "@/app/(shell)/(app)/actions";
 import { PushToggle } from "@/components/notifications/push-toggle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

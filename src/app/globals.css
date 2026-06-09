@@ -184,6 +184,12 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Una app no tiene scroll horizontal: cualquier desbordamiento puntual se
+     recorta en vez de crear una banda de scroll lateral. */
+  html,
+  body {
+    overflow-x: clip;
+  }
   /* Aurora ambiental: dos glows fijos arriba que dan profundidad al fondo en
      toda la app. Pseudo-elemento fixed (background-attachment: fixed está roto
      en iOS) detrás de todo y sin capturar gestos. */
@@ -273,6 +279,19 @@
   }
   .shadow-nav {
     box-shadow: var(--shadow-nav);
+  }
+
+  /* El chrome del shell (topbar/nav/sidebar) recibe su propio
+     view-transition-name: queda fuera del cross-fade de `root` al navegar y
+     no parpadea (su snapshot viejo y nuevo son idénticos). */
+  .vt-topbar {
+    view-transition-name: topbar;
+  }
+  .vt-bottom-nav {
+    view-transition-name: bottom-nav;
+  }
+  .vt-sidebar {
+    view-transition-name: sidebar;
   }
 }
 

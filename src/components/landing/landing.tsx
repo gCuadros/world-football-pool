@@ -1,48 +1,16 @@
 import Link from "next/link";
-import { Trophy, Radio, Globe, Users, ArrowRight, LogIn } from "lucide-react";
+import { Radio, Globe, Users, ArrowRight } from "lucide-react";
 
 import { PitchLines } from "@/components/ui/pitch-lines";
 
-// Landing de marketing para usuarios NO logueados (full-bleed, sin shell).
+// Landing de marketing para usuarios NO logueados. Vive dentro del shell
+// (topbar + bottom-nav persistentes), así que no lleva header propio.
 export function Landing() {
   return (
-    <div className="min-h-dvh bg-background">
-      {/* Header */}
-      <header className="border-border/50 sticky top-0 z-40 border-b bg-background/80 backdrop-blur-sm">
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:gap-6">
-          <span className="flex items-center gap-2 font-mono text-sm font-bold tracking-tight">
-            <Trophy className="text-primary size-4" />
-            QUINIELA <span className="text-muted-foreground hidden font-normal sm:inline">· 2026</span>
-          </span>
-          <nav className="flex items-center gap-0.5 sm:gap-1">
-            <Link
-              href="/resultados"
-              className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm transition-colors sm:px-3"
-            >
-              <Radio className="size-3.5" />
-              Resultados
-            </Link>
-            <Link
-              href="/mundial"
-              className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm transition-colors sm:px-3"
-            >
-              <Globe className="size-3.5" />
-              Mundial
-            </Link>
-          </nav>
-          <Link
-            href="/login"
-            className="text-muted-foreground hover:text-foreground ml-auto flex items-center gap-1.5 text-sm transition-colors"
-          >
-            <LogIn className="size-4" />
-            Entrar
-          </Link>
-        </div>
-      </header>
-
+    <div>
       {/* Hero: panel "estadio de noche" con líneas de campo */}
-      <section className="px-4 pt-4 pb-6 sm:pt-8">
-        <div className="bg-aurora inset-hairline relative mx-auto max-w-6xl overflow-hidden rounded-3xl px-4 py-14 text-center text-white sm:py-20">
+      <section className="pb-6 sm:pt-4">
+        <div className="bg-aurora inset-hairline relative overflow-hidden rounded-3xl px-4 py-14 text-center text-white sm:py-20">
           <PitchLines />
           <div className="relative mx-auto max-w-3xl">
             <span className="mb-4 inline-block rounded-full bg-white/10 px-3 py-1 font-mono text-xs font-semibold tracking-widest text-white/85 uppercase ring-1 ring-white/15">
@@ -79,7 +47,7 @@ export function Landing() {
       </section>
 
       {/* Features */}
-      <section className="mx-auto max-w-6xl px-4 py-16">
+      <section className="py-8 sm:py-12">
         <div className="grid gap-6 sm:grid-cols-3">
           <FeatureCard
             icon={<Radio className="size-6" />}
