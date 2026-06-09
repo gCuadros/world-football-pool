@@ -10,11 +10,12 @@ import { STAGE_SHORT } from "@/lib/labels";
 import { formatRelativeDay, formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { haptics } from "@/lib/haptics";
-import { savePrediction } from "@/app/(app)/predicciones/actions";
+import { savePrediction } from "@/app/(shell)/(app)/predicciones/actions";
 import { Countdown, isLockImminent } from "@/components/matches/countdown";
 import { PredictionBadge } from "@/components/matches/prediction-badge";
 import { CommunityBreakdown } from "@/components/predictions/community-breakdown";
 import { TeamCrest } from "@/components/matches/team-crest";
+import { TeamLink } from "@/components/matches/team-link";
 import { MatchEvents } from "@/components/matches/match-events";
 
 const QUICK_PICKS: [number, number][] = [
@@ -45,10 +46,10 @@ function TeamLabel({
   name: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-2.5">
+    <TeamLink name={name} className="flex min-w-0 items-center gap-2.5">
       <TeamCrest crest={crest} flag={flag} name={name} size={24} className="shrink-0" />
       <span className="truncate text-sm font-medium">{name}</span>
-    </div>
+    </TeamLink>
   );
 }
 

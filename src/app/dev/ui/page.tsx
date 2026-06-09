@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { MatchVM } from "@/lib/queries";
 import type { LeaderboardRow } from "@/lib/leaderboard";
 import { MatchCard } from "@/components/matches/match-card";
-import { HeroMatch } from "@/components/dashboard/dashboard";
+import { HeroMatch } from "@/components/dashboard/hero-match";
 import { PredictionCard } from "@/components/predictions/prediction-card";
 import { Podium } from "@/components/leaderboard/podium";
 import { RankBanner } from "@/components/leaderboard/rank-banner";

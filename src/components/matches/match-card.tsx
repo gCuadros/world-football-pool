@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
 import { Countdown, isLockImminent } from "@/components/matches/countdown";
 import { PredictionBadge } from "@/components/matches/prediction-badge";
 import { TeamCrest } from "@/components/matches/team-crest";
+import { TeamLink } from "@/components/matches/team-link";
+import { ClickCard } from "@/components/ui/click-card";
 
 /**
  * Columna de equipo del marcador central: escudo grande en un chip y nombre
@@ -35,7 +37,7 @@ function TeamSide({
     </span>
   );
   return (
-    <div className="flex min-w-0 flex-col items-center gap-1.5">
+    <TeamLink name={name} className="flex min-w-0 flex-col items-center gap-1.5">
       {crestName ? (
         <ViewTransition name={crestName} default="none">
           {chip}
@@ -51,7 +53,7 @@ function TeamSide({
       >
         {name}
       </span>
-    </div>
+    </TeamLink>
   );
 }
 
@@ -192,9 +194,13 @@ export function MatchCard({
   );
 
   return publicMode ? (
-    <Link href={`/partido/${match.id}`} className={cardClass}>
+    <ClickCard
+      href={`/partido/${match.id}`}
+      ariaLabel={`${match.homeTeam} contra ${match.awayTeam}`}
+      className={cardClass}
+    >
       {body}
-    </Link>
+    </ClickCard>
   ) : (
     <div className={cardClass}>{body}</div>
   );

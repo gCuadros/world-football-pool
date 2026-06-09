@@ -7,6 +7,8 @@ import { getTeamPage } from "@/lib/queries";
 import { STAGE_SHORT } from "@/lib/labels";
 import { formatRelativeDay, formatTime } from "@/lib/format";
 import { TeamCrest } from "@/components/matches/team-crest";
+import { TeamLink } from "@/components/matches/team-link";
+import { ClickCard } from "@/components/ui/click-card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PitchLines } from "@/components/ui/pitch-lines";
 import { Reveal } from "@/components/ui/reveal";
@@ -262,19 +264,22 @@ function TeamMatchRow({
   const oppCrest = isHome ? match.awayCrest : match.homeCrest;
 
   return (
-    <Link
+    <ClickCard
       href={`/partido/${match.id}`}
+      ariaLabel={`${match.homeTeam} contra ${match.awayTeam}`}
       className="bg-card border-border/60 hover:border-primary/40 flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-sm transition-colors"
     >
-      <TeamCrest crest={oppCrest} flag={oppFlag} name={opponent} size={28} className="shrink-0" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">
-          {isHome ? "vs" : "@"} {opponent}
-        </p>
-        <p className="text-muted-foreground font-mono text-xs">
-          {stageLabel} · {match.stadium}
-        </p>
-      </div>
+      <TeamLink name={opponent} className="flex min-w-0 flex-1 items-center gap-3">
+        <TeamCrest crest={oppCrest} flag={oppFlag} name={opponent} size={28} className="shrink-0" />
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-medium">
+            {isHome ? "vs" : "@"} {opponent}
+          </span>
+          <span className="text-muted-foreground block font-mono text-xs">
+            {stageLabel} · {match.stadium}
+          </span>
+        </span>
+      </TeamLink>
 
       {isFinished && hasScore ? (
         <div className="flex items-center gap-2 text-right">
@@ -299,7 +304,7 @@ function TeamMatchRow({
           {formatRelativeDay(match.kickoffAt, now)} · {formatTime(match.kickoffAt)}
         </span>
       ) : null}
-    </Link>
+    </ClickCard>
   );
 }
 

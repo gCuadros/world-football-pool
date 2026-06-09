@@ -7,6 +7,7 @@ import { BackButton } from "@/components/ui/back-button";
 import { getMatchesBase, type MatchBase } from "@/lib/queries";
 import { STAGE_LABELS } from "@/lib/labels";
 import { TeamCrest } from "@/components/matches/team-crest";
+import { TeamLink } from "@/components/matches/team-link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Reveal } from "@/components/ui/reveal";
 import {
@@ -118,12 +119,15 @@ function MatchHeader({ match }: { match: MatchBase }) {
 
       <div className="flex items-center justify-center gap-4 sm:gap-8">
         {/* Local */}
-        <div className="flex flex-1 flex-col items-center gap-2 text-center">
+        <TeamLink
+          name={match.homeTeam}
+          className="flex flex-1 flex-col items-center gap-2 text-center"
+        >
           <ViewTransition name={`match-${match.id}-crest-home`} default="none">
             <TeamCrest crest={match.homeCrest} flag={match.homeFlag} name={match.homeTeam} size={56} />
           </ViewTransition>
           <span className="text-sm font-semibold sm:text-base">{match.homeTeam}</span>
-        </div>
+        </TeamLink>
 
         {/* Marcador / hora */}
         <div className="flex shrink-0 flex-col items-center">
@@ -142,12 +146,15 @@ function MatchHeader({ match }: { match: MatchBase }) {
         </div>
 
         {/* Visitante */}
-        <div className="flex flex-1 flex-col items-center gap-2 text-center">
+        <TeamLink
+          name={match.awayTeam}
+          className="flex flex-1 flex-col items-center gap-2 text-center"
+        >
           <ViewTransition name={`match-${match.id}-crest-away`} default="none">
             <TeamCrest crest={match.awayCrest} flag={match.awayFlag} name={match.awayTeam} size={56} />
           </ViewTransition>
           <span className="text-sm font-semibold sm:text-base">{match.awayTeam}</span>
-        </div>
+        </TeamLink>
       </div>
 
       <p className="text-muted-foreground mt-5 text-center text-xs">
