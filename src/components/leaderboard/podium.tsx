@@ -3,6 +3,7 @@ import { Crown } from "lucide-react";
 import type { LeaderboardRow } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { CountUp } from "@/components/ui/count-up";
 
 const ORDER = [1, 0, 2]; // 2.º, 1.º, 3.º para el efecto de podio
 
@@ -65,7 +66,7 @@ export function Podium({ rows }: { rows: LeaderboardRow[] }) {
                 isFirst ? "text-amber-300" : "text-primary",
               )}
             >
-              {row.points}
+              <CountUp value={row.points} />
               <span
                 className={cn(
                   "ml-1 text-3xs font-normal",

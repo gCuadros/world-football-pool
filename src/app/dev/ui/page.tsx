@@ -11,6 +11,8 @@ import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
 import { AchievementsWidget } from "@/components/leaderboard/achievements-widget";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { ActiveLeagueBanner } from "@/components/ligas/active-league-banner";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Shield } from "lucide-react";
 
 /**
  * Playground de UI (solo desarrollo): renderiza los componentes clave con
@@ -169,6 +171,16 @@ export default function DevUiPage() {
       <section className="max-w-md space-y-3">
         <h2 className="text-base font-bold">AchievementsWidget</h2>
         <AchievementsWidget unlocked={ACHIEVEMENTS.slice(0, 3).map((a) => a.type)} />
+      </section>
+
+      <section className="max-w-md space-y-3">
+        <h2 className="text-base font-bold">EmptyState</h2>
+        <EmptyState
+          icon={Shield}
+          title="Calendario no disponible"
+          description="El calendario de este equipo aún no está disponible. Vuelve cuando arranque su Mundial."
+          action={{ href: "/mundial", label: "Ver grupos" }}
+        />
       </section>
     </div>
   );

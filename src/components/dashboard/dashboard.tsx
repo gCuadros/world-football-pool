@@ -343,10 +343,12 @@ function QuickLink({
   return (
     <Link
       href={href}
-      className="border-border bg-card hover:bg-card/70 flex flex-col items-center justify-center gap-2 rounded-2xl border p-5 text-center transition-colors"
+      className="border-border bg-card hover:border-primary/30 hover:glow-primary flex flex-col items-center justify-center gap-2.5 rounded-2xl border p-5 text-center transition"
     >
-      <span className="text-primary">{icon}</span>
-      <span className="text-sm font-medium">{label}</span>
+      <span className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-xl">
+        {icon}
+      </span>
+      <span className="text-sm font-semibold">{label}</span>
     </Link>
   );
 }

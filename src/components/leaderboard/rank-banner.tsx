@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
+import { CountUp } from "@/components/ui/count-up";
 import { PitchLines } from "@/components/ui/pitch-lines";
 
 type RankInfo = { rank: number | null; totalPlayers: number; points: number; accuracy: number; predictionsCount: number; exactCount: number; currentStreak: number; bestStreak: number; trend: number; percentile: number | null };
@@ -16,7 +17,7 @@ export function RankBanner({ info }: { info: RankInfo }) {
 
   const stats = [
     { label: "Puntos", value: info.points },
-    { label: "Precisión", value: `${info.accuracy}%` },
+    { label: "Precisión", value: info.accuracy, suffix: "%" },
     { label: "Predicciones", value: info.predictionsCount },
   ];
 
@@ -57,7 +58,10 @@ export function RankBanner({ info }: { info: RankInfo }) {
         <div className="flex w-full items-stretch justify-between gap-4 sm:ml-auto sm:w-auto sm:justify-normal sm:gap-0 sm:divide-x sm:divide-white/10">
           {stats.map((s) => (
             <div key={s.label} className="text-center sm:px-6 sm:first:pl-0 sm:last:pr-0">
-              <p className="font-mono text-xl font-bold sm:text-2xl">{s.value}</p>
+              <p className="font-mono text-xl font-bold sm:text-2xl">
+                <CountUp value={s.value} />
+                {s.suffix}
+              </p>
               <p className="font-mono text-3xs tracking-wide text-white/60 uppercase">
                 {s.label}
               </p>

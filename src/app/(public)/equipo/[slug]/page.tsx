@@ -7,6 +7,7 @@ import { getTeamPage } from "@/lib/queries";
 import { STAGE_SHORT } from "@/lib/labels";
 import { formatRelativeDay, formatTime } from "@/lib/format";
 import { TeamCrest } from "@/components/matches/team-crest";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PitchLines } from "@/components/ui/pitch-lines";
 import { Reveal } from "@/components/ui/reveal";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -205,10 +206,12 @@ async function EquipoContent({
       )}
 
       {data.matches.length === 0 && (
-        <div className="border-border text-muted-foreground rounded-2xl border border-dashed p-10 text-center text-sm">
-          <Shield className="mx-auto mb-3 size-8 opacity-40" />
-          El calendario de este equipo aún no está disponible.
-        </div>
+        <EmptyState
+          icon={Shield}
+          title="Calendario no disponible"
+          description="El calendario de este equipo aún no está disponible. Vuelve cuando arranque su Mundial."
+          action={{ href: "/mundial", label: "Ver grupos" }}
+        />
       )}
     </div>
   );
