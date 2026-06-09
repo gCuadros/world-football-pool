@@ -1,14 +1,17 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Shield, Goal, ChevronLeft, Swords, TrendingUp } from "lucide-react";
+import { Shield, Goal, ChevronLeft, Swords, TrendingUp, Star, Table2 } from "lucide-react";
 
-import { getTeamPage } from "@/lib/queries";
+import { getTeamPage, type MatchVM } from "@/lib/queries";
 import { STAGE_SHORT } from "@/lib/labels";
 import { formatRelativeDay, formatTime } from "@/lib/format";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { TeamLink } from "@/components/matches/team-link";
+import { MatchCard } from "@/components/matches/match-card";
+import { GroupTable } from "@/components/mundial/group-table";
 import { ClickCard } from "@/components/ui/click-card";
+import { CountUp } from "@/components/ui/count-up";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PitchLines } from "@/components/ui/pitch-lines";
 import { Reveal } from "@/components/ui/reveal";
@@ -50,6 +53,11 @@ async function EquipoContent({
   const played = data.matches.filter((m) => m.status === "FINISHED");
   const upcoming = data.matches.filter((m) => m.status === "UPCOMING");
 
+  // Partido destacado: el que esté en directo o, si no, el siguiente.
+  const live = data.matches.find((m) => m.status === "LIVE");
+  const featured = live ?? upcoming[0] ?? null;
+  const upcomingRest = upcoming.filter((m) => m.id !== featured?.id);
+
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       {/* Back */}
@@ -77,26 +85,43 @@ async function EquipoContent({
             <h1 className="truncate text-3xl font-black tracking-tight">
               {data.name}
             </h1>
-            {data.group && (
-              <span className="mt-1.5 inline-block rounded-full bg-white/10 px-2.5 py-0.5 font-mono text-2xs tracking-widest text-white/80 uppercase ring-1 ring-white/15">
-                Grupo {data.group}
-              </span>
-            )}
+            <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+              {data.group && (
+                <span className="inline-block rounded-full bg-white/10 px-2.5 py-0.5 font-mono text-2xs tracking-widest text-white/80 uppercase ring-1 ring-white/15">
+                  Grupo {data.group}
+                </span>
+              )}
+              {data.standing && (
+                <span className="inline-block rounded-full bg-white/10 px-2.5 py-0.5 font-mono text-2xs tracking-widest text-white/80 uppercase ring-1 ring-white/15">
+                  {data.standing.rank}º del grupo
+                </span>
+              )}
+              {data.fansCount > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-300/15 px-2.5 py-0.5 font-mono text-2xs tracking-widest text-amber-200 uppercase ring-1 ring-amber-300/25">
+                  <Star className="size-2.5 fill-current" />
+                  {data.fansCount} {data.fansCount === 1 ? "fan" : "fans"}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Stats de grupo */}
+        {/* Stats del Mundial: registro completo G/E/P + goles + puntos */}
         {data.standing && (
-          <div className="border-border/60 grid grid-cols-5 border-t divide-x divide-border/60">
+          <div className="border-border/60 grid grid-cols-7 border-t divide-x divide-border/60">
             {[
-              { label: "Pos", value: `${data.standing.rank}º` },
               { label: "PJ", value: data.standing.played },
-              { label: "PTS", value: data.standing.points },
+              { label: "G", value: data.standing.won, tone: "text-success" },
+              { label: "E", value: data.standing.drawn, tone: "text-warning" },
+              { label: "P", value: data.standing.lost, tone: "text-live" },
               { label: "GF", value: data.standing.goalsFor },
               { label: "GC", value: data.standing.goalsAgainst },
-            ].map(({ label, value }) => (
+              { label: "PTS", value: data.standing.points, tone: "text-primary" },
+            ].map(({ label, value, tone }) => (
               <div key={label} className="flex flex-col items-center py-3">
-                <span className="font-mono text-base font-bold">{value}</span>
+                <span className={cn("font-mono text-base font-bold", tone)}>
+                  <CountUp value={value} />
+                </span>
                 <span className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">
                   {label}
                 </span>
@@ -129,6 +154,32 @@ async function EquipoContent({
           </div>
         )}
       </section>
+
+      {/* Partido destacado: en directo o el siguiente */}
+      {featured && (
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-2 text-base font-bold">
+            <Swords className={cn("size-4", live ? "text-live" : "text-primary")} />
+            {live ? "Jugando ahora" : "Próximo partido"}
+          </h2>
+          <MatchCard
+            match={{ ...featured, prediction: null, locked: false } satisfies MatchVM}
+            now={now}
+            publicMode
+          />
+        </section>
+      )}
+
+      {/* Clasificación del grupo completa */}
+      {data.groupTable && (
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-2 text-base font-bold">
+            <Table2 className="text-primary size-4" />
+            Clasificación · Grupo {data.group}
+          </h2>
+          <GroupTable group={data.groupTable} highlightTeam={data.name} />
+        </section>
+      )}
 
       {/* Top scorers del equipo */}
       {data.topScorers.length > 0 && (
@@ -192,15 +243,15 @@ async function EquipoContent({
         </section>
       )}
 
-      {/* Próximos partidos */}
-      {upcoming.length > 0 && (
+      {/* Próximos partidos (el destacado ya tiene su tarjeta arriba) */}
+      {upcomingRest.length > 0 && (
         <section className="space-y-3">
           <h2 className="flex items-center gap-2 text-base font-bold">
             <TrendingUp className="text-primary size-4" />
             Próximos partidos
           </h2>
           <div className="space-y-2">
-            {upcoming.map((m) => (
+            {upcomingRest.map((m) => (
               <TeamMatchRow key={m.id} match={m} teamName={data.name} now={now} />
             ))}
           </div>

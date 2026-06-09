@@ -12,6 +12,7 @@ import { AchievementsWidget } from "@/components/leaderboard/achievements-widget
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { ActiveLeagueBanner } from "@/components/ligas/active-league-banner";
 import { EmptyState } from "@/components/ui/empty-state";
+import { GroupTable } from "@/components/mundial/group-table";
 import { Shield } from "lucide-react";
 
 /**
@@ -171,6 +172,22 @@ export default function DevUiPage() {
       <section className="max-w-md space-y-3">
         <h2 className="text-base font-bold">AchievementsWidget</h2>
         <AchievementsWidget unlocked={ACHIEVEMENTS.slice(0, 3).map((a) => a.type)} />
+      </section>
+
+      <section className="max-w-xl space-y-3">
+        <h2 className="text-base font-bold">GroupTable</h2>
+        <GroupTable
+          highlightTeam="México"
+          group={{
+            group: "A",
+            teams: [
+              { rank: 1, teamId: 1, name: "Mexico", nameEs: "México", logo: null, flag: "🇲🇽", played: 2, won: 2, drawn: 0, lost: 0, goalsFor: 5, goalsAgainst: 1, goalDiff: 4, points: 6, form: "WW" },
+              { rank: 2, teamId: 2, name: "Canada", nameEs: "Canadá", logo: null, flag: "🇨🇦", played: 2, won: 1, drawn: 1, lost: 0, goalsFor: 3, goalsAgainst: 2, goalDiff: 1, points: 4, form: "WD" },
+              { rank: 3, teamId: 3, name: "Poland", nameEs: "Polonia", logo: null, flag: "🇵🇱", played: 2, won: 0, drawn: 1, lost: 1, goalsFor: 1, goalsAgainst: 3, goalDiff: -2, points: 1, form: "DL" },
+              { rank: 4, teamId: 4, name: "Tunisia", nameEs: "Túnez", logo: null, flag: "🇹🇳", played: 2, won: 0, drawn: 0, lost: 2, goalsFor: 1, goalsAgainst: 4, goalDiff: -3, points: 0, form: "LL" },
+            ],
+          }}
+        />
       </section>
 
       <section className="max-w-md space-y-3">
