@@ -521,6 +521,10 @@ export type TeamPageData = {
   crest: string | null;
   group: string | null;
   standing: import("@/lib/providers/api-football").GroupStanding["teams"][0] | null;
+  /** Clasificación completa de su grupo (para la tabla con rivales). */
+  groupTable: import("@/lib/providers/api-football").GroupStanding | null;
+  /** Jugadores de la quiniela que lo tienen como equipo favorito. */
+  fansCount: number;
   matches: MatchBase[];
   topScorers: import("@/lib/providers/api-football").TopScorer[];
 };
@@ -558,20 +562,22 @@ export async function getTeamPage(slug: string): Promise<TeamPageData | null> {
 
   const teamInfo = teamMap.get(slug) ?? { crest: null, flag: null };
 
-  const [teamMatches, standings, allScorers] = await Promise.all([
+  const [teamMatches, standings, allScorers, fansCount] = await Promise.all([
     prisma.match.findMany({
       where: { OR: [{ homeTeam: teamName }, { awayTeam: teamName }] },
       orderBy: { kickoffAt: "asc" },
     }),
     getWorldCupStandings(),
     getWorldCupTopScorers(),
+    prisma.user.count({ where: { favoriteTeam: teamName } }),
   ]);
 
   let standing: TeamPageData["standing"] = null;
   let group: string | null = null;
+  let groupTable: TeamPageData["groupTable"] = null;
   for (const g of standings) {
     const found = g.teams.find((t) => t.nameEs === teamName);
-    if (found) { standing = found; group = g.group; break; }
+    if (found) { standing = found; group = g.group; groupTable = g; break; }
   }
 
   const topScorers = allScorers.filter((s) => s.teamName === teamName);
@@ -583,6 +589,8 @@ export async function getTeamPage(slug: string): Promise<TeamPageData | null> {
     crest: standing?.logo ?? teamInfo.crest,
     group,
     standing,
+    groupTable,
+    fansCount,
     matches: teamMatches.map((m) => ({
       id: m.id,
       matchNo: m.matchNo,
