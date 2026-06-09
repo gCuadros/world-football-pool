@@ -8,7 +8,7 @@ import { useTheme } from "next-themes";
 
 import { titleForPath } from "@/lib/nav";
 import { Button } from "@/components/ui/button";
-import { signOutAction } from "@/app/(app)/actions";
+import { signOutAction } from "@/app/(shell)/(app)/actions";
 import { MobileNav } from "@/components/app/mobile-nav";
 import { RefreshButton } from "@/components/app/refresh-button";
 import type { SidebarUser } from "@/components/app/nav-content";
@@ -34,7 +34,7 @@ export function Topbar({
 
   return (
     <header
-      className="border-border/40 bg-background/75 sticky top-0 z-20 flex min-h-14 items-center gap-2 border-b px-3 backdrop-blur-xl sm:gap-4 sm:px-4 lg:px-6"
+      className="border-border/40 bg-background/75 vt-topbar sticky top-0 z-20 flex min-h-14 items-center gap-2 border-b px-3 backdrop-blur-xl sm:gap-4 sm:px-4 lg:px-6"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <MobileNav user={user} />

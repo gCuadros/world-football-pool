@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { createLeague } from "@/app/(app)/mini-ligas/actions";
+import { createLeague } from "@/app/(shell)/(app)/mini-ligas/actions";
 
 // POST /api/mini-leagues — crea una liga. Body: { name }.
 export async function POST(req: Request) {

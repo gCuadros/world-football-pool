@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Trophy, LogIn, Plus, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { createLeague, joinLeague } from "@/app/(app)/mini-ligas/actions";
+import { createLeague, joinLeague } from "@/app/(shell)/(app)/mini-ligas/actions";
 
 // Onboarding (usuario sin ligas): hero + tarjetas Unirse / Crear.
 // Diseño: pantalla 07 "Onboarding".

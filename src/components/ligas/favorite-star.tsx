@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { toast } from "sonner";
 
-import { setFavoriteLeague } from "@/app/(app)/mini-ligas/actions";
+import { setFavoriteLeague } from "@/app/(shell)/(app)/mini-ligas/actions";
 import { cn } from "@/lib/utils";
 
 /**

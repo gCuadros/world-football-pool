@@ -3,12 +3,11 @@ import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/current-user";
 import { Reveal } from "@/components/ui/reveal";
 import { getDashboardData } from "@/lib/dashboard";
-import { AppShell } from "@/components/app/app-shell";
 import { Dashboard } from "@/components/dashboard/dashboard";
 import { Landing } from "@/components/landing/landing";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Raíz: guest → landing de marketing; logueado → dashboard dentro del shell.
+// Raíz (dentro del shell persistente): guest → landing; logueado → dashboard.
 export default function HomePage() {
   return (
     <Suspense fallback={<HomeFallback />}>
@@ -22,11 +21,9 @@ async function HomeRouter() {
   if (!user) return <Landing />;
 
   return (
-    <AppShell>
-      <Reveal fallback={<DashboardSkeleton />}>
-        <DashboardSlot userId={user.id} userName={user.name} />
-      </Reveal>
-    </AppShell>
+    <Reveal fallback={<DashboardSkeleton />}>
+      <DashboardSlot userId={user.id} userName={user.name} />
+    </Reveal>
   );
 }
 
@@ -42,7 +39,7 @@ async function DashboardSlot({
 }
 
 function HomeFallback() {
-  return <div className="min-h-dvh bg-background" />;
+  return <div className="min-h-[60vh]" />;
 }
 
 function DashboardSkeleton() {

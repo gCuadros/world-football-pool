@@ -2,18 +2,18 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { getCurrentUser } from "@/lib/current-user";
-import { AppShell } from "@/components/app/app-shell";
 
-// Zona privada: el shell unificado + gate de sesión. El gate vive en su propio
-// Suspense para no bloquear el shell (que ya resuelve la sesión por su cuenta).
+// Zona privada: solo el gate de sesión — el shell lo aporta (shell)/layout y
+// persiste entre navegaciones. El gate vive en su propio Suspense para no
+// bloquear el render del contenido.
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
-    <AppShell>
+    <>
       <Suspense>
         <AuthGate />
       </Suspense>
       {children}
-    </AppShell>
+    </>
   );
 }
 
