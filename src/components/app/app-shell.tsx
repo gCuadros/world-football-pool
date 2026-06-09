@@ -7,6 +7,7 @@ import { getUnreadCount, getRecentNotifications } from "@/lib/notifications";
 import { Sidebar } from "@/components/app/sidebar";
 import { Topbar } from "@/components/app/topbar";
 import { BottomNav } from "@/components/app/bottom-nav";
+import { PullToRefresh } from "@/components/app/pull-to-refresh";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SidebarUser } from "@/components/app/nav-content";
 
@@ -26,10 +27,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Suspense fallback={<TopbarSkeleton />}>
           <TopbarSlot />
         </Suspense>
-        <main className="flex-1 p-4 pb-24 lg:p-6 lg:pb-6">
-          <ViewTransition>
-            <div className="mx-auto w-full max-w-6xl overflow-x-clip">{children}</div>
-          </ViewTransition>
+        <main className="flex-1 p-4 pb-nav-safe lg:p-6 lg:pb-6">
+          <PullToRefresh>
+            <ViewTransition>
+              <div className="mx-auto w-full max-w-6xl overflow-x-clip">{children}</div>
+            </ViewTransition>
+          </PullToRefresh>
         </main>
       </div>
       <Suspense>

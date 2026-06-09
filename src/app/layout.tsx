@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { SwRegister } from "@/components/app/sw-register";
+import { ThemeColorSync } from "@/components/app/theme-color-sync";
 
 const jakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -37,8 +38,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // `cover` activa los safe-areas (env()) en iPhone instalada como PWA:
+  // sin él, el padding del bottom-nav y el topbar sobre el notch no aplican.
+  viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#1D6FF2" },
+    // El claro coincide con --background para que la barra de estado se funda
+    // con la app (como una app nativa), no con el azul de marca.
+    { media: "(prefers-color-scheme: light)", color: "#F4F7FF" },
     { media: "(prefers-color-scheme: dark)", color: "#07090F" },
   ],
 };
@@ -68,6 +74,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <ThemeColorSync />
           <SwRegister />
           <Toaster richColors position="top-center" />
         </ThemeProvider>

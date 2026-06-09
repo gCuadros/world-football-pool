@@ -177,6 +177,14 @@
   }
   html {
     @apply font-sans;
+    /* Tacto nativo: sin flash gris al tocar y sin auto-inflado de texto en iOS. */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Elimina el retardo/zoom de doble tap en controles (respuesta táctil
+     inmediata, como una app nativa). `:where()` → especificidad 0. */
+  :where(a, button, [role="button"], [role="tab"], input, select, textarea, summary, [tabindex]) {
+    touch-action: manipulation;
   }
   h1,
   h2,
@@ -186,6 +194,13 @@
   h6 {
     @apply font-heading tracking-tight;
   }
+}
+
+/* Padding inferior del <main> en móvil: hueco del bottom-nav (4rem) + margen
+   (2rem) + safe-area del iPhone. Como @utility participa en el orden de
+   variantes de Tailwind, así `lg:pb-6` puede sobreescribirlo en desktop. */
+@utility pb-nav-safe {
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom));
 }
 
 @layer utilities {
@@ -210,6 +225,23 @@
   }
   .shadow-nav {
     box-shadow: var(--shadow-nav);
+  }
+}
+
+/* ── Modo app instalada (standalone) ────────────────────────────────────── */
+/* Cuando la PWA corre desde la pantalla de inicio, el chrome de la app debe
+   comportarse como nativo: sin rebote del documento (el pull-to-refresh propio
+   lo sustituye), sin selección de texto ni callouts al mantener pulsada la
+   navegación. */
+@media (display-mode: standalone) {
+  html {
+    overscroll-behavior-y: contain;
+  }
+  header,
+  nav {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
   }
 }
 

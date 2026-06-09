@@ -14,6 +14,27 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#07090F",
     theme_color: "#07090F",
     categories: ["sports", "games"],
+    // Accesos rápidos al mantener pulsado el icono (Android/desktop).
+    shortcuts: [
+      {
+        name: "Hacer predicciones",
+        short_name: "Predecir",
+        url: "/predicciones",
+        icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+      {
+        name: "Partidos en directo",
+        short_name: "Partidos",
+        url: "/partidos",
+        icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+      {
+        name: "Clasificación",
+        short_name: "Tabla",
+        url: "/clasificacion",
+        icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+      },
+    ],
     icons: [
       {
         src: "/icon-192.png",

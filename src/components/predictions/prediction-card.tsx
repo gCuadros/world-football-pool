@@ -9,6 +9,7 @@ import type { MatchVM } from "@/lib/queries";
 import { STAGE_SHORT } from "@/lib/labels";
 import { formatRelativeDay, formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { haptics } from "@/lib/haptics";
 import { savePrediction } from "@/app/(app)/predicciones/actions";
 import { Countdown, isLockImminent } from "@/components/matches/countdown";
 import { PredictionBadge } from "@/components/matches/prediction-badge";
@@ -60,28 +61,39 @@ function Stepper({
   onChange: (v: number) => void;
   disabled?: boolean;
 }) {
+  // size-11 (44px) en táctil = objetivo mínimo recomendado para el control más
+  // usado de la app; en desktop (hover disponible) vuelve al tamaño compacto.
+  const btn =
+    "border-border/60 text-muted-foreground hover:border-primary/50 hover:text-foreground flex size-11 items-center justify-center rounded-xl border transition disabled:opacity-40 motion-safe:active:scale-90 lg:size-8";
+
   return (
     <div className="flex items-center gap-1.5">
       <button
         type="button"
         disabled={disabled || value <= 0}
-        onClick={() => onChange(Math.max(0, value - 1))}
-        className="border-border/60 text-muted-foreground hover:border-primary/50 hover:text-foreground flex size-8 items-center justify-center rounded-xl border transition disabled:opacity-40 motion-safe:active:scale-90"
+        onClick={() => {
+          haptics.tap();
+          onChange(Math.max(0, value - 1));
+        }}
+        className={btn}
         aria-label="Restar"
       >
-        <Minus className="size-3.5" />
+        <Minus className="size-4 lg:size-3.5" />
       </button>
-      <span className="w-7 text-center font-mono text-xl font-bold tabular-nums">
+      <span className="w-8 text-center font-mono text-2xl font-bold tabular-nums lg:w-7 lg:text-xl">
         {value}
       </span>
       <button
         type="button"
         disabled={disabled || value >= 20}
-        onClick={() => onChange(Math.min(20, value + 1))}
-        className="border-border/60 text-muted-foreground hover:border-primary/50 hover:text-foreground flex size-8 items-center justify-center rounded-xl border transition disabled:opacity-40 motion-safe:active:scale-90"
+        onClick={() => {
+          haptics.tap();
+          onChange(Math.min(20, value + 1));
+        }}
+        className={btn}
         aria-label="Sumar"
       >
-        <Plus className="size-3.5" />
+        <Plus className="size-4 lg:size-3.5" />
       </button>
     </div>
   );
@@ -114,9 +126,12 @@ function AdvanceSelector({
               key={side}
               type="button"
               disabled={disabled}
-              onClick={() => onChange(active ? null : side)}
+              onClick={() => {
+                haptics.tap();
+                onChange(active ? null : side);
+              }}
               className={cn(
-                "flex-1 truncate rounded-md border px-2 py-1.5 text-xs font-medium transition motion-safe:active:scale-[0.97]",
+                "flex-1 truncate rounded-md border px-2 py-2.5 text-xs font-medium transition motion-safe:active:scale-[0.97] lg:py-1.5",
                 active
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border text-muted-foreground hover:border-primary/40",
@@ -181,9 +196,11 @@ export function PredictionCard({
         isKnockout ? advancePick : null,
       );
       if (res.ok) {
+        haptics.success();
         toast.success(`Predicción guardada: ${home}-${away}`);
         router.refresh();
       } else {
+        haptics.error();
         toast.error(res.error);
       }
     });
@@ -248,11 +265,12 @@ export function PredictionCard({
                   type="button"
                   disabled={pending}
                   onClick={() => {
+                    haptics.tap();
                     setHome(h);
                     setAway(a);
                   }}
                   className={cn(
-                    "rounded-md border px-2 py-1 font-mono text-2xs transition motion-safe:active:scale-[0.97]",
+                    "rounded-md border px-3 py-2 font-mono text-2xs transition motion-safe:active:scale-[0.97] lg:px-2 lg:py-1",
                     active
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border text-muted-foreground hover:border-primary/40",
@@ -279,7 +297,7 @@ export function PredictionCard({
             type="button"
             disabled={pending || !dirty}
             onClick={handleSave}
-            className="bg-primary-gradient text-white hover:opacity-90 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition disabled:opacity-50 shadow-sm shadow-primary/30 motion-safe:active:scale-[0.99]"
+            className="bg-primary-gradient text-white hover:opacity-90 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition disabled:opacity-50 shadow-sm shadow-primary/30 motion-safe:active:scale-[0.99] lg:py-2.5"
           >
             {pending ? (
               <Loader2 className="size-4 animate-spin" />

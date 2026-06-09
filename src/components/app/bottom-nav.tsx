@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Home, Radio, Users, User, LogIn, Globe, SquarePen, Trophy } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { haptics } from "@/lib/haptics";
 import type { SidebarUser } from "@/components/app/nav-content";
 
 type NavItem = {
@@ -57,8 +58,13 @@ export function BottomNav({ user }: { user: SidebarUser }) {
   return (
     <nav
       aria-label="Navegación principal"
-      className="border-border/50 dark:border-white/5 bg-background/90 fixed bottom-0 left-0 right-0 z-30 flex h-16 items-stretch border-t backdrop-blur-xl shadow-nav lg:hidden"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      className="border-border/50 dark:border-white/5 bg-background/90 fixed bottom-0 left-0 right-0 z-30 flex select-none items-stretch border-t backdrop-blur-xl shadow-nav lg:hidden"
+      // Altura = 4rem de tabs + safe-area: el inset se suma fuera, no comprime
+      // los iconos (con h-16 fijo los tabs quedarían a 30px en iPhone).
+      style={{
+        height: "calc(4rem + env(safe-area-inset-bottom))",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
     >
       {items.map(({ href, label, icon: Icon, exact }) => {
         const active = isActive(href, exact);
@@ -66,6 +72,7 @@ export function BottomNav({ user }: { user: SidebarUser }) {
           <Link
             key={href}
             href={href}
+            onClick={() => haptics.tap()}
             className={cn(
               "relative flex flex-1 flex-col items-center justify-center gap-0.5 min-w-0 text-3xs font-semibold transition-colors",
               active ? "text-primary" : "text-muted-foreground active:text-foreground",
