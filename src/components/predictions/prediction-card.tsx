@@ -66,7 +66,7 @@ function Stepper({
         type="button"
         disabled={disabled || value <= 0}
         onClick={() => onChange(Math.max(0, value - 1))}
-        className="border-border text-muted-foreground hover:border-primary/40 hover:text-foreground flex size-7 items-center justify-center rounded-md border transition disabled:opacity-40 motion-safe:active:scale-90"
+        className="border-border/60 text-muted-foreground hover:border-primary/50 hover:text-foreground flex size-8 items-center justify-center rounded-xl border transition disabled:opacity-40 motion-safe:active:scale-90"
         aria-label="Restar"
       >
         <Minus className="size-3.5" />
@@ -78,7 +78,7 @@ function Stepper({
         type="button"
         disabled={disabled || value >= 20}
         onClick={() => onChange(Math.min(20, value + 1))}
-        className="border-border text-muted-foreground hover:border-primary/40 hover:text-foreground flex size-7 items-center justify-center rounded-md border transition disabled:opacity-40 motion-safe:active:scale-90"
+        className="border-border/60 text-muted-foreground hover:border-primary/50 hover:text-foreground flex size-8 items-center justify-center rounded-xl border transition disabled:opacity-40 motion-safe:active:scale-90"
         aria-label="Sumar"
       >
         <Plus className="size-3.5" />
@@ -192,13 +192,13 @@ export function PredictionCard({
   return (
     <div
       className={cn(
-        "bg-card flex flex-col gap-3 rounded-xl border p-4",
-        live ? "border-live/40" : "border-border",
+        "bg-card flex flex-col gap-3 rounded-2xl border p-4 shadow-sm",
+        live ? "border-transparent border-l-[3px] border-l-live glow-live" : "border-border/60",
       )}
     >
       {/* Cabecera */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">
+        <span className="bg-muted/50 text-muted-foreground rounded-full px-2 py-0.5 font-mono text-3xs tracking-wide uppercase">
           {stageTag} · {match.stadium}
         </span>
         {live ? (
@@ -279,7 +279,7 @@ export function PredictionCard({
             type="button"
             disabled={pending || !dirty}
             onClick={handleSave}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium transition disabled:opacity-50 motion-safe:active:scale-[0.99]"
+            className="bg-primary-gradient text-white hover:opacity-90 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition disabled:opacity-50 shadow-sm shadow-primary/30 motion-safe:active:scale-[0.99]"
           >
             {pending ? (
               <Loader2 className="size-4 animate-spin" />
@@ -298,7 +298,7 @@ export function PredictionCard({
               {hasScore ? (
                 <span
                   className={cn(
-                    "font-mono text-xl font-bold tabular-nums",
+                    "font-mono text-2xl font-black tabular-nums",
                     live ? "text-primary" : "text-foreground",
                   )}
                 >
@@ -311,7 +311,7 @@ export function PredictionCard({
               {hasScore ? (
                 <span
                   className={cn(
-                    "font-mono text-xl font-bold tabular-nums",
+                    "font-mono text-2xl font-black tabular-nums",
                     live ? "text-primary" : "text-foreground",
                   )}
                 >

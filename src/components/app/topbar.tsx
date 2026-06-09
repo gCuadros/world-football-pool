@@ -33,13 +33,13 @@ export function Topbar({
   const [pending, startTransition] = useTransition();
 
   return (
-    <header className="border-border bg-background/80 sticky top-0 z-20 flex h-16 items-center gap-2 border-b px-3 backdrop-blur sm:gap-4 sm:px-4 lg:px-6">
+    <header className="border-border/40 bg-background/75 sticky top-0 z-20 flex h-14 items-center gap-2 border-b px-3 backdrop-blur-xl sm:gap-4 sm:px-4 lg:px-6">
       <MobileNav user={user} />
       <div className="min-w-0">
-        <p className="text-muted-foreground hidden font-mono text-2xs tracking-wide uppercase sm:block">
+        <p className="text-muted-foreground/70 hidden font-mono text-2xs tracking-widest uppercase sm:block">
           Mundial 2026
         </p>
-        <h1 className="truncate text-base leading-none font-bold sm:text-lg">
+        <h1 className="truncate text-base leading-none font-bold tracking-tight sm:text-lg">
           {title}
         </h1>
       </div>
