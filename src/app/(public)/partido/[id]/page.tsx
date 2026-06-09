@@ -1,7 +1,8 @@
 import { Suspense, ViewTransition } from "react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+
+import { BackButton } from "@/components/ui/back-button";
 
 import { getMatchesBase, type MatchBase } from "@/lib/queries";
 import { STAGE_LABELS } from "@/lib/labels";
@@ -59,13 +60,7 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <Link
-        href={match.stage === "FRIENDLY" ? "/amistosos" : "/resultados"}
-        className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
-      >
-        <ArrowLeft className="size-4" />
-        {match.stage === "FRIENDLY" ? "Amistosos" : "Resultados"}
-      </Link>
+      <BackButton />
 
       <MatchHeader match={match} />
 
