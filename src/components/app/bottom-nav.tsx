@@ -34,7 +34,7 @@ export function BottomNav({ user }: { user: SidebarUser }) {
   const items: NavItem[] = user.isLoggedIn
     ? [
         { href: "/", label: "Inicio", icon: Home, exact: true },
-        { href: "/resultados", label: "Partidos", icon: Radio },
+        { href: "/mundial", label: "Mundial", icon: Globe },
         ...(activeLeagueId
           ? [{ href: `/liga/${activeLeagueId}/predicciones`, label: "Predecir", icon: SquarePen }]
           : []),

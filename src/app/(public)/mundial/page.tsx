@@ -1,36 +1,30 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Globe, Shield, Goal, Network, Handshake, TrendingUp } from "lucide-react";
+import { Globe, Shield, Goal, Handshake, TrendingUp } from "lucide-react";
 
 import { teamSlug } from "@/lib/utils";
-
 import { getWorldCupStandings, getWorldCupTopScorers } from "@/lib/queries";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Reveal } from "@/components/ui/reveal";
 import { TeamCrest } from "@/components/matches/team-crest";
+import { MundialNav } from "@/components/mundial/mundial-nav";
 
-export const metadata = { title: "Mundial 2026 · Quiniela" };
+export const metadata = { title: "Clasificación · Mundial 2026" };
 
 export default function MundialPage() {
   return (
-    <div className="space-y-10">
-      <div className="flex flex-wrap items-center gap-3">
-        <Globe className="text-primary size-5" />
-        <h1 className="text-xl font-bold">Mundial 2026</h1>
-        <span className="text-muted-foreground text-sm">USA · Canada · Mexico</span>
-        <Link
-          href="/eliminatorias"
-          className="text-primary hover:text-primary/80 ml-auto flex items-center gap-1.5 font-mono text-xs font-medium transition-colors"
-        >
-          <Network className="size-3.5" />
-          Eliminatorias
-        </Link>
+    <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <Globe className="text-primary size-5 shrink-0" />
+        <h1 className="text-xl font-bold">Clasificación</h1>
+        <span className="text-muted-foreground text-sm">Mundial 2026</span>
       </div>
 
-      <Reveal fallback={<GroupsSkeleton />}>
+      <MundialNav />
+
+      <Suspense fallback={<GroupsSkeleton />}>
         <StandingsSection />
-      </Reveal>
+      </Suspense>
 
       <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
         <TopScorersSection />
@@ -40,9 +34,9 @@ export default function MundialPage() {
         <TopAssistersSection />
       </Suspense>
 
-      <Reveal fallback={<Skeleton className="h-40 rounded-xl" />}>
+      <Suspense fallback={<Skeleton className="h-40 rounded-xl" />}>
         <TournamentStatsSection />
-      </Reveal>
+      </Suspense>
     </div>
   );
 }
@@ -64,61 +58,69 @@ async function StandingsSection() {
         <Shield className="text-primary size-4" />
         Fase de Grupos
       </h2>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {groups.map((g) => (
           <div
             key={g.group}
-            className="border-border bg-card overflow-hidden rounded-xl border"
+            className="border-border bg-card min-w-0 overflow-hidden rounded-xl border"
           >
-            <div className="bg-primary/5 border-border border-b px-4 py-2">
+            <div className="bg-primary/5 border-border border-b px-3 py-2">
               <span className="text-primary font-mono text-xs font-bold tracking-widest uppercase">
                 Grupo {g.group}
               </span>
             </div>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-muted-foreground border-border border-b font-mono text-3xs tracking-wide uppercase">
-                  <th className="px-3 py-1.5 text-left" colSpan={2}>Equipo</th>
-                  <th className="px-1 py-1.5 text-center">PJ</th>
-                  <th className="px-1 py-1.5 text-center">GF</th>
-                  <th className="px-1 py-1.5 text-center">GC</th>
-                  <th className="px-2 py-1.5 text-center font-bold">PTS</th>
-                </tr>
-              </thead>
-              <tbody>
-                {g.teams.map((t, i) => (
-                  <tr
-                    key={t.teamId}
-                    className={`border-border border-b last:border-0 ${i < 2 ? "bg-primary/3" : ""}`}
-                  >
-                    <td className="text-muted-foreground w-6 px-2 py-2 text-center font-mono text-xs">
-                      {t.rank}
-                    </td>
-                    <td className="max-w-0 px-1 py-2">
-                      <Link
-                        href={`/equipo/${teamSlug(t.nameEs)}`}
-                        className="flex min-w-0 items-center gap-2 hover:text-primary transition-colors"
-                      >
-                        <TeamCrest
-                          crest={t.logo}
-                          flag={t.flag}
-                          name={t.nameEs}
-                          size={18}
-                          className="shrink-0"
-                        />
-                        <span className="min-w-0 flex-1 truncate text-xs font-medium">{t.nameEs}</span>
-                      </Link>
-                    </td>
-                    <td className="px-1 py-2 text-center font-mono text-xs">{t.played}</td>
-                    <td className="px-1 py-2 text-center font-mono text-xs">{t.goalsFor}</td>
-                    <td className="px-1 py-2 text-center font-mono text-xs">{t.goalsAgainst}</td>
-                    <td className="px-2 py-2 text-center font-mono text-sm font-bold">
-                      {t.points}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full table-fixed text-xs">
+                <colgroup>
+                  <col className="w-6" />
+                  {/* Equipo ocupa el espacio restante */}
+                  <col />
+                  <col className="w-7" />
+                  <col className="w-7" />
+                  <col className="w-7" />
+                  <col className="w-8" />
+                </colgroup>
+                <thead>
+                  <tr className="text-muted-foreground border-border border-b font-mono text-[10px] tracking-wide uppercase">
+                    <th className="px-1 py-1.5 text-center">#</th>
+                    <th className="px-2 py-1.5 text-left">Equipo</th>
+                    <th className="px-1 py-1.5 text-center">PJ</th>
+                    <th className="px-1 py-1.5 text-center">GF</th>
+                    <th className="px-1 py-1.5 text-center">GC</th>
+                    <th className="px-1 py-1.5 text-center font-bold">Pts</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {g.teams.map((t, i) => (
+                    <tr
+                      key={t.teamId}
+                      className={`border-border border-b last:border-0 ${i < 2 ? "bg-primary/5" : ""}`}
+                    >
+                      <td className="px-1 py-2 text-center font-mono font-semibold text-muted-foreground">{t.rank}</td>
+                      <td className="px-2 py-2 max-w-0">
+                        <Link
+                          href={`/equipo/${teamSlug(t.nameEs)}`}
+                          className="flex w-full items-center gap-1.5 transition-colors hover:text-primary"
+                        >
+                          <TeamCrest
+                            crest={t.logo}
+                            flag={t.flag}
+                            name={t.nameEs}
+                            size={14}
+                            className="shrink-0"
+                          />
+                          <span className="truncate font-medium">{t.nameEs}</span>
+                        </Link>
+                      </td>
+                      <td className="px-1 py-2 text-center font-mono">{t.played}</td>
+                      <td className="px-1 py-2 text-center font-mono">{t.goalsFor}</td>
+                      <td className="px-1 py-2 text-center font-mono">{t.goalsAgainst}</td>
+                      <td className="px-1 py-2 text-center font-mono font-bold">{t.points}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         ))}
       </div>
@@ -128,10 +130,7 @@ async function StandingsSection() {
 
 async function TopScorersSection() {
   const scorers = await getWorldCupTopScorers();
-
-  if (scorers.length === 0) {
-    return null;
-  }
+  if (scorers.length === 0) return null;
 
   return (
     <section className="space-y-4">
@@ -146,7 +145,6 @@ async function TopScorersSection() {
               <th className="px-2 py-2 text-left sm:px-3">#</th>
               <th className="px-2 py-2 text-left sm:px-3">Jugador</th>
               <th className="hidden px-3 py-2 text-left sm:table-cell">Equipo</th>
-              <th className="hidden px-3 py-2 text-center sm:table-cell">PJ</th>
               <th className="hidden px-3 py-2 text-center sm:table-cell">Asis</th>
               <th className="px-2 py-2 text-center font-bold sm:px-3">Goles</th>
             </tr>
@@ -158,26 +156,12 @@ async function TopScorersSection() {
                 <td className="px-2 py-2 sm:px-3">
                   <div className="flex items-center gap-2">
                     {s.photo ? (
-                      <Image
-                        src={s.photo}
-                        alt={s.playerName}
-                        width={24}
-                        height={24}
-                        className="size-6 shrink-0 rounded-full"
-                        unoptimized
-                      />
+                      <Image src={s.photo} alt={s.playerName} width={24} height={24} className="size-6 shrink-0 rounded-full" unoptimized />
                     ) : (
                       <div className="bg-muted size-6 shrink-0 rounded-full" />
                     )}
                     <span className="min-w-0 truncate font-medium">{s.playerName}</span>
-                    {/* Equipo inline en móvil (la columna Equipo se oculta) */}
-                    <TeamCrest
-                      crest={s.teamLogo}
-                      flag={s.teamFlag}
-                      name={s.teamName}
-                      size={14}
-                      className="shrink-0 sm:hidden"
-                    />
+                    <TeamCrest crest={s.teamLogo} flag={s.teamFlag} name={s.teamName} size={14} className="shrink-0 sm:hidden" />
                   </div>
                 </td>
                 <td className="hidden px-3 py-2 sm:table-cell">
@@ -186,11 +170,8 @@ async function TopScorersSection() {
                     <span className="text-muted-foreground text-xs">{s.teamName}</span>
                   </div>
                 </td>
-                <td className="hidden px-3 py-2 text-center font-mono text-xs sm:table-cell">{s.played}</td>
                 <td className="hidden px-3 py-2 text-center font-mono text-xs sm:table-cell">{s.assists}</td>
-                <td className="text-primary px-2 py-2 text-center font-mono text-sm font-bold sm:px-3">
-                  {s.goals}
-                </td>
+                <td className="text-primary px-2 py-2 text-center font-mono text-sm font-bold sm:px-3">{s.goals}</td>
               </tr>
             ))}
           </tbody>
@@ -308,7 +289,7 @@ function TournamentStatCard({
   return (
     <Link
       href={`/equipo/${teamSlug(team.nameEs)}`}
-      className="bg-card border-border/60 hover:border-primary/40 hover:glow-primary flex items-center gap-3 rounded-2xl border p-4 shadow-sm transition-colors"
+      className="bg-card border-border/60 hover:border-primary/40 flex items-center gap-3 rounded-2xl border p-4 shadow-sm transition-colors"
     >
       <TeamCrest crest={team.logo} flag={team.flag} name={team.nameEs} size={36} className="shrink-0" />
       <div className="min-w-0">
@@ -322,7 +303,7 @@ function TournamentStatCard({
 
 function GroupsSkeleton() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {Array.from({ length: 12 }).map((_, i) => (
         <Skeleton key={i} className="h-44 rounded-xl" />
       ))}
