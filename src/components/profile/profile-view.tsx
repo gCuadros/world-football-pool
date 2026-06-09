@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Target, Zap, BarChart2, Star } from "lucide-react";
+import { Target, Zap, BarChart2, Star } from "lucide-react";
 
 import type { PublicProfile, PublicPrediction } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { BackButton } from "@/components/ui/back-button";
 
 function isRealAvatar(a: string | null): boolean {
   return !!a && (a.startsWith("data:") || a.startsWith("http"));
@@ -60,13 +60,7 @@ export function ProfileView({
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Back */}
-      <Link
-        href="/clasificacion"
-        className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
-      >
-        <ArrowLeft className="size-4" />
-        Clasificación
-      </Link>
+      <BackButton />
 
       {/* Header del perfil */}
       <section className="border-border bg-card overflow-hidden rounded-2xl border">
