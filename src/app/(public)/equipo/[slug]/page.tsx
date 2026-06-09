@@ -7,6 +7,8 @@ import { getTeamPage } from "@/lib/queries";
 import { STAGE_SHORT } from "@/lib/labels";
 import { formatRelativeDay, formatTime } from "@/lib/format";
 import { TeamCrest } from "@/components/matches/team-crest";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PitchLines } from "@/components/ui/pitch-lines";
 import { Reveal } from "@/components/ui/reveal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -57,21 +59,24 @@ async function EquipoContent({
         Grupos
       </Link>
 
-      {/* Hero: bandera + nombre */}
-      <section className="bg-card border-border/60 overflow-hidden rounded-2xl border shadow-sm">
-        <div className="from-primary/10 to-card relative flex items-center gap-5 bg-gradient-to-r p-6">
-          <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl">
+      {/* Hero: panel "estadio de noche" con escudo y nombre */}
+      <section className="bg-card border-border/60 overflow-hidden rounded-3xl border shadow-sm">
+        <div className="bg-aurora inset-hairline relative flex items-center gap-5 overflow-hidden p-6 text-white">
+          <PitchLines />
+          <div className="relative flex size-20 shrink-0 items-center justify-center rounded-3xl bg-white/10 ring-1 ring-white/15">
             <TeamCrest
               crest={data.crest}
               flag={data.flag}
               name={data.name}
-              size={64}
+              size={52}
             />
           </div>
-          <div>
-            <h1 className="text-2xl font-black tracking-tight">{data.name}</h1>
+          <div className="relative min-w-0">
+            <h1 className="truncate text-3xl font-black tracking-tight">
+              {data.name}
+            </h1>
             {data.group && (
-              <span className="text-muted-foreground font-mono text-sm">
+              <span className="mt-1.5 inline-block rounded-full bg-white/10 px-2.5 py-0.5 font-mono text-2xs tracking-widest text-white/80 uppercase ring-1 ring-white/15">
                 Grupo {data.group}
               </span>
             )}
@@ -201,10 +206,12 @@ async function EquipoContent({
       )}
 
       {data.matches.length === 0 && (
-        <div className="border-border text-muted-foreground rounded-2xl border border-dashed p-10 text-center text-sm">
-          <Shield className="mx-auto mb-3 size-8 opacity-40" />
-          El calendario de este equipo aún no está disponible.
-        </div>
+        <EmptyState
+          icon={Shield}
+          title="Calendario no disponible"
+          description="El calendario de este equipo aún no está disponible. Vuelve cuando arranque su Mundial."
+          action={{ href: "/mundial", label: "Ver grupos" }}
+        />
       )}
     </div>
   );

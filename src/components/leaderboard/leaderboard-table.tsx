@@ -10,6 +10,13 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 const PAGE_SIZE = 10;
 
+// Chips de medalla para el top 3 (mismo tratamiento que el podio).
+const MEDAL_CHIP = [
+  "bg-amber-400 text-amber-950",
+  "bg-slate-300 text-slate-800",
+  "bg-orange-400 text-orange-950",
+];
+
 export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
   const [page, setPage] = useState(0);
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
@@ -35,17 +42,24 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
             key={row.userId}
             className={cn(
               "grid grid-cols-[2rem_1fr_2.5rem_2.5rem] items-center gap-2 px-3 py-2.5 text-sm sm:grid-cols-[3rem_1fr_4rem_4rem_4rem_4rem] sm:px-4",
-              row.isCurrentUser && "bg-primary/5",
+              row.isCurrentUser &&
+                "bg-primary/5 border-l-2 border-l-primary pl-[calc(0.75rem-2px)] sm:pl-[calc(1rem-2px)]",
             )}
           >
-            <span
-              className={cn(
-                "font-mono font-bold",
-                row.rank <= 3 ? "text-primary" : "text-muted-foreground",
-              )}
-            >
-              {row.rank}
-            </span>
+            {row.rank <= 3 ? (
+              <span
+                className={cn(
+                  "flex size-6 items-center justify-center rounded-full font-mono text-xs font-bold shadow-sm",
+                  MEDAL_CHIP[row.rank - 1],
+                )}
+              >
+                {row.rank}
+              </span>
+            ) : (
+              <span className="text-muted-foreground pl-2 font-mono font-bold">
+                {row.rank}
+              </span>
+            )}
             <Link
               href={`/perfil/${row.userId}`}
               className="flex min-w-0 items-center gap-2.5 hover:opacity-80 transition-opacity"

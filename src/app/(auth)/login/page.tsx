@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { Trophy, Radio, Target, Flame } from "lucide-react";
 import { AuthForm } from "@/components/auth/auth-form";
+import { PitchLines } from "@/components/ui/pitch-lines";
 import { googleEnabled } from "@/auth";
 import { getCurrentUser } from "@/lib/current-user";
 
@@ -50,30 +51,24 @@ export default function LoginPage({
       <Suspense fallback={null}>
         <SessionGate searchParams={searchParams} />
       </Suspense>
-      {/* Panel de marca */}
-      <section className="bg-primary text-primary-foreground relative hidden flex-col justify-between overflow-hidden p-12 lg:flex">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-30"
-          style={{
-            background:
-              "radial-gradient(120% 120% at 0% 0%, #0a4f8a 0%, transparent 55%), radial-gradient(120% 120% at 100% 100%, #004a87 0%, transparent 50%)",
-          }}
-        />
+      {/* Panel de marca: "estadio de noche" con líneas de campo */}
+      <section className="bg-aurora relative hidden flex-col justify-between overflow-hidden p-12 text-white lg:flex">
+        <PitchLines />
         <div className="relative">
           <div className="flex items-center gap-2 font-mono text-lg font-bold tracking-tight">
             <Trophy className="size-6" />
             QUINIELA
-            <span className="text-primary-foreground/60 font-normal">
-              · Mundial 2026
-            </span>
+            <span className="font-normal text-white/60">· Mundial 2026</span>
           </div>
         </div>
 
         <div className="relative max-w-md">
-          <h1 className="text-primary-foreground text-4xl leading-tight font-bold">
-            Predice los 64 partidos del Mundial y compite con tus amigos.
+          <h1 className="text-4xl leading-tight font-bold">
+            Predice los 64 partidos del{" "}
+            <span className="text-gradient-hero">Mundial</span> y compite con
+            tus amigos.
           </h1>
-          <p className="text-primary-foreground/70 mt-4 text-base">
+          <p className="mt-4 text-base text-white/70">
             Marcador exacto vale 3 puntos, acertar el resultado 1. Sube en la
             clasificación, crea tu mini-liga y desbloquea logros.
           </p>
@@ -86,7 +81,7 @@ export default function LoginPage({
             ].map(({ icon: Icon, label }) => (
               <div
                 key={label}
-                className="border-primary-foreground/15 bg-primary-foreground/5 flex flex-col items-center gap-2 rounded-xl border p-4"
+                className="flex flex-col items-center gap-2 rounded-xl bg-white/10 p-4 ring-1 ring-white/15"
               >
                 <Icon className="size-5" />
                 <span className="font-mono text-2xs tracking-wide uppercase">
@@ -97,7 +92,7 @@ export default function LoginPage({
           </div>
         </div>
 
-        <p className="text-primary-foreground/50 relative font-mono text-xs">
+        <p className="relative font-mono text-xs text-white/50">
           11 jun – 19 jul 2026 · 16 sedes · USA · México · Canadá
         </p>
       </section>

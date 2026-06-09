@@ -11,7 +11,7 @@ export function ComingSoon({
 }) {
   return (
     <div className="border-border bg-card flex min-h-[60vh] flex-col items-center justify-center rounded-2xl border border-dashed p-10 text-center">
-      <div className="bg-secondary text-primary mb-4 flex size-14 items-center justify-center rounded-2xl">
+      <div className="bg-primary-gradient shadow-primary/30 mb-4 flex size-14 items-center justify-center rounded-2xl text-white shadow-md">
         <Construction className="size-7" />
       </div>
       <span className="text-primary mb-2 font-mono text-xs tracking-widest uppercase">

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "quiniela-dev",
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": ["dev", "-p", "3457"],
+      "port": 3457
+    }
+  ]
+}

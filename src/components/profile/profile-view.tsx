@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Target, Zap, BarChart2, Star, ChevronDown } from "lucide-react";
+import { Target, Zap, BarChart2, Star, ChevronDown, Goal } from "lucide-react";
 
 import type { PublicProfile, PublicPrediction } from "@/lib/queries";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { BackButton } from "@/components/ui/back-button";
+import { CountUp } from "@/components/ui/count-up";
+import { EmptyState } from "@/components/ui/empty-state";
 
 function isRealAvatar(a: string | null): boolean {
   return !!a && (a.startsWith("data:") || a.startsWith("http"));
@@ -23,16 +25,23 @@ function StatCard({
   icon: Icon,
   label,
   value,
+  suffix,
 }: {
   icon: React.ElementType;
   label: string;
-  value: string | number;
+  value: number;
+  suffix?: string;
 }) {
   return (
-    <div className="border-border bg-card flex flex-col items-center gap-1 rounded-xl border p-3 text-center">
-      <Icon className="text-primary size-4" />
-      <span className="text-lg font-bold font-mono">{value}</span>
-      <span className="text-muted-foreground text-3xs uppercase tracking-wide">{label}</span>
+    <div className="border-border bg-card flex flex-col items-center gap-1.5 rounded-xl border p-3 text-center shadow-sm">
+      <span className="bg-primary/10 text-primary flex size-7 items-center justify-center rounded-lg">
+        <Icon className="size-4" />
+      </span>
+      <span className="font-mono text-lg leading-none font-bold">
+        <CountUp value={value} />
+        {suffix}
+      </span>
+      <span className="text-muted-foreground text-3xs tracking-wide uppercase">{label}</span>
     </div>
   );
 }
@@ -63,9 +72,9 @@ export function ProfileView({
       <BackButton />
 
       {/* Header del perfil */}
-      <section className="border-border bg-card overflow-hidden rounded-2xl border">
-        {/* Portada */}
-        <div className="relative h-40 w-full">
+      <section className="border-border bg-card overflow-hidden rounded-3xl border shadow-sm">
+        {/* Portada con fundido hacia la tarjeta */}
+        <div className="relative h-44 w-full">
           <Image
             src={profile.coverImage ?? "/front-page-default.webp"}
             alt=""
@@ -75,23 +84,28 @@ export function ProfileView({
             className="object-cover"
             unoptimized={profile.coverImage?.startsWith("data:") ?? false}
           />
+          <div className="from-card/90 absolute inset-0 bg-gradient-to-t via-transparent to-transparent" />
         </div>
         {/* Avatar + info */}
         <div className="px-5 pb-5">
-          <div className="-mt-8 mb-3">
-            <Avatar size="lg" className="size-16 ring-4 ring-card">
-              <AvatarImage src={isRealAvatar(profile.avatar) ? profile.avatar! : "/avatar-default.webp"} />
-            </Avatar>
+          <div className="-mt-10 mb-3">
+            <span className="bg-primary-gradient inline-block rounded-full p-[3px] shadow-md shadow-primary/30">
+              <Avatar size="lg" className="ring-card size-18 ring-2">
+                <AvatarImage src={isRealAvatar(profile.avatar) ? profile.avatar! : "/avatar-default.webp"} />
+              </Avatar>
+            </span>
           </div>
-          <h1 className="truncate text-xl font-bold">{profile.name}</h1>
-          {profile.favoriteTeam && (
-            <p className="text-muted-foreground text-sm">
-              ⭐ {profile.favoriteTeam}
-            </p>
-          )}
-          <p className="text-muted-foreground text-xs">
-            Miembro desde {memberSince}
-          </p>
+          <h1 className="truncate text-2xl font-black tracking-tight">{profile.name}</h1>
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            {profile.favoriteTeam && (
+              <span className="bg-primary/10 text-primary flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold">
+                ⭐ {profile.favoriteTeam}
+              </span>
+            )}
+            <span className="text-muted-foreground font-mono text-xs">
+              Miembro desde {memberSince}
+            </span>
+          </div>
         </div>
       </section>
 
@@ -99,7 +113,7 @@ export function ProfileView({
       {predictions.length > 0 && (
         <div className="grid grid-cols-4 gap-2">
           <StatCard icon={Target} label="Puntos" value={totalPoints} />
-          <StatCard icon={BarChart2} label="Prec." value={`${accuracy}%`} />
+          <StatCard icon={BarChart2} label="Prec." value={accuracy} suffix="%" />
           <StatCard icon={Zap} label="Exactos" value={exact} />
           <StatCard icon={Star} label="Pred." value={predictions.length} />
         </div>
@@ -115,9 +129,11 @@ export function ProfileView({
         </h2>
 
         {predictions.length === 0 ? (
-          <div className="border-border text-muted-foreground rounded-xl border border-dashed p-8 text-center text-sm">
-            Sin predicciones en partidos terminados todavía.
-          </div>
+          <EmptyState
+            icon={Goal}
+            title="Aún no hay predicciones puntuadas"
+            description="Cuando terminen los partidos que ha predicho, aparecerán aquí con su desglose de puntos."
+          />
         ) : (
           <>
             <div className="space-y-2">

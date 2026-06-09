@@ -6,6 +6,7 @@ import { RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { haptics } from "@/lib/haptics";
 
 /**
  * Refresca los datos del servidor de la ruta actual (`router.refresh()`) con un
@@ -22,7 +23,10 @@ export function RefreshButton({ className }: { className?: string }) {
       size="icon"
       aria-label="Actualizar"
       disabled={pending}
-      onClick={() => start(() => router.refresh())}
+      onClick={() => {
+        haptics.tap();
+        start(() => router.refresh());
+      }}
       className={className}
     >
       <RefreshCw className={cn("size-4", pending && "animate-spin")} />
