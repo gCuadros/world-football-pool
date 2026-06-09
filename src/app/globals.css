@@ -70,7 +70,7 @@
   --primary-foreground: #FFFFFF;
   --secondary: #EAF1FF;
   --secondary-foreground: #0E2650;
-  --muted: #E5EDFA;
+  --muted: #E8F0FA;
   --muted-foreground: #3A5C85;
   --accent: #EAF1FF;
   --accent-foreground: #1D6FF2;
@@ -82,8 +82,8 @@
   --warning-foreground: #ffffff;
   --live: #E11D38;
   --live-foreground: #ffffff;
-  --border: #C0D4F0;
-  --input: #C0D4F0;
+  --border: #C8D8EE;
+  --input: #C8D8EE;
   --ring: #1D6FF2;
   --chart-1: #1D6FF2;
   --chart-2: #4D8EFF;
@@ -91,14 +91,23 @@
   --chart-4: #059669;
   --chart-5: #D97706;
   --radius: 1rem;
-  --sidebar: #EAF1FF;
+  --sidebar: #FFFFFF;
   --sidebar-foreground: #08142B;
   --sidebar-primary: #1D6FF2;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #D6E8FF;
+  --sidebar-accent: #EAF1FF;
   --sidebar-accent-foreground: #1D6FF2;
-  --sidebar-border: #C0D4F0;
+  --sidebar-border: #C8D8EE;
   --sidebar-ring: #1D6FF2;
+  /* Theme-aware utility variables */
+  --gradient-primary-start: #1D6FF2;
+  --gradient-primary-end: #4848F5;
+  --glow-live-ring: rgba(225, 29, 56, 0.2);
+  --glow-live-shadow: rgba(225, 29, 56, 0.14);
+  --glow-primary-ring: rgba(29, 111, 242, 0.22);
+  --glow-primary-shadow: rgba(29, 111, 242, 0.14);
+  --shadow-card: 0 1px 2px rgba(0, 40, 130, 0.06), 0 4px 16px -4px rgba(0, 40, 130, 0.08);
+  --shadow-nav: 0 -2px 16px -2px rgba(0, 30, 100, 0.1), 0 -1px 0 0 rgba(0, 40, 130, 0.08);
 }
 
 .dark {
@@ -140,6 +149,15 @@
   --sidebar-accent-foreground: #4D8EFF;
   --sidebar-border: oklch(1 0 0 / 7%);
   --sidebar-ring: #4D8EFF;
+  /* Theme-aware utility variables */
+  --gradient-primary-start: #4D8EFF;
+  --gradient-primary-end: #7B5CFF;
+  --glow-live-ring: rgba(255, 59, 85, 0.3);
+  --glow-live-shadow: rgba(255, 59, 85, 0.2);
+  --glow-primary-ring: rgba(77, 142, 255, 0.2);
+  --glow-primary-shadow: rgba(77, 142, 255, 0.15);
+  --shadow-card: none;
+  --shadow-nav: 0 -12px 40px -8px rgba(0, 0, 0, 0.5);
 }
 
 @layer base {
@@ -182,13 +200,16 @@
   }
 
   .bg-primary-gradient {
-    background: linear-gradient(135deg, #4D8EFF 0%, #7B5CFF 100%);
+    background: linear-gradient(135deg, var(--gradient-primary-start) 0%, var(--gradient-primary-end) 100%);
   }
   .glow-live {
-    box-shadow: 0 0 0 1px rgba(255, 59, 85, 0.3), 0 4px 24px -4px rgba(255, 59, 85, 0.2);
+    box-shadow: 0 0 0 1px var(--glow-live-ring), 0 4px 24px -4px var(--glow-live-shadow);
   }
   .glow-primary {
-    box-shadow: 0 0 0 1px rgba(77, 142, 255, 0.2), 0 4px 24px -4px rgba(77, 142, 255, 0.15);
+    box-shadow: 0 0 0 1px var(--glow-primary-ring), 0 4px 24px -4px var(--glow-primary-shadow);
+  }
+  .shadow-nav {
+    box-shadow: var(--shadow-nav);
   }
 }
 
