@@ -1,12 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { SwRegister } from "@/components/app/sw-register";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+const jakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  weight: ["400", "500", "600", "700", "800"],
+});
 
 const jetBrainsMono = JetBrains_Mono({
   variable: "--font-mono",
@@ -34,8 +38,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#0066b2" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a1628" },
+    { media: "(prefers-color-scheme: light)", color: "#1D6FF2" },
+    { media: "(prefers-color-scheme: dark)", color: "#07090F" },
   ],
 };
 
@@ -52,7 +56,7 @@ export default function RootLayout({
         "antialiased",
         jetBrainsMono.variable,
         "font-sans",
-        geist.variable,
+        jakartaSans.variable,
       )}
       suppressHydrationWarning
     >
