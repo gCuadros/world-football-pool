@@ -6,6 +6,11 @@ import { MatchCard } from "@/components/matches/match-card";
 import { HeroMatch } from "@/components/dashboard/dashboard";
 import { PredictionCard } from "@/components/predictions/prediction-card";
 import { Podium } from "@/components/leaderboard/podium";
+import { RankBanner } from "@/components/leaderboard/rank-banner";
+import { LeaderboardTable } from "@/components/leaderboard/leaderboard-table";
+import { AchievementsWidget } from "@/components/leaderboard/achievements-widget";
+import { ACHIEVEMENTS } from "@/lib/achievements";
+import { ActiveLeagueBanner } from "@/components/ligas/active-league-banner";
 
 /**
  * Playground de UI (solo desarrollo): renderiza los componentes clave con
@@ -122,6 +127,48 @@ export default function DevUiPage() {
       <section className="max-w-md space-y-3">
         <h2 className="text-base font-bold">Podium</h2>
         <Podium rows={ROWS} />
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-base font-bold">RankBanner</h2>
+        <RankBanner
+          info={{
+            rank: 4,
+            totalPlayers: 128,
+            points: 70,
+            accuracy: 51,
+            predictionsCount: 24,
+            exactCount: 9,
+            currentStreak: 3,
+            bestStreak: 6,
+            trend: 2,
+            percentile: 4,
+          }}
+        />
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-base font-bold">ActiveLeagueBanner</h2>
+        <ActiveLeagueBanner
+          league={{
+            id: "dev-league",
+            name: "Peña Los Galácticos",
+            inviteCode: "GOL2026",
+            memberCount: 12,
+            rank: 4,
+            points: 70,
+          }}
+        />
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-base font-bold">LeaderboardTable</h2>
+        <LeaderboardTable rows={ROWS} />
+      </section>
+
+      <section className="max-w-md space-y-3">
+        <h2 className="text-base font-bold">AchievementsWidget</h2>
+        <AchievementsWidget unlocked={ACHIEVEMENTS.slice(0, 3).map((a) => a.type)} />
       </section>
     </div>
   );

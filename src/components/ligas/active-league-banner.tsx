@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
+import { PitchLines } from "@/components/ui/pitch-lines";
+
 export type ActiveLeague = {
   id: string;
   name: string;
@@ -20,8 +22,9 @@ export function ActiveLeagueBanner({ league }: { league: ActiveLeague }) {
   ].join("  ·  ");
 
   return (
-    <div className="bg-primary flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-center sm:gap-6 sm:px-6">
-      <div className="min-w-0 flex-1 space-y-1.5">
+    <div className="bg-aurora inset-hairline glow-primary relative flex flex-col gap-4 overflow-hidden rounded-3xl p-5 sm:flex-row sm:items-center sm:gap-6 sm:px-6">
+      <PitchLines />
+      <div className="relative min-w-0 flex-1 space-y-1.5">
         <p className="font-mono text-3xs font-bold tracking-[0.15em] text-white/60">
           LIGA ACTIVA
         </p>
@@ -32,7 +35,7 @@ export function ActiveLeagueBanner({ league }: { league: ActiveLeague }) {
       </div>
       <Link
         href={`/liga/${league.id}/predicciones`}
-        className="text-primary flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold transition-colors hover:bg-white/90"
+        className="text-primary relative flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold transition-colors hover:bg-white/90"
       >
         Ir a predicciones
         <ArrowRight className="size-4" />

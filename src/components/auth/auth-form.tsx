@@ -190,7 +190,12 @@ function SubmitButton({
   children: React.ReactNode;
 }) {
   return (
-    <Button type="submit" className="w-full" size="lg" disabled={pending}>
+    <Button
+      type="submit"
+      className="bg-primary-gradient shadow-primary/30 w-full shadow-md hover:opacity-90"
+      size="lg"
+      disabled={pending}
+    >
       {pending ? <Loader2 className="size-4 animate-spin" /> : null}
       {children}
     </Button>
