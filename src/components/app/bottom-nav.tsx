@@ -28,11 +28,11 @@ export function BottomNav({ user }: { user: SidebarUser }) {
   const items: NavItem[] = user.isLoggedIn
     ? [
         { href: "/", label: "Inicio", icon: Home, exact: true },
-        { href: "/resultados", label: "Partidos", icon: Radio },
+        { href: "/mundial", label: "Mundial", icon: Globe },
         ...(activeLeagueId
           ? [{ href: `/liga/${activeLeagueId}/predicciones`, label: "Predecir", icon: SquarePen }]
-          : []),
-        { href: "/ligas", label: "Ligas", icon: Users },
+          : [{ href: "/ligas", label: "Ligas", icon: Users }]),
+        { href: "/resultados", label: "Partidos", icon: Radio },
         { href: "/ajustes", label: "Perfil", icon: User },
       ]
     : GUEST_ITEMS;
