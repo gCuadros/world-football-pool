@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -10,9 +10,9 @@ export const metadata = { title: "Amistosos · Quiniela Mundial 2026" };
 
 export default function AmistososPage() {
   return (
-    <Suspense fallback={<LoadingSkeleton />}>
+    <Reveal fallback={<LoadingSkeleton />}>
       <AmistososContent />
-    </Suspense>
+    </Reveal>
   );
 }
 

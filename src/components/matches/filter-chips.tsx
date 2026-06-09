@@ -23,10 +23,10 @@ export function FilterChips({
             type="button"
             onClick={() => onChange(f.value)}
             className={cn(
-              "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+              "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition motion-safe:active:scale-[0.97]",
               active
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                ? "border-primary/50 bg-primary-gradient text-white shadow-sm shadow-primary/30"
+                : "border-border/60 bg-card/80 text-muted-foreground hover:border-primary/40 hover:text-foreground",
             )}
           >
             {f.value === "live" ? (
@@ -41,7 +41,7 @@ export function FilterChips({
             {count !== undefined && count > 0 ? (
               <span
                 className={cn(
-                  "font-mono text-[10px]",
+                  "font-mono text-3xs",
                   active ? "opacity-80" : "opacity-60",
                 )}
               >

@@ -187,11 +187,13 @@ export function MatchesView({
           </Badge>
         )}
 
+        {/* En móvil el refresco vive en el topbar; aquí solo en desktop. */}
         <button
           onClick={() => startRefresh(() => { router.refresh(); })}
           disabled={refreshing}
-          className="text-muted-foreground hover:text-foreground ml-auto transition-colors disabled:opacity-40"
+          className="text-muted-foreground hover:text-foreground ml-auto hidden transition-colors disabled:opacity-40 lg:inline-flex"
           title="Actualizar"
+          aria-label="Actualizar"
         >
           <RefreshCw className={cn("size-4", refreshing && "animate-spin")} />
         </button>

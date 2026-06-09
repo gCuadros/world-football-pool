@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import Link from "next/link";
 import { Network } from "lucide-react";
 
@@ -17,9 +17,9 @@ export default function EliminatoriasPage() {
         <h1 className="text-xl font-bold">Cuadro de Eliminatorias</h1>
       </div>
 
-      <Suspense fallback={<BracketSkeleton />}>
+      <Reveal fallback={<BracketSkeleton />}>
         <BracketContent />
-      </Suspense>
+      </Reveal>
     </div>
   );
 }
@@ -54,10 +54,10 @@ function RoundColumn({ round }: { round: KnockoutRound }) {
   return (
     <div className="flex w-56 shrink-0 flex-col gap-3">
       <div className="border-border border-b pb-2">
-        <p className="font-mono text-[11px] font-bold tracking-widest text-foreground uppercase">
+        <p className="font-mono text-2xs font-bold tracking-widest text-foreground uppercase">
           {round.label}
         </p>
-        <p className="text-muted-foreground font-mono text-[10px]">{multiplierStr}</p>
+        <p className="text-muted-foreground font-mono text-3xs">{multiplierStr}</p>
       </div>
       <div className="flex flex-col gap-2.5">
         {round.matches.map((m) => (
@@ -109,7 +109,7 @@ function KoMatchCard({ match }: { match: MatchBase }) {
         isLoser={winner === "HOME"}
       />
       {!isFinished && !isLive && (
-        <p className="text-muted-foreground mt-2 font-mono text-[10px] tabular-nums">
+        <p className="text-muted-foreground mt-2 font-mono text-3xs tabular-nums">
           {new Date(match.kickoffAt).toLocaleDateString("es-ES", {
             day: "numeric",
             month: "short",
@@ -142,7 +142,7 @@ function TeamRow({
       <TeamCrest crest={crest} flag={flag} name={name} size={20} className="shrink-0" />
       <span
         className={cn(
-          "min-w-0 flex-1 truncate text-[13px]",
+          "min-w-0 flex-1 truncate text-sm",
           isWinner ? "font-bold text-foreground" : "font-medium text-foreground/80",
         )}
       >
@@ -171,20 +171,20 @@ function StatusBadge({
 }) {
   if (status === "LIVE") {
     return (
-      <span className="bg-live/10 text-live rounded-full px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-wide uppercase">
+      <span className="bg-live/10 text-live rounded-full px-1.5 py-0.5 font-mono text-3xs font-bold tracking-wide uppercase">
         {liveMinute ? `${liveMinute}'` : "En vivo"}
       </span>
     );
   }
   if (status === "FINISHED") {
     return (
-      <span className="text-muted-foreground font-mono text-[9px] uppercase tracking-wide">
+      <span className="text-muted-foreground font-mono text-3xs uppercase tracking-wide">
         Final
       </span>
     );
   }
   return (
-    <span className="text-muted-foreground font-mono text-[9px] uppercase tracking-wide">vs</span>
+    <span className="text-muted-foreground font-mono text-3xs uppercase tracking-wide">vs</span>
   );
 }
 

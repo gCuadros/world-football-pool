@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import { Newspaper, ExternalLink } from "lucide-react";
 
 import { getNews, type NewsItem } from "@/lib/news";
@@ -15,9 +15,9 @@ export default function NoticiasPage() {
         <span className="text-muted-foreground text-sm">Fútbol y Mundial 2026</span>
       </div>
 
-      <Suspense fallback={<NewsSkeleton />}>
+      <Reveal fallback={<NewsSkeleton />}>
         <NewsList />
-      </Suspense>
+      </Reveal>
     </div>
   );
 }
@@ -94,10 +94,10 @@ function NewsCard({ item, featured }: { item: NewsItem; featured?: boolean }) {
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex items-center gap-2">
-          <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 font-mono text-[10px] font-bold tracking-wide uppercase">
+          <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 font-mono text-3xs font-bold tracking-wide uppercase">
             {item.source}
           </span>
-          <span className="text-muted-foreground font-mono text-[11px]">
+          <span className="text-muted-foreground font-mono text-2xs">
             {formatDate(item.isoDate)}
           </span>
         </div>

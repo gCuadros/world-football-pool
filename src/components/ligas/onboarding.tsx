@@ -42,7 +42,7 @@ export function Onboarding() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col items-center gap-7 py-8 text-center sm:py-14">
       {/* Badge */}
-      <span className="bg-primary text-primary-foreground inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-[10px] font-bold tracking-[0.15em]">
+      <span className="bg-primary text-primary-foreground inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 font-mono text-3xs font-bold tracking-[0.15em]">
         <Trophy className="size-3.5" />
         FIFA WORLD CUP 2026 · USA · CANADA · MEXICO
       </span>
@@ -115,7 +115,7 @@ export function Onboarding() {
             Crear liga
             <ArrowRight className="size-4" />
           </button>
-          <p className="text-center text-[11px] text-white/70">
+          <p className="text-center text-2xs text-white/70">
             Gratis · Sin límite · Código único de invitación
           </p>
         </div>

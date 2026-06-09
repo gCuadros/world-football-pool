@@ -1,21 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Target, Zap, BarChart2, Star } from "lucide-react";
+import Image from "next/image";
+import { Target, Zap, BarChart2, Star, ChevronDown } from "lucide-react";
 
 import type { PublicProfile, PublicPrediction } from "@/lib/queries";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { BackButton } from "@/components/ui/back-button";
 
-function initials(name: string): string {
-  return name
-    .trim()
-    .split(/\s+/)
-    .map((p) => p[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+function isRealAvatar(a: string | null): boolean {
+  return !!a && (a.startsWith("data:") || a.startsWith("http"));
 }
 
 const DATE_FMT = new Intl.DateTimeFormat("es-ES", {
@@ -37,7 +32,7 @@ function StatCard({
     <div className="border-border bg-card flex flex-col items-center gap-1 rounded-xl border p-3 text-center">
       <Icon className="text-primary size-4" />
       <span className="text-lg font-bold font-mono">{value}</span>
-      <span className="text-muted-foreground text-[10px] uppercase tracking-wide">{label}</span>
+      <span className="text-muted-foreground text-3xs uppercase tracking-wide">{label}</span>
     </div>
   );
 }
@@ -65,34 +60,38 @@ export function ProfileView({
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Back */}
-      <Link
-        href="/clasificacion"
-        className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
-      >
-        <ArrowLeft className="size-4" />
-        Clasificación
-      </Link>
+      <BackButton />
 
       {/* Header del perfil */}
-      <section className="border-border bg-card rounded-2xl border p-6">
-        <div className="flex items-center gap-4">
-          <Avatar size="lg" className="size-16">
-            {profile.avatar && <AvatarImage src={profile.avatar} />}
-            <AvatarFallback className="bg-primary font-mono text-lg font-bold text-white">
-              {initials(profile.name)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0">
-            <h1 className="truncate text-xl font-bold">{profile.name}</h1>
-            {profile.favoriteTeam && (
-              <p className="text-muted-foreground text-sm">
-                ⭐ {profile.favoriteTeam}
-              </p>
-            )}
-            <p className="text-muted-foreground text-xs">
-              Miembro desde {memberSince}
-            </p>
+      <section className="border-border bg-card overflow-hidden rounded-2xl border">
+        {/* Portada */}
+        <div className="relative h-40 w-full">
+          <Image
+            src={profile.coverImage ?? "/front-page-default.webp"}
+            alt=""
+            fill
+            sizes="100vw"
+            priority
+            className="object-cover"
+            unoptimized={profile.coverImage?.startsWith("data:") ?? false}
+          />
+        </div>
+        {/* Avatar + info */}
+        <div className="px-5 pb-5">
+          <div className="-mt-8 mb-3">
+            <Avatar size="lg" className="size-16 ring-4 ring-card">
+              <AvatarImage src={isRealAvatar(profile.avatar) ? profile.avatar! : "/avatar-default.webp"} />
+            </Avatar>
           </div>
+          <h1 className="truncate text-xl font-bold">{profile.name}</h1>
+          {profile.favoriteTeam && (
+            <p className="text-muted-foreground text-sm">
+              ⭐ {profile.favoriteTeam}
+            </p>
+          )}
+          <p className="text-muted-foreground text-xs">
+            Miembro desde {memberSince}
+          </p>
         </div>
       </section>
 
@@ -145,45 +144,124 @@ export function ProfileView({
 }
 
 function PredictionRow({ p }: { p: PublicPrediction }) {
+  const [open, setOpen] = useState(false);
   const pts = p.points ?? 0;
   const correct = pts > 0;
+  const bd = p.breakdown;
+  const hasBreakdown = bd !== null && pts > 0;
 
   return (
     <div
       className={cn(
-        "border-border bg-card flex items-center gap-3 rounded-xl border px-4 py-2.5",
-        p.exact && "border-primary/30 bg-primary/5",
+        "bg-card overflow-hidden rounded-xl border",
+        p.exact ? "border-primary/30 bg-primary/5" : "border-border",
       )}
     >
-      {/* Equipos */}
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">
-          {p.homeFlag} {p.homeTeam} vs {p.awayFlag} {p.awayTeam}
-        </p>
-        <p className="text-muted-foreground text-xs">
-          {DATE_FMT.format(new Date(p.kickoffAt))}
-        </p>
+      {/* Fila principal */}
+      <div className="flex items-center gap-3 px-4 py-2.5">
+        {/* Equipos */}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium">
+            {p.homeFlag} {p.homeTeam} vs {p.awayFlag} {p.awayTeam}
+          </p>
+          <p className="text-muted-foreground text-xs">
+            {DATE_FMT.format(new Date(p.kickoffAt))}
+          </p>
+        </div>
+
+        {/* Predicción vs resultado */}
+        <div className="flex items-center gap-2 font-mono text-xs">
+          <span className={cn("font-bold tabular-nums", correct ? "text-foreground" : "text-muted-foreground")}>
+            {p.homeScore}-{p.awayScore}
+          </span>
+          <span className="text-muted-foreground">vs</span>
+          <span className="tabular-nums text-muted-foreground">
+            {p.actualHome}-{p.actualAway}
+          </span>
+        </div>
+
+        {/* Puntos + toggle */}
+        <button
+          type="button"
+          onClick={() => hasBreakdown && setOpen((v) => !v)}
+          disabled={!hasBreakdown}
+          className={cn(
+            "flex items-center gap-0.5 font-mono text-sm font-bold transition-colors",
+            pts > 0 ? "text-primary" : "text-muted-foreground",
+          )}
+          aria-expanded={open}
+        >
+          {pts > 0 ? `+${pts}` : "0"}
+          {hasBreakdown && (
+            <ChevronDown
+              className={cn("size-3.5 transition-transform", open && "rotate-180")}
+            />
+          )}
+        </button>
       </div>
 
-      {/* Predicción vs resultado */}
-      <div className="flex items-center gap-2 text-xs font-mono">
-        <span className={cn("font-bold tabular-nums", correct ? "text-foreground" : "text-muted-foreground")}>
-          {p.homeScore}-{p.awayScore}
-        </span>
-        <span className="text-muted-foreground">vs</span>
-        <span className="tabular-nums">
-          {p.actualHome}-{p.actualAway}
-        </span>
-      </div>
+      {/* Desglose — desplegable */}
+      {open && bd && (
+        <div className="border-border/60 border-t px-4 py-3 space-y-2">
+          <p className="text-muted-foreground font-mono text-3xs tracking-wide uppercase mb-2">
+            Desglose de puntos
+          </p>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+            <BreakdownItem
+              label="Resultado 1X2"
+              earned={bd.hit1x2}
+              pts={1}
+            />
+            <BreakdownItem
+              label="Diferencia de goles"
+              earned={bd.hitDiff}
+              pts={2}
+            />
+            <BreakdownItem
+              label="Marcador exacto"
+              earned={bd.exact}
+              pts={2}
+            />
+            {bd.hitAdvance !== undefined && (
+              <BreakdownItem
+                label="Quién pasa"
+                earned={bd.hitAdvance}
+                pts={3}
+              />
+            )}
+          </div>
+          {bd.multiplier > 1 && (
+            <div className="border-border/60 mt-2 flex items-center justify-between border-t pt-2">
+              <span className="text-muted-foreground text-xs">
+                Base {bd.base} × {bd.multiplier} (fase)
+              </span>
+              <span className="text-primary font-mono text-sm font-bold">
+                = {bd.total} pts
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
-      {/* Puntos */}
-      <span
-        className={cn(
-          "w-7 shrink-0 text-right font-mono text-sm font-bold",
-          pts > 0 ? "text-primary" : "text-muted-foreground",
-        )}
-      >
-        {pts > 0 ? `+${pts}` : "0"}
+function BreakdownItem({
+  label,
+  earned,
+  pts,
+}: {
+  label: string;
+  earned: boolean;
+  pts: number;
+}) {
+  return (
+    <div className={cn("flex items-center justify-between gap-2 text-xs", !earned && "opacity-40")}>
+      <span className={cn("font-medium", earned ? "text-foreground" : "text-muted-foreground")}>
+        {label}
+      </span>
+      <span className={cn("font-mono font-bold shrink-0", earned ? "text-success" : "text-muted-foreground")}>
+        {earned ? `+${pts}` : `+0`}
       </span>
     </div>
   );

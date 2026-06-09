@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Target, Trophy } from "lucide-react";
@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { getLeagueLeaderboard } from "@/lib/leaderboard";
 import { prisma } from "@/lib/prisma";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { ShareLeague } from "@/components/ligas/share-league";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
@@ -18,9 +18,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default function LigaPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <Suspense fallback={<LigaSkeleton />}>
+    <Reveal fallback={<LigaSkeleton />}>
       <LigaContent params={params} />
-    </Suspense>
+    </Reveal>
   );
 }
 
@@ -113,10 +113,7 @@ async function LigaContent({ params }: { params: Promise<{ id: string }> }) {
                   className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-80 transition-opacity"
                 >
                   <Avatar className="size-8 shrink-0">
-                    {row.avatar && <AvatarImage src={row.avatar} />}
-                    <AvatarFallback className="bg-primary/10 text-primary font-mono text-xs">
-                      {row.initials}
-                    </AvatarFallback>
+                    <AvatarImage src={row.avatar?.startsWith("data:") ? row.avatar : "/avatar-default.webp"} />
                   </Avatar>
                   <div className="min-w-0">
                     <p className={`truncate text-sm font-medium ${row.isCurrentUser ? "text-primary" : ""}`}>
@@ -151,7 +148,7 @@ async function LigaContent({ params }: { params: Promise<{ id: string }> }) {
 function StatPill({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-muted/50 rounded-xl p-3 text-center">
-      <p className="text-muted-foreground font-mono text-[10px] tracking-wide uppercase">{label}</p>
+      <p className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">{label}</p>
       <p className="font-mono text-xl font-bold">{value}</p>
     </div>
   );

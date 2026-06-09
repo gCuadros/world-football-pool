@@ -1,12 +1,14 @@
-import { Suspense } from "react";
-import Link from "next/link";
+import { Suspense, ViewTransition } from "react";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+
+import { BackButton } from "@/components/ui/back-button";
 
 import { getMatchesBase, type MatchBase } from "@/lib/queries";
 import { STAGE_LABELS } from "@/lib/labels";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Reveal } from "@/components/ui/reveal";
 import {
   LineupsSection,
   TimelineSection,
@@ -42,9 +44,9 @@ export default function PartidoPage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <Suspense fallback={<PageSkeleton />}>
+    <Reveal fallback={<PageSkeleton />}>
       <PartidoContent params={params} />
-    </Suspense>
+    </Reveal>
   );
 }
 
@@ -58,13 +60,7 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <Link
-        href={match.stage === "FRIENDLY" ? "/amistosos" : "/resultados"}
-        className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
-      >
-        <ArrowLeft className="size-4" />
-        {match.stage === "FRIENDLY" ? "Amistosos" : "Resultados"}
-      </Link>
+      <BackButton />
 
       <MatchHeader match={match} />
 
@@ -106,11 +102,11 @@ function MatchHeader({ match }: { match: MatchBase }) {
   return (
     <div className="border-border bg-card rounded-2xl border p-6">
       <div className="mb-4 flex items-center justify-center gap-2">
-        <span className="text-muted-foreground font-mono text-[11px] tracking-widest uppercase">
+        <span className="text-muted-foreground font-mono text-2xs tracking-widest uppercase">
           {stageTag}
         </span>
         {isLive && (
-          <span className="text-live flex items-center gap-1.5 font-mono text-[11px] font-bold">
+          <span className="text-live flex items-center gap-1.5 font-mono text-2xs font-bold">
             <span className="relative flex size-2">
               <span className="bg-live absolute inline-flex size-full animate-ping rounded-full opacity-75" />
               <span className="bg-live relative inline-flex size-2 rounded-full" />
@@ -123,7 +119,9 @@ function MatchHeader({ match }: { match: MatchBase }) {
       <div className="flex items-center justify-center gap-4 sm:gap-8">
         {/* Local */}
         <div className="flex flex-1 flex-col items-center gap-2 text-center">
-          <TeamCrest crest={match.homeCrest} flag={match.homeFlag} name={match.homeTeam} size={56} />
+          <ViewTransition name={`match-${match.id}-crest-home`} default="none">
+            <TeamCrest crest={match.homeCrest} flag={match.homeFlag} name={match.homeTeam} size={56} />
+          </ViewTransition>
           <span className="text-sm font-semibold sm:text-base">{match.homeTeam}</span>
         </div>
 
@@ -139,13 +137,15 @@ function MatchHeader({ match }: { match: MatchBase }) {
             <span className="text-muted-foreground font-mono text-lg font-bold">VS</span>
           )}
           {isFinished && (
-            <span className="text-muted-foreground mt-1 font-mono text-[11px]">Final</span>
+            <span className="text-muted-foreground mt-1 font-mono text-2xs">Final</span>
           )}
         </div>
 
         {/* Visitante */}
         <div className="flex flex-1 flex-col items-center gap-2 text-center">
-          <TeamCrest crest={match.awayCrest} flag={match.awayFlag} name={match.awayTeam} size={56} />
+          <ViewTransition name={`match-${match.id}-crest-away`} default="none">
+            <TeamCrest crest={match.awayCrest} flag={match.awayFlag} name={match.awayTeam} size={56} />
+          </ViewTransition>
           <span className="text-sm font-semibold sm:text-base">{match.awayTeam}</span>
         </div>
       </div>

@@ -89,7 +89,7 @@ export default function LoginPage({
                 className="border-primary-foreground/15 bg-primary-foreground/5 flex flex-col items-center gap-2 rounded-xl border p-4"
               >
                 <Icon className="size-5" />
-                <span className="font-mono text-[11px] tracking-wide uppercase">
+                <span className="font-mono text-2xs tracking-wide uppercase">
                   {label}
                 </span>
               </div>

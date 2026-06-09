@@ -112,3 +112,30 @@ export async function joinLeague(code: string): Promise<LeagueResult> {
   revalidatePath("/ligas");
   return { ok: true, leagueId: league.id, code: league.name };
 }
+
+/**
+ * Marca una liga como favorita del usuario (la que aparece en la barra inferior).
+ * Valida que el usuario sea miembro de esa liga.
+ */
+export async function setFavoriteLeague(
+  leagueId: string,
+): Promise<{ ok: boolean; error?: string }> {
+  const session = await auth();
+  if (!session?.user?.id) return { ok: false, error: "Sesión no válida." };
+
+  const membership = await prisma.miniLeagueMember.findUnique({
+    where: {
+      userId_miniLeagueId: { userId: session.user.id, miniLeagueId: leagueId },
+    },
+  });
+  if (!membership) return { ok: false, error: "No perteneces a esa liga." };
+
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: { favoriteLeagueId: leagueId },
+  });
+
+  revalidatePath("/ligas");
+  revalidatePath("/", "layout");
+  return { ok: true };
+}

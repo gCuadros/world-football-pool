@@ -2,34 +2,81 @@
 
 import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useTheme } from "next-themes";
-import { Loader2, Sun, Moon, Monitor, LogOut, Camera } from "lucide-react";
+import { Loader2, Sun, Moon, Monitor, LogOut, Camera, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { updateProfile } from "@/app/(app)/ajustes/actions";
+import {
+  updateProfile,
+  updateNotificationPrefs,
+  type NotificationPrefs,
+} from "@/app/(app)/ajustes/actions";
 import { signOutAction } from "@/app/(app)/actions";
 import { PushToggle } from "@/components/notifications/push-toggle";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 type Team = { name: string; flag: string | null };
 
-function initialsOf(name: string, email: string): string {
-  const base = name.trim() || email;
-  return base
-    .split(/\s+/)
-    .map((p) => p[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+const NOTIF_TYPES: {
+  key: keyof Omit<NotificationPrefs, "followedTeams" | "notifyMatchStart" | "notifyMatchStartAll">;
+  label: string;
+  desc: string;
+}[] = [
+  { key: "notifyLiveGoals", label: "Goles en vivo", desc: "Cuando se marca en un partido que predijiste." },
+  { key: "notifyResults", label: "Resultados", desc: "Tus puntos al terminar un partido." },
+  { key: "notifyReminders", label: "Recordatorios", desc: "Avisos para predecir antes del cierre." },
+  { key: "notifyLeague", label: "Ligas", desc: "Ranking y nuevos miembros." },
+];
+
+function ToggleRow({
+  label,
+  desc,
+  checked,
+  onChange,
+}: {
+  label: string;
+  desc: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="flex w-full items-center gap-3 text-left motion-safe:active:scale-[0.99]"
+    >
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium">{label}</span>
+        <span className="text-muted-foreground block text-xs">{desc}</span>
+      </span>
+      <span
+        className={cn(
+          "relative h-6 w-10 shrink-0 rounded-full transition-colors",
+          checked ? "bg-primary" : "bg-muted",
+        )}
+      >
+        <span
+          className={cn(
+            "absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-transform",
+            checked ? "translate-x-[18px]" : "translate-x-0.5",
+          )}
+        />
+      </span>
+    </button>
+  );
 }
 
 /** Comprime una imagen a base64 (máx 200×200, calidad 0.75, ~15-25KB). */
 async function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
+    const img = new window.Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       const MAX = 200;
@@ -50,36 +97,107 @@ async function compressImage(file: File): Promise<string> {
   });
 }
 
+async function compressCover(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX_W = 1200;
+      const MAX_H = 400;
+      const ratio = Math.min(MAX_W / img.width, MAX_H / img.height, 1);
+      const w = Math.round(img.width * ratio);
+      const h = Math.round(img.height * ratio);
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("Canvas no disponible"));
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL("image/jpeg", 0.8));
+    };
+    img.onerror = () => reject(new Error("No se pudo leer la imagen"));
+    img.src = url;
+  });
+}
+
 export function AjustesView({
   initialName,
   initialTeam,
   initialAvatar,
+  initialCoverImage,
   teams,
   email,
+  initialPrefs,
 }: {
   initialName: string;
   initialTeam: string | null;
   initialAvatar: string | null;
+  initialCoverImage: string | null;
   teams: Team[];
   email: string;
+  initialPrefs: NotificationPrefs;
 }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
+  const coverRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState(initialName);
   const [team, setTeam] = useState(initialTeam ?? "");
   const [avatar, setAvatar] = useState<string | null>(initialAvatar);
+  const [cover, setCover] = useState<string | null>(initialCoverImage);
   const [pending, start] = useTransition();
   const [signingOut, startSignOut] = useTransition();
   const { theme, setTheme } = useTheme();
 
-  const dirty = name !== initialName || team !== (initialTeam ?? "") || avatar !== initialAvatar;
+  // Preferencias de notificación.
+  const [prefs, setPrefs] = useState({
+    notifyLiveGoals: initialPrefs.notifyLiveGoals,
+    notifyResults: initialPrefs.notifyResults,
+    notifyReminders: initialPrefs.notifyReminders,
+    notifyLeague: initialPrefs.notifyLeague,
+    notifyMatchStart: initialPrefs.notifyMatchStart,
+    notifyMatchStartAll: initialPrefs.notifyMatchStartAll,
+  });
+  const [followed, setFollowed] = useState<Set<string>>(
+    () => new Set(initialPrefs.followedTeams),
+  );
+  const [savingPrefs, startSavePrefs] = useTransition();
+
+  function toggleTeam(name: string) {
+    setFollowed((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  }
+
+  function savePrefs() {
+    startSavePrefs(async () => {
+      const res = await updateNotificationPrefs({
+        ...prefs,
+        followedTeams: [...followed],
+      });
+      if (res.ok) {
+        toast.success("Preferencias guardadas");
+        router.refresh();
+      } else {
+        toast.error(res.error);
+      }
+    });
+  }
+
+  const dirty =
+    name !== initialName ||
+    team !== (initialTeam ?? "") ||
+    avatar !== initialAvatar ||
+    cover !== initialCoverImage;
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
       const compressed = await compressImage(file);
-      // Validar tamaño (~75KB máx en base64)
       if (compressed.length > 100_000) {
         toast.error("La imagen es demasiado grande. Intenta con una más pequeña.");
         return;
@@ -90,9 +208,24 @@ export function AjustesView({
     }
   }
 
+  async function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const compressed = await compressCover(file);
+      if (compressed.length > 300_000) {
+        toast.error("La portada es demasiado grande. Intenta con una imagen más pequeña.");
+        return;
+      }
+      setCover(compressed);
+    } catch {
+      toast.error("No se pudo procesar la imagen.");
+    }
+  }
+
   function handleSave() {
     start(async () => {
-      const res = await updateProfile(name, team || null, avatar);
+      const res = await updateProfile(name, team || null, avatar, cover);
       if (res.ok) {
         toast.success("Perfil actualizado");
         router.refresh();
@@ -113,50 +246,84 @@ export function AjustesView({
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         {/* Columna principal: perfil + info */}
         <div className="space-y-6">
-          {/* Tarjeta de perfil */}
-          <section className="border-border bg-card flex items-center gap-4 rounded-2xl border p-5">
-            <div className="relative shrink-0">
-              {avatar ? (
-                <img
-                  src={avatar}
-                  alt={name}
-                  className="size-14 rounded-full object-cover"
-                />
-              ) : (
-                <div className="bg-primary flex size-14 items-center justify-center rounded-full font-mono text-lg font-bold text-white">
-                  {initialsOf(name, email)}
-                </div>
-              )}
+          {/* Portada */}
+          <section className="border-border bg-card overflow-hidden rounded-2xl border">
+            <div className="relative h-32 w-full">
+              <Image
+                src={cover ?? "/front-page-default.webp"}
+                alt=""
+                fill
+                sizes="(min-width: 1024px) 60vw, 100vw"
+                className="object-cover"
+                unoptimized={cover?.startsWith("data:") ?? false}
+              />
               <button
                 type="button"
-                onClick={() => fileRef.current?.click()}
-                className="bg-card border-border absolute -right-1 -bottom-1 flex size-6 items-center justify-center rounded-full border shadow-sm transition-opacity hover:opacity-80"
-                title="Cambiar foto"
+                onClick={() => coverRef.current?.click()}
+                className="bg-black/40 hover:bg-black/60 absolute right-2 bottom-2 flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-white backdrop-blur-sm transition"
+                title="Cambiar portada"
               >
-                <Camera className="size-3" />
+                <ImageIcon className="size-3.5" />
+                Cambiar portada
               </button>
               <input
-                ref={fileRef}
+                ref={coverRef}
                 type="file"
                 accept="image/*"
                 className="hidden"
-                onChange={handleFileChange}
+                onChange={handleCoverChange}
               />
             </div>
-            <div className="min-w-0">
-              <h2 className="truncate font-mono text-lg font-bold">
-                {name || "Sin nombre"}
-              </h2>
-              <p className="text-muted-foreground truncate text-sm">{email}</p>
-              {avatar && avatar !== initialAvatar && (
+            <div className="flex items-center gap-4 p-4">
+              <div className="relative -mt-10 shrink-0">
+                <Avatar className="size-14 ring-4 ring-card">
+                  <AvatarImage
+                    src={avatar?.startsWith("data:") ? avatar : "/avatar-default.webp"}
+                    alt={name}
+                  />
+                </Avatar>
                 <button
                   type="button"
-                  onClick={() => setAvatar(initialAvatar)}
-                  className="text-muted-foreground mt-1 text-xs underline underline-offset-2"
+                  onClick={() => fileRef.current?.click()}
+                  className="bg-card border-border absolute -right-1 -bottom-1 flex size-6 items-center justify-center rounded-full border shadow-sm transition-opacity hover:opacity-80"
+                  title="Cambiar foto"
                 >
-                  Descartar foto
+                  <Camera className="size-3" />
                 </button>
-              )}
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate font-mono text-lg font-bold">
+                  {name || "Sin nombre"}
+                </h2>
+                <p className="text-muted-foreground truncate text-sm">{email}</p>
+                <div className="mt-1 flex gap-3">
+                  {avatar?.startsWith("data:") && avatar !== initialAvatar && (
+                    <button
+                      type="button"
+                      onClick={() => setAvatar(initialAvatar)}
+                      className="text-muted-foreground text-xs underline underline-offset-2"
+                    >
+                      Descartar foto
+                    </button>
+                  )}
+                  {cover !== initialCoverImage && (
+                    <button
+                      type="button"
+                      onClick={() => setCover(initialCoverImage)}
+                      className="text-muted-foreground text-xs underline underline-offset-2"
+                    >
+                      Descartar portada
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </section>
 
@@ -228,12 +395,118 @@ export function AjustesView({
           </section>
 
           {/* Notificaciones */}
-          <section className="border-border bg-card rounded-2xl border p-5">
-            <h2 className="mb-1 font-bold">Notificaciones</h2>
-            <p className="text-muted-foreground mb-4 text-sm">
-              Recibe avisos de goles, resultados y recordatorios en este dispositivo.
-            </p>
+          <section className="border-border bg-card space-y-5 rounded-2xl border p-5">
+            <div>
+              <h2 className="mb-1 font-bold">Notificaciones</h2>
+              <p className="text-muted-foreground text-sm">
+                Activa en este dispositivo y elige qué quieres recibir.
+              </p>
+            </div>
+
             <PushToggle />
+
+            {/* Tipos de aviso */}
+            <div className="border-border space-y-3 border-t pt-4">
+              <h3 className="text-muted-foreground font-mono text-2xs font-semibold tracking-wide uppercase">
+                Qué recibir
+              </h3>
+              {NOTIF_TYPES.map((t) => (
+                <ToggleRow
+                  key={t.key}
+                  label={t.label}
+                  desc={t.desc}
+                  checked={prefs[t.key]}
+                  onChange={(v) => setPrefs((p) => ({ ...p, [t.key]: v }))}
+                />
+              ))}
+              <ToggleRow
+                label="Antes del partido"
+                desc="Aviso ~20 min antes del kickoff."
+                checked={prefs.notifyMatchStart}
+                onChange={(v) => setPrefs((p) => ({ ...p, notifyMatchStart: v }))}
+              />
+              {prefs.notifyMatchStart && (
+                <div className="flex gap-2 pl-1">
+                  {[
+                    { value: false, label: "Solo si no he predicho" },
+                    { value: true, label: "Todos los partidos" },
+                  ].map((opt) => (
+                    <button
+                      key={String(opt.value)}
+                      type="button"
+                      onClick={() => setPrefs((p) => ({ ...p, notifyMatchStartAll: opt.value }))}
+                      className={cn(
+                        "rounded-full border px-3 py-1 text-xs font-medium transition motion-safe:active:scale-[0.97]",
+                        prefs.notifyMatchStartAll === opt.value
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border text-muted-foreground hover:border-primary/40",
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Equipos a seguir */}
+            <div className="border-border space-y-3 border-t pt-4">
+              <div>
+                <h3 className="text-muted-foreground font-mono text-2xs font-semibold tracking-wide uppercase">
+                  Equipos a seguir
+                </h3>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {followed.size === 0
+                    ? "Recibes avisos de todos los partidos."
+                    : `Solo avisos de ${followed.size} ${followed.size === 1 ? "equipo" : "equipos"}.`}
+                </p>
+              </div>
+              <div className="flex max-h-44 flex-wrap gap-1.5 overflow-y-auto">
+                {teams.map((t) => {
+                  const on = followed.has(t.name);
+                  return (
+                    <button
+                      key={t.name}
+                      type="button"
+                      onClick={() => toggleTeam(t.name)}
+                      aria-pressed={on}
+                      className={cn(
+                        "flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition motion-safe:active:scale-[0.97]",
+                        on
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border text-muted-foreground hover:border-primary/40",
+                      )}
+                    >
+                      {t.flag ? <span>{t.flag}</span> : null}
+                      <span className="truncate">{t.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFollowed(new Set(teams.map((t) => t.name)))}
+                  className="text-muted-foreground text-xs underline underline-offset-2"
+                >
+                  Seguir todos
+                </button>
+                {followed.size > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setFollowed(new Set())}
+                    className="text-muted-foreground text-xs underline underline-offset-2"
+                  >
+                    Quitar todos
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <Button onClick={savePrefs} disabled={savingPrefs} className="w-full">
+              {savingPrefs ? <Loader2 className="size-4 animate-spin" /> : null}
+              Guardar preferencias
+            </Button>
           </section>
 
           {/* Zona de peligro */}

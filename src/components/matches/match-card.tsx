@@ -1,5 +1,6 @@
 "use client";
 
+import { ViewTransition } from "react";
 import Link from "next/link";
 import { ArrowRight, Lock } from "lucide-react";
 
@@ -18,6 +19,7 @@ function TeamRow({
   score,
   scoreTone,
   winner,
+  crestName,
 }: {
   flag: string | null;
   crest: string | null;
@@ -25,10 +27,21 @@ function TeamRow({
   score: number | null;
   scoreTone: string;
   winner: boolean;
+  /** view-transition-name para el morph escudo → ficha del partido. */
+  crestName?: string;
 }) {
+  const crestEl = (
+    <TeamCrest crest={crest} flag={flag} name={name} size={24} className="shrink-0" />
+  );
   return (
     <div className="flex items-center gap-2.5">
-      <TeamCrest crest={crest} flag={flag} name={name} size={24} className="shrink-0" />
+      {crestName ? (
+        <ViewTransition name={crestName} default="none">
+          {crestEl}
+        </ViewTransition>
+      ) : (
+        crestEl
+      )}
       <span
         className={cn(
           "min-w-0 flex-1 truncate text-sm",
@@ -38,7 +51,7 @@ function TeamRow({
         {name}
       </span>
       {score !== null ? (
-        <span className={cn("font-mono text-xl font-bold tabular-nums", scoreTone)}>
+        <span className={cn("font-mono text-2xl font-black tabular-nums", scoreTone)}>
           {score}
         </span>
       ) : null}
@@ -72,22 +85,22 @@ export function MatchCard({
   const imminent = status === "UPCOMING" && isLockImminent(match.kickoffAt, now);
 
   const cardClass = cn(
-    "bg-card flex flex-col gap-3 rounded-xl border p-4 transition-colors",
+    "bg-card flex flex-col gap-3 rounded-2xl border p-4 transition-colors shadow-sm",
     isLive
-      ? "border-border border-l-[3px] border-l-primary"
-      : "border-border",
-    publicMode && "hover:border-primary/40",
+      ? "border-transparent border-l-[3px] border-l-live glow-live"
+      : "border-border/60",
+    publicMode && !isLive && "hover:border-primary/40 hover:glow-primary",
   );
 
   const body = (
     <>
       {/* Cabecera */}
       <div className="flex items-center justify-between gap-2">
-        <span className="text-muted-foreground font-mono text-[10px] tracking-wide uppercase">
+        <span className="bg-muted/50 text-muted-foreground rounded-full px-2 py-0.5 font-mono text-3xs tracking-wide uppercase">
           {stageTag}
         </span>
         {isLive ? (
-          <span className="text-live flex items-center gap-1.5 font-mono text-[11px] font-bold">
+          <span className="text-live flex items-center gap-1.5 font-mono text-xs font-bold tracking-wider">
             <span className="relative flex size-2">
               <span className="bg-live absolute inline-flex size-full animate-ping rounded-full opacity-75" />
               <span className="bg-live relative inline-flex size-2 rounded-full" />
@@ -95,11 +108,11 @@ export function MatchCard({
             {match.liveMinute ? `${match.liveMinute}'` : "EN VIVO"}
           </span>
         ) : isFinished ? (
-          <span className="text-muted-foreground font-mono text-[11px] font-medium">
+          <span className="text-muted-foreground font-mono text-2xs font-medium">
             Final
           </span>
         ) : (
-          <span className="text-muted-foreground font-mono text-[11px]">
+          <span className="text-muted-foreground font-mono text-2xs">
             {formatRelativeDay(match.kickoffAt, now)} · {formatTime(match.kickoffAt)}
           </span>
         )}
@@ -114,6 +127,7 @@ export function MatchCard({
           score={hasScore ? homeScore : null}
           scoreTone={scoreTone}
           winner={homeWins}
+          crestName={publicMode ? `match-${match.id}-crest-home` : undefined}
         />
         <TeamRow
           flag={match.awayFlag}
@@ -122,10 +136,11 @@ export function MatchCard({
           score={hasScore ? awayScore : null}
           scoreTone={scoreTone}
           winner={awayWins}
+          crestName={publicMode ? `match-${match.id}-crest-away` : undefined}
         />
       </div>
 
-      <div className="text-muted-foreground truncate font-mono text-[10px]">
+      <div className="text-muted-foreground truncate font-mono text-3xs">
         {match.stadium}
         {match.city ? ` · ${match.city}` : ""}
       </div>
@@ -142,7 +157,7 @@ export function MatchCard({
           ) : status === "UPCOMING" && !match.locked ? (
             <Link
               href="/ligas"
-              className="border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 flex items-center justify-center gap-1.5 rounded-lg border py-2 text-sm font-medium transition-colors"
+              className="bg-primary-gradient text-white hover:opacity-90 flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-sm font-semibold transition-opacity shadow-sm shadow-primary/30"
             >
               Predecir
               <ArrowRight className="size-3.5" />

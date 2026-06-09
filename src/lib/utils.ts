@@ -5,6 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+/** Convierte un nombre de equipo a slug URL-safe (sin tildes, minúsculas, guiones). */
 export function teamSlug(name: string): string {
   return name
     .normalize("NFD")

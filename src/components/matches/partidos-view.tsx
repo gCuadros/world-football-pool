@@ -155,7 +155,7 @@ export function PartidosView({
               <Icon className="size-5" />
             </div>
             <div className="min-w-0">
-              <p className="text-muted-foreground font-mono text-[10px] tracking-wide uppercase">
+              <p className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">
                 {label}
               </p>
               <p className="truncate font-mono text-lg font-bold">

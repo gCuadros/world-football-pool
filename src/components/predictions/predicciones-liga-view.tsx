@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { Target, ArrowLeft, CalendarDays, Rows3 } from "lucide-react";
+import { Target, CalendarDays, Rows3 } from "lucide-react";
+
+import { BackButton } from "@/components/ui/back-button";
 
 import type { MatchVM } from "@/lib/queries";
 import type { MatchFilter } from "@/lib/labels";
@@ -96,12 +97,7 @@ export function PrediccionesLigaView({
 
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link
-          href={`/liga/${leagueId}`}
-          className="text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="size-4" />
-        </Link>
+        <BackButton label="" />
         <Target className="text-primary size-5" />
         <div className="min-w-0 flex-1">
           <h1 className="text-xl font-bold leading-tight">Mis Predicciones</h1>
@@ -148,16 +144,16 @@ export function PrediccionesLigaView({
                 key={t}
                 onClick={() => setTab(t)}
                 className={cn(
-                  "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition motion-safe:active:scale-[0.97]",
                   activeTab === t
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                {TAB_LABELS[t]}
+                <span className="truncate">{TAB_LABELS[t]}</span>
                 <span
                   className={cn(
-                    "rounded px-1.5 py-0.5 font-mono text-[10px]",
+                    "shrink-0 rounded px-1.5 py-0.5 font-mono text-3xs",
                     activeTab === t
                       ? "bg-primary-foreground/20 text-primary-foreground"
                       : "bg-muted",

@@ -6,7 +6,7 @@ import { Flame, ChevronLeft, ChevronRight } from "lucide-react";
 
 import type { LeaderboardRow } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 const PAGE_SIZE = 10;
 
@@ -19,7 +19,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
   return (
     <div className="border-border bg-card overflow-hidden rounded-2xl border">
       {/* Cabecera */}
-      <div className="text-muted-foreground border-border bg-muted/40 grid grid-cols-[2rem_1fr_2.5rem_2.5rem] items-center gap-2 border-b px-3 py-2.5 font-mono text-[10px] tracking-wide uppercase sm:grid-cols-[3rem_1fr_4rem_4rem_4rem_4rem] sm:px-4">
+      <div className="text-muted-foreground border-border bg-muted/40 grid grid-cols-[2rem_1fr_2.5rem_2.5rem] items-center gap-2 border-b px-3 py-2.5 font-mono text-3xs tracking-wide uppercase sm:grid-cols-[3rem_1fr_4rem_4rem_4rem_4rem] sm:px-4">
         <span>Pos</span>
         <span>Jugador</span>
         <span className="text-right">Pts</span>
@@ -51,22 +51,12 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
               className="flex min-w-0 items-center gap-2.5 hover:opacity-80 transition-opacity"
             >
               <Avatar className="size-7 shrink-0">
-                {row.avatar && <AvatarImage src={row.avatar} />}
-                <AvatarFallback
-                  className={cn(
-                    "font-mono text-[10px]",
-                    row.isCurrentUser
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground",
-                  )}
-                >
-                  {row.initials}
-                </AvatarFallback>
+                <AvatarImage src={row.avatar?.startsWith("data:") ? row.avatar : "/avatar-default.webp"} />
               </Avatar>
               <span className="truncate font-medium">
                 {row.name}
                 {row.isCurrentUser ? (
-                  <span className="text-primary ml-1.5 font-mono text-[10px]">
+                  <span className="text-primary ml-1.5 font-mono text-3xs">
                     (tú)
                   </span>
                 ) : null}

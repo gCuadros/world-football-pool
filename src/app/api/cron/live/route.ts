@@ -3,7 +3,7 @@ import { revalidateTag } from "next/cache";
 
 import { isAdminRequest } from "@/lib/admin-auth";
 import { TAGS } from "@/lib/cache-tags";
-import { pollLiveGoals } from "@/lib/notification-triggers";
+import { pollLiveGoals, generateMatchStartingAlerts } from "@/lib/notification-triggers";
 import { importFriendlies } from "@/lib/import-friendlies";
 import { prisma } from "@/lib/prisma";
 
@@ -39,8 +39,11 @@ export async function POST(req: Request) {
     }),
   ]);
 
+  // Avisos pre-partido: siempre se intenta (solo BD, barato), incluso si no hay live.
+  const startingAlerts = await generateMatchStartingAlerts(20);
+
   if (liveInDb === 0 && recentKickoffs === 0 && activeFriendlies === 0) {
-    return NextResponse.json({ ok: true, skipped: true, goals: 0 });
+    return NextResponse.json({ ok: true, skipped: true, goals: 0, startingAlerts });
   }
 
   // Sondeo en vivo para marcador/minuto (Mundial + amistosos en curso).
@@ -57,5 +60,5 @@ export async function POST(req: Request) {
     if (friendliesFinished > 0) revalidateTag(TAGS.matches, "max");
   }
 
-  return NextResponse.json({ ok: true, live, goals, friendliesFinished });
+  return NextResponse.json({ ok: true, live, goals, friendliesFinished, startingAlerts });
 }

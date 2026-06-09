@@ -72,6 +72,7 @@ export async function notifyMatchResult(matchId: string): Promise<void> {
         link: `/liga/${p.leagueId}`,
         matchId,
         leagueId: p.leagueId,
+        teams: [match.homeTeam, match.awayTeam],
       };
     });
 
@@ -130,6 +131,7 @@ export async function pollLiveGoals(): Promise<{ goals: number; live: number }> 
           body: f.minute ? `Minuto ${f.minute}'` : "En directo",
           link: "/resultados",
           matchId: m.id,
+          teams: [m.homeTeam, m.awayTeam],
         })),
       );
     }
@@ -189,6 +191,79 @@ export async function generatePredictionReminders(
         body: "Cierra pronto. ¡No te quedes sin puntos!",
         link: "/ligas",
         matchId: match.id,
+        teams: [match.homeTeam, match.awayTeam],
+      });
+    }
+  }
+
+  await createNotifications(inputs);
+  return inputs.length;
+}
+
+/**
+ * Aviso pre-partido: ~20 min antes del kickoff para usuarios en ligas.
+ * Si `notifyMatchStartAll=false` (defecto), solo avisa a quien no ha predicho.
+ * Si `notifyMatchStartAll=true`, avisa aunque ya haya predicho.
+ * Dedupe por (userId, matchId) de tipo MATCH_STARTING.
+ */
+export async function generateMatchStartingAlerts(
+  withinMinutes = 20,
+): Promise<number> {
+  const now = new Date();
+  const until = new Date(now.getTime() + withinMinutes * 60_000);
+
+  const upcoming = await prisma.match.findMany({
+    where: { status: "UPCOMING", kickoffAt: { gt: now, lte: until } },
+    select: { id: true, homeTeam: true, awayTeam: true },
+  });
+  if (upcoming.length === 0) return 0;
+
+  const members = await prisma.miniLeagueMember.findMany({
+    select: {
+      userId: true,
+      user: {
+        select: { notifyMatchStart: true, notifyMatchStartAll: true },
+      },
+    },
+    distinct: ["userId"],
+  });
+  const eligibleUsers = members.filter((m) => m.user.notifyMatchStart);
+  if (eligibleUsers.length === 0) return 0;
+
+  const matchIds = upcoming.map((m) => m.id);
+  const userIds = eligibleUsers.map((m) => m.userId);
+
+  const [alreadyNotified, alreadyPredicted] = await Promise.all([
+    prisma.notification.findMany({
+      where: { matchId: { in: matchIds }, type: "MATCH_STARTING", userId: { in: userIds } },
+      select: { userId: true, matchId: true },
+    }),
+    prisma.prediction.findMany({
+      where: { matchId: { in: matchIds }, userId: { in: userIds } },
+      select: { userId: true, matchId: true },
+      distinct: ["userId", "matchId"],
+    }),
+  ]);
+
+  const notifiedSet = new Set(alreadyNotified.map((n) => `${n.userId}:${n.matchId}`));
+  const predictedSet = new Set(alreadyPredicted.map((p) => `${p.userId}:${p.matchId}`));
+
+  const inputs = [];
+  for (const match of upcoming) {
+    for (const member of eligibleUsers) {
+      const key = `${member.userId}:${match.id}`;
+      if (notifiedSet.has(key)) continue;
+      if (!member.user.notifyMatchStartAll && predictedSet.has(key)) continue;
+      inputs.push({
+        userId: member.userId,
+        type: "MATCH_STARTING" as const,
+        title: `⏰ ${match.homeTeam} vs ${match.awayTeam} empieza pronto`,
+        body: predictedSet.has(key)
+          ? "¡No te lo pierdas!"
+          : "Última oportunidad para predecir.",
+        link: "/ligas",
+        matchId: match.id,
+        teams: [match.homeTeam, match.awayTeam],
       });
     }
   }

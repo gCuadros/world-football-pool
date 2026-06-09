@@ -1,14 +1,16 @@
-import { Suspense } from "react";
+import { Reveal } from "@/components/ui/reveal";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Plus, ArrowRight } from "lucide-react";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getUserLeagues, getLeagueLeaderboard } from "@/lib/leaderboard";
+import { prisma } from "@/lib/prisma";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LigasActions } from "@/components/ligas/ligas-actions";
 import { Onboarding } from "@/components/ligas/onboarding";
 import { ActiveLeagueBanner } from "@/components/ligas/active-league-banner";
+import { FavoriteStar } from "@/components/ligas/favorite-star";
 
 export const metadata = { title: "Mis Ligas · Quiniela Mundial 2026" };
 
@@ -25,9 +27,9 @@ type LeagueWithStats = {
 
 export default function LigasPage() {
   return (
-    <Suspense fallback={<LigasSkeleton />}>
+    <Reveal fallback={<LigasSkeleton />}>
       <LigasContent />
-    </Suspense>
+    </Reveal>
   );
 }
 
@@ -41,24 +43,34 @@ async function LigasContent() {
     return <Onboarding />;
   }
 
-  const withStats: LeagueWithStats[] = await Promise.all(
-    leagues.map(async (l) => {
-      const rows = await getLeagueLeaderboard(l.id, user.id);
-      const me = rows.find((r) => r.userId === user.id);
-      return {
-        id: l.id,
-        name: l.name,
-        inviteCode: l.inviteCode,
-        memberCount: l.memberCount,
-        isOwner: l.isOwner,
-        rank: me?.rank ?? null,
-        points: me?.points ?? 0,
-        accuracy: me?.accuracy ?? 0,
-      };
+  const [withStats, dbUser] = await Promise.all([
+    Promise.all(
+      leagues.map(async (l) => {
+        const rows = await getLeagueLeaderboard(l.id, user.id);
+        const me = rows.find((r) => r.userId === user.id);
+        return {
+          id: l.id,
+          name: l.name,
+          inviteCode: l.inviteCode,
+          memberCount: l.memberCount,
+          isOwner: l.isOwner,
+          rank: me?.rank ?? null,
+          points: me?.points ?? 0,
+          accuracy: me?.accuracy ?? 0,
+        };
+      }),
+    ),
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { favoriteLeagueId: true },
     }),
-  );
+  ]);
 
-  const active = withStats[0];
+  // Liga activa: la favorita si sigue siendo válida, si no la primera.
+  const fav = dbUser?.favoriteLeagueId ?? null;
+  const ids = withStats.map((l) => l.id);
+  const activeId = fav && ids.includes(fav) ? fav : withStats[0].id;
+  const active = withStats.find((l) => l.id === activeId) ?? withStats[0];
 
   return (
     <div className="space-y-6">
@@ -66,10 +78,10 @@ async function LigasContent() {
 
       <ActiveLeagueBanner league={active} />
 
-      <h2 className="font-mono text-[15px] font-bold">Todas mis ligas</h2>
+      <h2 className="font-mono text-base font-bold">Todas mis ligas</h2>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {withStats.map((l, i) => (
-          <LeagueCard key={l.id} league={l} active={i === 0} />
+        {withStats.map((l) => (
+          <LeagueCard key={l.id} league={l} active={l.id === activeId} />
         ))}
         <NewLeagueCard />
       </div>
@@ -90,21 +102,24 @@ function LeagueCard({
         active ? "bg-muted border-primary" : "bg-card border-border"
       }`}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         {active ? (
-          <span className="bg-primary text-primary-foreground rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold tracking-wide">
+          <span className="bg-primary text-primary-foreground rounded-full px-2.5 py-0.5 font-mono text-3xs font-bold tracking-wide">
             ACTIVA
           </span>
         ) : (
-          <span className="text-muted-foreground font-mono text-[11px]">
+          <span className="text-muted-foreground font-mono text-2xs">
             {league.inviteCode}
           </span>
         )}
-        {league.isOwner && (
-          <span className="text-primary font-mono text-[10px] font-medium tracking-wide uppercase">
-            Admin
-          </span>
-        )}
+        <div className="ml-auto flex items-center gap-1">
+          {league.isOwner && (
+            <span className="text-primary font-mono text-3xs font-medium tracking-wide uppercase">
+              Admin
+            </span>
+          )}
+          <FavoriteStar leagueId={league.id} isFavorite={active} />
+        </div>
       </div>
 
       <h3 className="truncate font-mono text-base font-bold">{league.name}</h3>

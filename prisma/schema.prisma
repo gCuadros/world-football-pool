@@ -13,12 +13,21 @@ model User {
   email               String               @unique
   name                String?
   avatar              String?
+  coverImage          String?
   passwordHash        String?
   emailVerified       DateTime?
   image               String?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   favoriteTeam        String?
+  favoriteLeagueId    String?
+  notifyLiveGoals     Boolean              @default(true)
+  notifyResults       Boolean              @default(true)
+  notifyReminders     Boolean              @default(true)
+  notifyLeague        Boolean              @default(true)
+  notifyMatchStart    Boolean              @default(true)
+  notifyMatchStartAll Boolean              @default(false)
+  followedTeams       String[]
   accounts           Account[]
   achievements       Achievement[]
   miniLeaguesCreated MiniLeague[]       @relation("MiniLeagueCreator")
@@ -190,6 +199,7 @@ enum AchievementType {
 enum NotificationType {
   PREDICTION_REMINDER
   MATCH_RESULT
+  MATCH_STARTING
   LEAGUE_RANK
   LEAGUE_JOIN
   LIVE_GOAL

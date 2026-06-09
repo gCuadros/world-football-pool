@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Globe, Shield, Goal, Network } from "lucide-react";
+import { Globe, Shield, Goal, Handshake, TrendingUp } from "lucide-react";
 
 import { teamSlug } from "@/lib/utils";
 import { getWorldCupStandings, getWorldCupTopScorers } from "@/lib/queries";
@@ -32,6 +32,10 @@ export default function MundialPage() {
 
       <Suspense fallback={<Skeleton className="h-40 rounded-xl" />}>
         <TopAssistersSection />
+      </Suspense>
+
+      <Suspense fallback={<Skeleton className="h-40 rounded-xl" />}>
+        <TournamentStatsSection />
       </Suspense>
     </div>
   );
@@ -65,13 +69,14 @@ async function StandingsSection() {
                 Grupo {g.group}
               </span>
             </div>
-            {/* overflow-x-auto previene scroll horizontal en el card */}
             <div className="overflow-x-auto">
               <table className="w-full table-fixed text-xs">
                 <colgroup>
-                  <col className="w-7" />
-                  {/* Equipo ocupa todo el espacio restante */}
+                  <col className="w-6" />
+                  {/* Equipo ocupa el espacio restante */}
                   <col />
+                  <col className="w-7" />
+                  <col className="w-7" />
                   <col className="w-7" />
                   <col className="w-8" />
                 </colgroup>
@@ -79,6 +84,8 @@ async function StandingsSection() {
                   <tr className="text-muted-foreground border-border border-b font-mono text-[10px] tracking-wide uppercase">
                     <th className="px-1 py-1.5 text-center">#</th>
                     <th className="px-2 py-1.5 text-left">Equipo</th>
+                    <th className="px-1 py-1.5 text-center">PJ</th>
+                    <th className="px-1 py-1.5 text-center">GF</th>
                     <th className="px-1 py-1.5 text-center">GC</th>
                     <th className="px-1 py-1.5 text-center font-bold">Pts</th>
                   </tr>
@@ -93,7 +100,7 @@ async function StandingsSection() {
                       <td className="px-2 py-2 max-w-0">
                         <Link
                           href={`/equipo/${teamSlug(t.nameEs)}`}
-                          className="flex items-center gap-1.5 hover:text-primary transition-colors w-full"
+                          className="flex w-full items-center gap-1.5 transition-colors hover:text-primary"
                         >
                           <TeamCrest
                             crest={t.logo}
@@ -105,6 +112,8 @@ async function StandingsSection() {
                           <span className="truncate font-medium">{t.nameEs}</span>
                         </Link>
                       </td>
+                      <td className="px-1 py-2 text-center font-mono">{t.played}</td>
+                      <td className="px-1 py-2 text-center font-mono">{t.goalsFor}</td>
                       <td className="px-1 py-2 text-center font-mono">{t.goalsAgainst}</td>
                       <td className="px-1 py-2 text-center font-mono font-bold">{t.points}</td>
                     </tr>
@@ -132,26 +141,26 @@ async function TopScorersSection() {
       <div className="border-border bg-card overflow-hidden rounded-xl border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-muted-foreground border-border bg-muted/30 border-b font-mono text-[10px] tracking-wide uppercase">
-              <th className="w-8 px-2 py-2 text-center">#</th>
-              <th className="px-3 py-2 text-left">Jugador</th>
+            <tr className="text-muted-foreground border-border bg-muted/30 border-b font-mono text-3xs tracking-wide uppercase">
+              <th className="px-2 py-2 text-left sm:px-3">#</th>
+              <th className="px-2 py-2 text-left sm:px-3">Jugador</th>
               <th className="hidden px-3 py-2 text-left sm:table-cell">Equipo</th>
               <th className="hidden px-3 py-2 text-center sm:table-cell">Asis</th>
-              <th className="w-14 px-2 py-2 text-center font-bold">Goles</th>
+              <th className="px-2 py-2 text-center font-bold sm:px-3">Goles</th>
             </tr>
           </thead>
           <tbody>
             {scorers.map((s) => (
               <tr key={s.playerName} className="border-border border-b last:border-0 hover:bg-muted/20">
-                <td className="px-2 py-2 text-center font-mono text-xs text-muted-foreground">{s.rank}</td>
-                <td className="px-3 py-2">
+                <td className="text-muted-foreground px-2 py-2 font-mono text-xs sm:px-3">{s.rank}</td>
+                <td className="px-2 py-2 sm:px-3">
                   <div className="flex items-center gap-2">
                     {s.photo ? (
                       <Image src={s.photo} alt={s.playerName} width={24} height={24} className="size-6 shrink-0 rounded-full" unoptimized />
                     ) : (
                       <div className="bg-muted size-6 shrink-0 rounded-full" />
                     )}
-                    <span className="truncate font-medium text-sm">{s.playerName}</span>
+                    <span className="min-w-0 truncate font-medium">{s.playerName}</span>
                     <TeamCrest crest={s.teamLogo} flag={s.teamFlag} name={s.teamName} size={14} className="shrink-0 sm:hidden" />
                   </div>
                 </td>
@@ -162,7 +171,7 @@ async function TopScorersSection() {
                   </div>
                 </td>
                 <td className="hidden px-3 py-2 text-center font-mono text-xs sm:table-cell">{s.assists}</td>
-                <td className="text-primary px-2 py-2 text-center font-mono text-sm font-bold">{s.goals}</td>
+                <td className="text-primary px-2 py-2 text-center font-mono text-sm font-bold sm:px-3">{s.goals}</td>
               </tr>
             ))}
           </tbody>
@@ -184,32 +193,33 @@ async function TopAssistersSection() {
   return (
     <section className="space-y-4">
       <h2 className="flex items-center gap-2 text-base font-bold">
-        <Network className="text-primary size-4" />
+        <Handshake className="text-primary size-4" />
         Máximos Asistentes
       </h2>
       <div className="border-border bg-card overflow-hidden rounded-xl border">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-muted-foreground border-border bg-muted/30 border-b font-mono text-[10px] tracking-wide uppercase">
-              <th className="w-8 px-2 py-2 text-center">#</th>
-              <th className="px-3 py-2 text-left">Jugador</th>
+            <tr className="text-muted-foreground border-border bg-muted/30 border-b font-mono text-3xs tracking-wide uppercase">
+              <th className="px-2 py-2 text-left sm:px-3">#</th>
+              <th className="px-2 py-2 text-left sm:px-3">Jugador</th>
               <th className="hidden px-3 py-2 text-left sm:table-cell">Equipo</th>
+              <th className="hidden px-3 py-2 text-center sm:table-cell">PJ</th>
               <th className="hidden px-3 py-2 text-center sm:table-cell">Goles</th>
-              <th className="w-14 px-2 py-2 text-center font-bold">Asis.</th>
+              <th className="px-2 py-2 text-center font-bold sm:px-3">Asist.</th>
             </tr>
           </thead>
           <tbody>
             {assisters.map((s, i) => (
               <tr key={s.playerName} className="border-border border-b last:border-0 hover:bg-muted/20">
-                <td className="px-2 py-2 text-center font-mono text-xs text-muted-foreground">{i + 1}</td>
-                <td className="px-3 py-2">
+                <td className="text-muted-foreground px-2 py-2 font-mono text-xs sm:px-3">{i + 1}</td>
+                <td className="px-2 py-2 sm:px-3">
                   <div className="flex items-center gap-2">
                     {s.photo ? (
                       <Image src={s.photo} alt={s.playerName} width={24} height={24} className="size-6 shrink-0 rounded-full" unoptimized />
                     ) : (
                       <div className="bg-muted size-6 shrink-0 rounded-full" />
                     )}
-                    <span className="truncate font-medium text-sm">{s.playerName}</span>
+                    <span className="min-w-0 truncate font-medium">{s.playerName}</span>
                     <TeamCrest crest={s.teamLogo} flag={s.teamFlag} name={s.teamName} size={14} className="shrink-0 sm:hidden" />
                   </div>
                 </td>
@@ -219,14 +229,75 @@ async function TopAssistersSection() {
                     <span className="text-muted-foreground text-xs">{s.teamName}</span>
                   </div>
                 </td>
+                <td className="hidden px-3 py-2 text-center font-mono text-xs sm:table-cell">{s.played}</td>
                 <td className="hidden px-3 py-2 text-center font-mono text-xs sm:table-cell">{s.goals}</td>
-                <td className="text-primary px-2 py-2 text-center font-mono text-sm font-bold">{s.assists}</td>
+                <td className="text-primary px-2 py-2 text-center font-mono text-sm font-bold sm:px-3">{s.assists}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
     </section>
+  );
+}
+
+async function TournamentStatsSection() {
+  const groups = await getWorldCupStandings();
+  const allTeams = groups.flatMap((g) => g.teams).filter((t) => t.played > 0);
+  if (allTeams.length === 0) return null;
+
+  const bestAttack = [...allTeams].sort((a, b) => b.goalsFor - a.goalsFor)[0];
+  const bestDefense = [...allTeams].sort((a, b) => a.goalsAgainst - b.goalsAgainst)[0];
+  const mostPoints = [...allTeams].sort((a, b) => b.points - a.points)[0];
+
+  return (
+    <section className="space-y-4">
+      <h2 className="flex items-center gap-2 text-base font-bold">
+        <TrendingUp className="text-primary size-4" />
+        Estadísticas del torneo
+      </h2>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <TournamentStatCard
+          title="Mejor ataque"
+          subtitle={`${bestAttack.goalsFor} goles anotados`}
+          team={bestAttack}
+        />
+        <TournamentStatCard
+          title="Mejor defensa"
+          subtitle={`${bestDefense.goalsAgainst} goles encajados`}
+          team={bestDefense}
+        />
+        <TournamentStatCard
+          title="Más puntos"
+          subtitle={`${mostPoints.points} puntos`}
+          team={mostPoints}
+        />
+      </div>
+    </section>
+  );
+}
+
+function TournamentStatCard({
+  title,
+  subtitle,
+  team,
+}: {
+  title: string;
+  subtitle: string;
+  team: { nameEs: string; logo: string | null; flag: string | null };
+}) {
+  return (
+    <Link
+      href={`/equipo/${teamSlug(team.nameEs)}`}
+      className="bg-card border-border/60 hover:border-primary/40 flex items-center gap-3 rounded-2xl border p-4 shadow-sm transition-colors"
+    >
+      <TeamCrest crest={team.logo} flag={team.flag} name={team.nameEs} size={36} className="shrink-0" />
+      <div className="min-w-0">
+        <p className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">{title}</p>
+        <p className="truncate font-bold">{team.nameEs}</p>
+        <p className="text-muted-foreground text-xs">{subtitle}</p>
+      </div>
+    </Link>
   );
 }
 

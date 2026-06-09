@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, ViewTransition } from "react";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getFirstLeagueInfo, getUserLeagues } from "@/lib/leaderboard";
@@ -27,7 +27,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <TopbarSlot />
         </Suspense>
         <main className="flex-1 p-4 pb-24 lg:p-6 lg:pb-6">
-          <div className="mx-auto w-full max-w-6xl">{children}</div>
+          <ViewTransition>
+            <div className="mx-auto w-full max-w-6xl overflow-x-clip">{children}</div>
+          </ViewTransition>
         </main>
       </div>
       <Suspense>
@@ -50,15 +52,25 @@ async function loadNavUser(): Promise<SidebarUser> {
       rank: null,
       leagueName: null,
       leagues: [],
+      activeLeagueId: null,
     };
   }
 
-  // Logged: rank/liga del shell + lista de ligas + avatar fresco desde BD.
+  // Logged: rank/liga del shell + lista de ligas + avatar/favorita fresca desde BD.
   const [{ rank, leagueName }, leagues, dbUser] = await Promise.all([
     getFirstLeagueInfo(user.id),
     getUserLeagues(user.id),
-    prisma.user.findUnique({ where: { id: user.id }, select: { avatar: true } }),
+    prisma.user.findUnique({
+      where: { id: user.id },
+      select: { avatar: true, favoriteLeagueId: true },
+    }),
   ]);
+
+  // Liga activa: la favorita si sigue siendo válida, si no la primera.
+  const leagueIds = leagues.map((l) => l.id);
+  const fav = dbUser?.favoriteLeagueId ?? null;
+  const activeLeagueId =
+    fav && leagueIds.includes(fav) ? fav : (leagues[0]?.id ?? null);
 
   return {
     isLoggedIn: true,
@@ -69,6 +81,7 @@ async function loadNavUser(): Promise<SidebarUser> {
     rank,
     leagueName,
     leagues: leagues.map((l) => ({ id: l.id, name: l.name })),
+    activeLeagueId,
   };
 }
 

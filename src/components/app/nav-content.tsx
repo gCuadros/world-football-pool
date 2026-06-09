@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Trophy, LogIn, type LucideIcon } from "lucide-react";
 
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 import {
   EXPLORE_NAV,
@@ -23,6 +23,8 @@ export type SidebarUser = {
   rank: number | null;
   leagueName: string | null;
   leagues: { id: string; name: string }[];
+  /** Liga activa: la favorita si es válida, si no la primera. */
+  activeLeagueId: string | null;
 };
 
 function NavLink({
@@ -45,7 +47,7 @@ function NavLink({
       href={href}
       onClick={onNavigate}
       className={cn(
-        "flex items-center gap-3.5 rounded-full py-2.5 text-[15px] transition-colors",
+        "flex items-center gap-3.5 rounded-full py-2.5 text-base transition-colors",
         indent ? "px-2 pl-7" : "px-3.5",
         active
           ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
@@ -63,7 +65,7 @@ function NavLink({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-muted-foreground px-3.5 pt-2 pb-1.5 font-mono text-[10px] font-semibold tracking-[0.16em] uppercase">
+    <p className="text-muted-foreground px-3.5 pt-2 pb-1.5 font-mono text-3xs font-semibold tracking-[0.16em] uppercase">
       {children}
     </p>
   );
@@ -84,7 +86,7 @@ export function NavContent({
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
 
-  const activeLeagueId = user.leagues[0]?.id ?? null;
+  const activeLeagueId = user.activeLeagueId;
 
   return (
     <div className="flex h-full flex-col">
@@ -98,10 +100,10 @@ export function NavContent({
           <Trophy className="size-5 text-white" strokeWidth={2} />
         </div>
         <div className="flex flex-col gap-0.5">
-          <span className="text-sidebar-primary font-mono text-[13px] leading-none font-bold tracking-[0.12em]">
+          <span className="text-sidebar-primary font-mono text-sm leading-none font-bold tracking-[0.12em]">
             QUINIELA
           </span>
-          <span className="text-sidebar-foreground text-[11px] leading-none">
+          <span className="text-sidebar-foreground text-2xs leading-none">
             Mundial 2026
           </span>
         </div>
@@ -181,16 +183,13 @@ export function NavContent({
         {user.isLoggedIn ? (
           <Link href="/ajustes" onClick={onNavigate} className="flex items-center gap-2.5 rounded-xl transition-colors hover:opacity-80">
             <Avatar className="size-9 shrink-0">
-              {user.avatar && <AvatarImage src={user.avatar} />}
-              <AvatarFallback className="bg-primary font-mono text-[13px] font-bold text-white">
-                {user.initials}
-              </AvatarFallback>
+              <AvatarImage src={user.avatar?.startsWith("data:") ? user.avatar : "/avatar-default.webp"} />
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="text-sidebar-accent-foreground truncate text-[13px] font-medium">
+              <p className="text-sidebar-accent-foreground truncate text-sm font-medium">
                 {user.name}
               </p>
-              <p className="text-muted-foreground truncate font-mono text-[11px]">
+              <p className="text-muted-foreground truncate font-mono text-2xs">
                 {user.rank && user.leagueName
                   ? `#${user.rank} · ${user.leagueName}`
                   : "Sin liga activa"}
