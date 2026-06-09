@@ -3,7 +3,8 @@ import "server-only";
 import { cacheTag, cacheLife } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
-import { isPredictionLocked, MULTIPLIERS } from "@/lib/scoring";
+import { isPredictionLocked, MULTIPLIERS, scorePrediction } from "@/lib/scoring";
+import { teamSlug } from "@/lib/utils";
 import { TAGS } from "@/lib/cache-tags";
 import {
   getApiFootballEvents,
@@ -410,6 +411,7 @@ export type PublicPrediction = {
   actualAway: number | null; // resultado real
   points: number | null;
   exact: boolean;
+  breakdown: import("@/lib/scoring").ScoreBreakdown | null;
 };
 
 export type PublicProfile = {
@@ -439,7 +441,13 @@ export async function getPublicPredictions(
         userId,
         match: { status: "FINISHED" },
       },
-      include: {
+      select: {
+        matchId: true,
+        homeScore: true,
+        awayScore: true,
+        points: true,
+        exact: true,
+        advancePick: true,
         match: {
           select: {
             id: true,
@@ -450,6 +458,8 @@ export async function getPublicPredictions(
             kickoffAt: true,
             homeScore: true,
             awayScore: true,
+            stage: true,
+            advanced: true,
           },
         },
       },
@@ -483,6 +493,10 @@ export async function getPublicPredictions(
       actualAway: p.match.awayScore,
       points: p.points,
       exact: p.exact,
+      breakdown: scorePrediction(
+        { homeScore: p.homeScore, awayScore: p.awayScore, advancePick: p.advancePick },
+        { homeScore: p.match.homeScore, awayScore: p.match.awayScore, stage: p.match.stage, advanced: p.match.advanced },
+      ),
     }));
 
   return {
@@ -495,6 +509,102 @@ export async function getPublicPredictions(
       createdAt: user.createdAt.toISOString(),
     },
     predictions,
+  };
+}
+
+// ── Páginas de equipo ─────────────────────────────────────────────────────────
+
+export type TeamPageData = {
+  name: string;
+  slug: string;
+  flag: string | null;
+  crest: string | null;
+  group: string | null;
+  standing: import("@/lib/providers/api-football").GroupStanding["teams"][0] | null;
+  matches: MatchBase[];
+  topScorers: import("@/lib/providers/api-football").TopScorer[];
+};
+
+export async function getTeamPage(slug: string): Promise<TeamPageData | null> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag(TAGS.matches);
+
+  // Encontrar el nombre real del equipo desde cualquier partido en DB
+  const allMatches = await prisma.match.findMany({
+    select: {
+      homeTeam: true, homeCrest: true, homeFlag: true,
+      awayTeam: true, awayCrest: true, awayFlag: true,
+    },
+  });
+
+  const teamMap = new Map<string, { crest: string | null; flag: string | null }>();
+  for (const m of allMatches) {
+    if (!teamMap.has(teamSlug(m.homeTeam))) {
+      teamMap.set(teamSlug(m.homeTeam), { crest: m.homeCrest, flag: m.homeFlag });
+    }
+    if (!teamMap.has(teamSlug(m.awayTeam))) {
+      teamMap.set(teamSlug(m.awayTeam), { crest: m.awayCrest, flag: m.awayFlag });
+    }
+  }
+
+  // Reconstruct team name from slug by scanning all team names
+  let teamName: string | null = null;
+  for (const m of allMatches) {
+    if (teamSlug(m.homeTeam) === slug) { teamName = m.homeTeam; break; }
+    if (teamSlug(m.awayTeam) === slug) { teamName = m.awayTeam; break; }
+  }
+  if (!teamName) return null;
+
+  const teamInfo = teamMap.get(slug) ?? { crest: null, flag: null };
+
+  const [teamMatches, standings, allScorers] = await Promise.all([
+    prisma.match.findMany({
+      where: { OR: [{ homeTeam: teamName }, { awayTeam: teamName }] },
+      orderBy: { kickoffAt: "asc" },
+    }),
+    getWorldCupStandings(),
+    getWorldCupTopScorers(),
+  ]);
+
+  let standing: TeamPageData["standing"] = null;
+  let group: string | null = null;
+  for (const g of standings) {
+    const found = g.teams.find((t) => t.nameEs === teamName);
+    if (found) { standing = found; group = g.group; break; }
+  }
+
+  const topScorers = allScorers.filter((s) => s.teamName === teamName);
+
+  return {
+    name: teamName,
+    slug,
+    flag: teamInfo.flag,
+    crest: standing?.logo ?? teamInfo.crest,
+    group,
+    standing,
+    matches: teamMatches.map((m) => ({
+      id: m.id,
+      matchNo: m.matchNo,
+      externalId: m.externalId,
+      homeTeam: m.homeTeam,
+      awayTeam: m.awayTeam,
+      homeFlag: m.homeFlag,
+      awayFlag: m.awayFlag,
+      homeCrest: m.homeCrest,
+      awayCrest: m.awayCrest,
+      kickoffAt: m.kickoffAt.toISOString(),
+      stage: m.stage,
+      group: m.group,
+      stadium: m.stadium,
+      city: m.city,
+      homeScore: m.homeScore,
+      awayScore: m.awayScore,
+      status: m.status,
+      liveMinute: m.liveMinute,
+      advanced: m.advanced,
+    })),
+    topScorers,
   };
 }
 

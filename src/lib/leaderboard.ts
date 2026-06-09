@@ -188,6 +188,71 @@ export async function userHasLeague(userId: string): Promise<boolean> {
   return count > 0;
 }
 
+export type UserGlobalStats = {
+  totalPoints: number;
+  predictionsCount: number;
+  exactCount: number;
+  accuracy: number;
+  currentStreak: number;
+  bestStreak: number;
+};
+
+/** Estadísticas globales del usuario a través de todas las ligas (deduplicadas por partido). */
+export async function getUserGlobalStats(userId: string): Promise<UserGlobalStats> {
+  const [finishedMatches, predictions] = await Promise.all([
+    prisma.match.findMany({
+      where: { status: "FINISHED" },
+      orderBy: { kickoffAt: "asc" },
+      select: { id: true },
+    }),
+    prisma.prediction.findMany({
+      where: { userId },
+      select: { matchId: true, points: true, exact: true },
+    }),
+  ]);
+
+  const finishedOrder = finishedMatches.map((m) => m.id);
+  const finishedSet = new Set(finishedOrder);
+
+  // Deduplicar por partido: quedarse con la predicción con más puntos.
+  const byMatch = new Map<string, { points: number | null; exact: boolean }>();
+  for (const p of predictions) {
+    if (!finishedSet.has(p.matchId)) continue;
+    const existing = byMatch.get(p.matchId);
+    if (!existing || (p.points ?? 0) > (existing.points ?? 0)) {
+      byMatch.set(p.matchId, p);
+    }
+  }
+
+  const finished = [...byMatch.values()];
+  const totalPoints = finished.reduce((s, p) => s + (p.points ?? 0), 0);
+  const exactCount = finished.filter((p) => p.exact).length;
+  const correctCount = finished.filter((p) => (p.points ?? 0) > 0).length;
+  const predictionsCount = finished.length;
+  const accuracy =
+    predictionsCount > 0
+      ? Math.round((correctCount / predictionsCount) * 1000) / 10
+      : 0;
+
+  let bestStreak = 0;
+  let runningStreak = 0;
+  let currentStreak = 0;
+  for (const matchId of finishedOrder) {
+    const p = byMatch.get(matchId);
+    if (!p) continue; // sin predicción = no rompe racha
+    if ((p.points ?? 0) > 0) {
+      runningStreak++;
+      bestStreak = Math.max(bestStreak, runningStreak);
+      currentStreak = runningStreak;
+    } else {
+      runningStreak = 0;
+      currentStreak = 0;
+    }
+  }
+
+  return { totalPoints, predictionsCount, exactCount, accuracy, currentStreak, bestStreak };
+}
+
 /** Logros del usuario: catálogo completo con estado desbloqueado. */
 export async function getUnlockedAchievements(
   userId: string,
