@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Trophy, Radio, Globe, Users, ArrowRight, LogIn } from "lucide-react";
 
+import { PitchLines } from "@/components/ui/pitch-lines";
+
 // Landing de marketing para usuarios NO logueados (full-bleed, sin shell).
 export function Landing() {
   return (
@@ -38,37 +40,40 @@ export function Landing() {
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="from-primary/5 to-background relative overflow-hidden bg-gradient-to-b px-4 py-16 text-center sm:py-20">
-        <div className="relative mx-auto max-w-3xl">
-          <span className="bg-primary/10 text-primary mb-4 inline-block rounded-full px-3 py-1 font-mono text-xs font-semibold tracking-widest uppercase">
-            FIFA World Cup 2026
-          </span>
-          <h1 className="text-foreground mb-4 text-4xl font-bold tracking-tight sm:text-6xl">
-            Tu quiniela del
-            <br />
-            <span className="text-primary">Mundial 2026</span>
-          </h1>
-          <p className="text-muted-foreground mx-auto mb-8 max-w-xl text-base sm:text-lg">
-            Sigue los resultados en vivo, compite con amigos en tu liga privada
-            y descubre quién predice mejor el Mundial.
-          </p>
-          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href="/login"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold transition-colors sm:w-auto"
-            >
-              <Users className="size-4" />
-              Crear o unirse a una liga
-              <ArrowRight className="size-4" />
-            </Link>
-            <Link
-              href="/resultados"
-              className="text-foreground border-border hover:bg-muted flex w-full items-center justify-center gap-2 rounded-xl border px-6 py-3 font-semibold transition-colors sm:w-auto"
-            >
-              <Radio className="size-4" />
-              Ver resultados
-            </Link>
+      {/* Hero: panel "estadio de noche" con líneas de campo */}
+      <section className="px-4 pt-4 pb-6 sm:pt-8">
+        <div className="bg-aurora inset-hairline relative mx-auto max-w-6xl overflow-hidden rounded-3xl px-4 py-14 text-center text-white sm:py-20">
+          <PitchLines />
+          <div className="relative mx-auto max-w-3xl">
+            <span className="mb-4 inline-block rounded-full bg-white/10 px-3 py-1 font-mono text-xs font-semibold tracking-widest text-white/85 uppercase ring-1 ring-white/15">
+              FIFA World Cup 2026
+            </span>
+            <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-6xl">
+              Tu quiniela del
+              <br />
+              <span className="text-gradient-hero">Mundial 2026</span>
+            </h1>
+            <p className="mx-auto mb-8 max-w-xl text-base text-white/70 sm:text-lg">
+              Sigue los resultados en vivo, compite con amigos en tu liga privada
+              y descubre quién predice mejor el Mundial.
+            </p>
+            <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href="/login"
+                className="bg-primary-gradient glow-primary flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-white transition-opacity hover:opacity-90 sm:w-auto"
+              >
+                <Users className="size-4" />
+                Crear o unirse a una liga
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                href="/resultados"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-6 py-3 font-semibold text-white ring-1 ring-white/15 transition-colors hover:bg-white/15 sm:w-auto"
+              >
+                <Radio className="size-4" />
+                Ver resultados
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -77,17 +82,17 @@ export function Landing() {
       <section className="mx-auto max-w-6xl px-4 py-16">
         <div className="grid gap-6 sm:grid-cols-3">
           <FeatureCard
-            icon={<Radio className="text-primary size-6" />}
+            icon={<Radio className="size-6" />}
             title="Resultados en vivo"
             description="Sigue cada partido del Mundial en tiempo real con marcadores, goles y tarjetas actualizados."
           />
           <FeatureCard
-            icon={<Users className="text-primary size-6" />}
+            icon={<Users className="size-6" />}
             title="Ligas privadas"
             description="Crea tu liga con amigos o compañeros. Cada liga tiene su propia clasificación y predicciones."
           />
           <FeatureCard
-            icon={<Globe className="text-primary size-6" />}
+            icon={<Globe className="size-6" />}
             title="Info del Mundial"
             description="Grupos, standings, goleadores y todo lo que necesitas saber sobre la Copa del Mundo 2026."
           />
@@ -107,8 +112,10 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="border-border rounded-2xl border bg-card p-6">
-      <div className="bg-primary/10 mb-4 inline-flex rounded-xl p-3">{icon}</div>
+    <div className="border-border hover:border-primary/30 hover:glow-primary rounded-2xl border bg-card p-6 transition motion-safe:hover:-translate-y-0.5">
+      <div className="bg-primary-gradient shadow-primary/30 mb-4 inline-flex rounded-xl p-3 text-white shadow-md">
+        {icon}
+      </div>
       <h3 className="text-foreground mb-2 font-semibold">{title}</h3>
       <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
     </div>

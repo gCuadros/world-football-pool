@@ -78,10 +78,15 @@ export function BottomNav({ user }: { user: SidebarUser }) {
               active ? "text-primary" : "text-muted-foreground active:text-foreground",
             )}
           >
-            {active && (
-              <span className="absolute top-0 h-0.5 w-6 rounded-full bg-primary" />
-            )}
-            <Icon className={cn("size-5", active && "drop-shadow-[0_0_5px_rgba(29,111,242,0.5)] dark:drop-shadow-[0_0_6px_rgba(77,142,255,0.6)]")} strokeWidth={active ? 2.5 : 1.75} />
+            {/* Pill detrás del icono: indicador de tab activa estilo app nativa */}
+            <span
+              className={cn(
+                "flex h-7 w-13 items-center justify-center rounded-full transition-colors",
+                active && "bg-primary/10 dark:bg-primary/15",
+              )}
+            >
+              <Icon className={cn("size-5", active && "drop-shadow-[0_0_5px_rgba(29,111,242,0.5)] dark:drop-shadow-[0_0_6px_rgba(77,142,255,0.6)]")} strokeWidth={active ? 2.5 : 1.75} />
+            </span>
             <span className="truncate">{label}</span>
           </Link>
         );

@@ -12,49 +12,45 @@ import { Countdown, isLockImminent } from "@/components/matches/countdown";
 import { PredictionBadge } from "@/components/matches/prediction-badge";
 import { TeamCrest } from "@/components/matches/team-crest";
 
-function TeamRow({
+/**
+ * Columna de equipo del marcador central: escudo grande en un chip y nombre
+ * debajo. El chip lleva el view-transition-name del morph escudo → ficha.
+ */
+function TeamSide({
   flag,
   crest,
   name,
-  score,
-  scoreTone,
   winner,
   crestName,
 }: {
   flag: string | null;
   crest: string | null;
   name: string;
-  score: number | null;
-  scoreTone: string;
   winner: boolean;
-  /** view-transition-name para el morph escudo → ficha del partido. */
   crestName?: string;
 }) {
-  const crestEl = (
-    <TeamCrest crest={crest} flag={flag} name={name} size={24} className="shrink-0" />
+  const chip = (
+    <span className="bg-muted/60 ring-border/50 dark:bg-white/5 dark:ring-white/10 flex size-12 items-center justify-center rounded-2xl ring-1">
+      <TeamCrest crest={crest} flag={flag} name={name} size={30} />
+    </span>
   );
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex min-w-0 flex-col items-center gap-1.5">
       {crestName ? (
         <ViewTransition name={crestName} default="none">
-          {crestEl}
+          {chip}
         </ViewTransition>
       ) : (
-        crestEl
+        chip
       )}
       <span
         className={cn(
-          "min-w-0 flex-1 truncate text-sm",
-          winner ? "font-semibold" : "font-medium",
+          "w-full truncate text-center text-xs",
+          winner ? "font-bold" : "text-foreground/80 font-medium",
         )}
       >
         {name}
       </span>
-      {score !== null ? (
-        <span className={cn("font-mono text-2xl font-black tabular-nums", scoreTone)}>
-          {score}
-        </span>
-      ) : null}
     </div>
   );
 }
@@ -72,7 +68,6 @@ export function MatchCard({
   const isLive = status === "LIVE";
   const isFinished = status === "FINISHED";
   const hasScore = homeScore !== null && awayScore !== null;
-  const scoreTone = isLive ? "text-primary" : "text-foreground";
 
   const homeWins = hasScore && homeScore! > awayScore!;
   const awayWins = hasScore && awayScore! > homeScore!;
@@ -91,6 +86,15 @@ export function MatchCard({
       : "border-border/60",
     publicMode && !isLive && "hover:border-primary/40 hover:glow-primary",
   );
+
+  // Tono del marcador: en directo todo en primary; finalizado, el del perdedor
+  // se apaga para que el resultado se lea de un vistazo.
+  const scoreTone = (winner: boolean) =>
+    isLive
+      ? "text-primary"
+      : isFinished && hasScore && !winner && homeScore !== awayScore
+        ? "text-muted-foreground/50"
+        : "text-foreground";
 
   const body = (
     <>
@@ -113,34 +117,48 @@ export function MatchCard({
           </span>
         ) : (
           <span className="text-muted-foreground font-mono text-2xs">
-            {formatRelativeDay(match.kickoffAt, now)} · {formatTime(match.kickoffAt)}
+            {formatRelativeDay(match.kickoffAt, now)}
           </span>
         )}
       </div>
 
-      {/* Equipos */}
-      <div className="space-y-2">
-        <TeamRow
+      {/* Marcador central: equipos a los lados, resultado u hora en medio */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+        <TeamSide
           flag={match.homeFlag}
           crest={match.homeCrest}
           name={match.homeTeam}
-          score={hasScore ? homeScore : null}
-          scoreTone={scoreTone}
           winner={homeWins}
           crestName={publicMode ? `match-${match.id}-crest-home` : undefined}
         />
-        <TeamRow
+        <div className="flex flex-col items-center gap-0.5 pb-5">
+          {hasScore ? (
+            <div className="flex items-baseline gap-1.5 font-mono text-3xl font-black tracking-tight tabular-nums">
+              <span className={scoreTone(homeWins)}>{homeScore}</span>
+              <span className="text-muted-foreground/40 text-xl font-bold">–</span>
+              <span className={scoreTone(awayWins)}>{awayScore}</span>
+            </div>
+          ) : (
+            <>
+              <span className="font-mono text-xl font-bold tabular-nums">
+                {formatTime(match.kickoffAt)}
+              </span>
+              <span className="text-muted-foreground/70 font-mono text-3xs tracking-widest uppercase">
+                vs
+              </span>
+            </>
+          )}
+        </div>
+        <TeamSide
           flag={match.awayFlag}
           crest={match.awayCrest}
           name={match.awayTeam}
-          score={hasScore ? awayScore : null}
-          scoreTone={scoreTone}
           winner={awayWins}
           crestName={publicMode ? `match-${match.id}-crest-away` : undefined}
         />
       </div>
 
-      <div className="text-muted-foreground truncate font-mono text-3xs">
+      <div className="text-muted-foreground truncate text-center font-mono text-3xs">
         {match.stadium}
         {match.city ? ` · ${match.city}` : ""}
       </div>
