@@ -32,8 +32,8 @@ function TeamSide({
   crestName?: string;
 }) {
   const chip = (
-    <span className="bg-muted/60 ring-border/50 dark:bg-white/5 dark:ring-white/10 flex size-12 items-center justify-center rounded-2xl ring-1">
-      <TeamCrest crest={crest} flag={flag} name={name} size={30} />
+    <span className="bg-card ring-border dark:bg-white/6 dark:ring-white/10 flex size-14 items-center justify-center rounded-2xl shadow-card ring-1">
+      <TeamCrest crest={crest} flag={flag} name={name} size={34} />
     </span>
   );
   // Escudo + nombre enlazan al equipo; el partido tiene su CTA explícito
@@ -50,7 +50,7 @@ function TeamSide({
       <span
         className={cn(
           "max-w-full truncate text-center text-xs",
-          winner ? "font-bold" : "text-foreground/80 font-medium",
+          winner ? "text-foreground font-extrabold" : "text-muted-foreground font-medium",
         )}
       >
         {name}
@@ -84,11 +84,11 @@ export function MatchCard({
   const imminent = status === "UPCOMING" && isLockImminent(match.kickoffAt, now);
 
   const cardClass = cn(
-    "bg-card flex flex-col gap-3 rounded-2xl border p-4 transition-colors shadow-sm",
+    "bg-card flex flex-col gap-3 rounded-2xl border p-4 transition-all shadow-card",
     isLive
-      ? "border-transparent border-l-[3px] border-l-live glow-live"
-      : "border-border/60",
-    publicMode && !isLive && "hover:border-primary/40 hover:glow-primary",
+      ? "border-live/30 border-l-[3px] border-l-live glow-live"
+      : "border-border/70",
+    publicMode && !isLive && "hover:border-primary/40 hover:glow-primary hover:-translate-y-0.5",
   );
 
   // Tono del marcador: en directo todo en primary; finalizado, el del perdedor
