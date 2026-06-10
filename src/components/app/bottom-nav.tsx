@@ -23,27 +23,24 @@ const GUEST_ITEMS: NavItem[] = [
 ];
 
 /**
- * Fallback estático del menú inferior: misma barra (altura, blur, safe-area)
- * con los tabs públicos deshabilitados visualmente. Evita que el menú
- * "desaparezca" mientras el slot con datos de usuario está suspendido.
+ * Fallback estático del menú inferior: misma barra flotante (forma, blur,
+ * safe-area) con los tabs públicos deshabilitados visualmente. Evita que el
+ * menú "desaparezca" mientras el slot con datos de usuario está suspendido.
  */
 export function BottomNavSkeleton() {
   return (
     <nav
       aria-hidden
-      className="vt-bottom-nav border-t border-border/30 dark:border-white/5 bg-background/85 fixed bottom-0 left-0 right-0 z-30 flex select-none items-stretch backdrop-blur-2xl shadow-nav lg:hidden"
-      style={{
-        height: "calc(4rem + env(safe-area-inset-bottom))",
-        paddingBottom: "env(safe-area-inset-bottom)",
-      }}
+      className="vt-bottom-nav glass-nav fixed inset-x-4 z-30 mx-auto flex h-14 max-w-sm select-none items-center justify-around rounded-full px-2 lg:hidden"
+      style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
     >
       {GUEST_ITEMS.map(({ href, label, icon: Icon }) => (
         <span
           key={href}
-          className="text-muted-foreground/40 flex flex-1 flex-col items-center justify-center gap-0.5"
+          aria-label={label}
+          className="text-muted-foreground/40 flex size-11 items-center justify-center"
         >
           <Icon className="size-5" strokeWidth={1.75} />
-          <span className="text-3xs font-medium truncate">{label}</span>
         </span>
       ))}
     </nav>
@@ -86,13 +83,12 @@ export function BottomNav({ user }: { user: SidebarUser }) {
   };
 
   return (
+    /* Tab bar flotante Liquid Glass: barra píldora despegada de los bordes,
+       tabs inactivos solo-icono y el activo como pill rellena icono+label. */
     <nav
       aria-label="Navegación principal"
-      className="vt-bottom-nav border-t border-border/30 dark:border-white/5 bg-background/85 fixed bottom-0 left-0 right-0 z-30 flex select-none items-stretch backdrop-blur-2xl shadow-nav lg:hidden"
-      style={{
-        height: "calc(4rem + env(safe-area-inset-bottom))",
-        paddingBottom: "env(safe-area-inset-bottom)",
-      }}
+      className="vt-bottom-nav glass-nav fixed inset-x-4 z-30 mx-auto flex h-14 max-w-sm select-none items-center justify-between rounded-full px-2 lg:hidden"
+      style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
     >
       {items.map(({ href, label, icon: Icon, exact }) => {
         const active = isActive(href, exact);
@@ -100,24 +96,17 @@ export function BottomNav({ user }: { user: SidebarUser }) {
           <Link
             key={href}
             href={href}
+            aria-label={label}
             onClick={() => haptics.tap()}
-            className="relative flex flex-1 items-center justify-center min-w-0 px-1"
-          >
-            {active ? (
-              /* Pill rellena con icono + label: patrón de app nativa premium */
-              <span className="bg-primary text-primary-foreground flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold shadow-[0_0_22px_-4px_var(--color-primary)] transition-all max-w-full">
-                <Icon className="size-4 shrink-0" strokeWidth={2.5} />
-                <span className="truncate">{label}</span>
-              </span>
-            ) : (
-              <span className={cn(
-                "flex flex-col items-center gap-0.5 transition-colors",
-                "text-muted-foreground active:text-foreground",
-              )}>
-                <Icon className="size-5" strokeWidth={1.75} />
-                <span className="text-3xs font-medium truncate">{label}</span>
-              </span>
+            className={cn(
+              "flex h-11 shrink-0 items-center justify-center rounded-full transition-all",
+              active
+                ? "bg-primary text-primary-foreground gap-1.5 px-4 text-xs font-bold shadow-[0_4px_18px_-2px_var(--color-primary)]"
+                : "text-muted-foreground active:text-foreground size-11",
             )}
+          >
+            <Icon className={active ? "size-4" : "size-5"} strokeWidth={active ? 2.5 : 1.75} />
+            {active && <span className="whitespace-nowrap">{label}</span>}
           </Link>
         );
       })}

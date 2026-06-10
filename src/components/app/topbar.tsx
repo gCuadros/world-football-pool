@@ -35,7 +35,7 @@ export function Topbar({
 
   return (
     <header
-      className="border-border/30 dark:border-white/5 bg-background/80 vt-topbar sticky top-0 z-20 flex min-h-14 items-center gap-2 border-b px-3 backdrop-blur-2xl sm:gap-4 sm:px-4 lg:px-6 shadow-[0_1px_0_0_rgba(255,255,255,0.04)]"
+      className="border-border/30 dark:border-white/8 bg-background/55 vt-topbar sticky top-0 z-20 flex min-h-14 items-center gap-2 border-b px-3 backdrop-blur-2xl backdrop-saturate-150 sm:gap-4 sm:px-4 lg:px-6"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <MobileNav user={user} />

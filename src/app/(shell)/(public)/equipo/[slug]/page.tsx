@@ -76,7 +76,7 @@ async function EquipoContent({
       <BackButton fallback="/mundial" />
 
       {/* Hero: panel "estadio de noche" con escudo y nombre */}
-      <section className="card-glass border-border/60 overflow-hidden rounded-3xl border">
+      <section className="card-glass overflow-hidden rounded-3xl">
         <div className="bg-aurora inset-hairline relative flex items-center gap-5 overflow-hidden p-6 text-white">
           <PitchLines />
           <div className="relative flex size-20 shrink-0 items-center justify-center rounded-3xl bg-white/10 ring-1 ring-white/15">
@@ -205,7 +205,7 @@ async function EquipoContent({
             <Goal className="text-primary size-4" />
             Goleadores
           </h2>
-          <div className="card-glass border-border/60 overflow-hidden rounded-2xl border">
+          <div className="card-glass overflow-hidden rounded-2xl">
             {data.topScorers.map((s, i) => (
               <div
                 key={s.playerName}
@@ -342,7 +342,7 @@ function TeamMatchRow({
     <ClickCard
       href={`/partido/${match.id}`}
       ariaLabel={`${match.homeTeam} contra ${match.awayTeam}`}
-      className="card-glass border-border/60 hover:border-primary/40 hover:glow-primary flex items-center gap-3 rounded-2xl border px-4 py-3 transition-all hover:-translate-y-0.5"
+      className="card-glass hover:border-primary/40 flex items-center gap-3 rounded-2xl px-4 py-3 transition-all hover:-translate-y-0.5"
     >
       <TeamLink name={opponent} className="flex min-w-0 flex-1 items-center gap-3">
         <TeamCrest crest={oppCrest} flag={oppFlag} name={opponent} size={28} className="shrink-0" />

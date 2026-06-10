@@ -65,7 +65,7 @@ export function Dashboard({
       {leagues.length === 0 && (
         <Link
           href="/ligas"
-          className="border-primary/30 card-glass hover:border-primary/50 flex items-center gap-4 rounded-2xl border border-dashed p-6 transition-all hover:glow-primary"
+          className="card-glass hover:border-primary/50 flex items-center gap-4 rounded-2xl p-6 transition-all hover:-translate-y-0.5"
         >
           <div className="bg-primary/10 flex size-12 shrink-0 items-center justify-center rounded-xl">
             <Users className="text-primary size-6" />
@@ -104,7 +104,7 @@ export function Dashboard({
               <Link
                 key={l.id}
                 href={`/liga/${l.id}`}
-                className="border-border/60 card-glass hover:border-primary/30 hover:glow-primary group flex items-center gap-4 rounded-2xl border p-4 transition-all hover:-translate-y-0.5"
+                className="card-glass hover:border-primary/40 group flex items-center gap-4 rounded-2xl p-4 transition-all hover:-translate-y-0.5"
               >
                 <div className="bg-primary/10 flex size-11 shrink-0 items-center justify-center rounded-xl font-mono text-lg font-black text-primary">
                   {l.rank ? `#${l.rank}` : "—"}
@@ -195,7 +195,7 @@ function MiniMatch({
     <ClickCard
       href={`/partido/${match.id}`}
       ariaLabel={`${match.homeTeam} contra ${match.awayTeam}`}
-      className={`card-glass flex flex-col gap-2.5 rounded-2xl border p-3.5 transition-all hover:-translate-y-0.5 ${live ? "border-live/40 glow-live" : "border-border/60 hover:border-primary/30 shadow-card"}`}
+      className={`card-glass flex flex-col gap-2.5 rounded-2xl p-3.5 transition-all hover:-translate-y-0.5 ${live ? "card-glass-live" : "hover:border-primary/40"}`}
     >
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">
@@ -260,7 +260,7 @@ function QuickLink({
   return (
     <Link
       href={href}
-      className="border-border/60 card-glass hover:border-primary/30 hover:glow-primary flex flex-col items-center justify-center gap-2.5 rounded-2xl border p-5 text-center transition-all hover:-translate-y-0.5 shadow-card"
+      className="card-glass hover:border-primary/40 flex flex-col items-center justify-center gap-2.5 rounded-2xl p-5 text-center transition-all hover:-translate-y-0.5"
     >
       <span className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-xl">
         {icon}
