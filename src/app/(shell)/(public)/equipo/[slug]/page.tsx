@@ -1,8 +1,9 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
-import { Shield, Goal, ChevronLeft, Swords, TrendingUp, Star, Table2 } from "lucide-react";
+import { Shield, Goal, Swords, TrendingUp, Star, Table2 } from "lucide-react";
+
+import { BackButton } from "@/components/ui/back-button";
 
 import { getTeamPage, type MatchVM } from "@/lib/queries";
 import { STAGE_SHORT } from "@/lib/labels";
@@ -70,14 +71,9 @@ async function EquipoContent({
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
-      {/* Back */}
-      <Link
-        href="/mundial"
-        className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors"
-      >
-        <ChevronLeft className="size-4" />
-        Grupos
-      </Link>
+      {/* Back: vuelve al origen real de la navegación (partidos, mundial,
+          dashboard…); /mundial solo como fallback sin historial. */}
+      <BackButton fallback="/mundial" />
 
       {/* Hero: panel "estadio de noche" con escudo y nombre */}
       <section className="bg-card border-border/60 overflow-hidden rounded-3xl border shadow-sm">
