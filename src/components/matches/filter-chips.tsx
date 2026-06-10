@@ -25,8 +25,8 @@ export function FilterChips({
             className={cn(
               "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition motion-safe:active:scale-[0.97]",
               active
-                ? "border-primary/50 bg-primary-gradient text-white shadow-sm shadow-primary/30"
-                : "border-border/60 bg-card/80 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+                ? "border-primary/50 bg-primary-gradient text-white"
+                : "chip-glass text-muted-foreground hover:text-foreground",
             )}
           >
             {f.value === "live" ? (

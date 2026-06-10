@@ -65,7 +65,7 @@ export function Dashboard({
       {leagues.length === 0 && (
         <Link
           href="/ligas"
-          className="card-glass hover:border-primary/50 flex items-center gap-4 rounded-2xl p-6 transition-all hover:-translate-y-0.5"
+          className="card-glass card-glass-hover flex items-center gap-4 rounded-2xl p-6"
         >
           <div className="bg-primary/10 flex size-12 shrink-0 items-center justify-center rounded-xl">
             <UsersThree className="text-primary size-6" weight="duotone" />
@@ -104,7 +104,7 @@ export function Dashboard({
               <Link
                 key={l.id}
                 href={`/liga/${l.id}`}
-                className="card-glass hover:border-primary/40 group flex items-center gap-4 rounded-2xl p-4 transition-all hover:-translate-y-0.5"
+                className="card-glass card-glass-hover group flex items-center gap-4 rounded-2xl p-4"
               >
                 <div className="bg-primary/10 flex size-11 shrink-0 items-center justify-center rounded-xl font-mono text-lg font-black text-primary">
                   {l.rank ? `#${l.rank}` : "—"}
@@ -195,7 +195,7 @@ function MiniMatch({
     <ClickCard
       href={`/partido/${match.id}`}
       ariaLabel={`${match.homeTeam} contra ${match.awayTeam}`}
-      className={`card-glass flex flex-col gap-2.5 rounded-2xl p-3.5 transition-all hover:-translate-y-0.5 ${live ? "card-glass-live" : "hover:border-primary/40"}`}
+      className={`card-glass flex flex-col gap-2.5 rounded-2xl p-3.5 ${live ? "card-glass-live" : "card-glass-hover"}`}
     >
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">
@@ -260,7 +260,7 @@ function QuickLink({
   return (
     <Link
       href={href}
-      className="card-glass hover:border-primary/40 flex flex-col items-center justify-center gap-2.5 rounded-2xl p-5 text-center transition-all hover:-translate-y-0.5"
+      className="card-glass card-glass-hover flex flex-col items-center justify-center gap-2.5 rounded-2xl p-5 text-center"
     >
       <span className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-xl">
         {icon}

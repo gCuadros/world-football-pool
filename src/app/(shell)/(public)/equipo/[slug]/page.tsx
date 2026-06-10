@@ -342,7 +342,7 @@ function TeamMatchRow({
     <ClickCard
       href={`/partido/${match.id}`}
       ariaLabel={`${match.homeTeam} contra ${match.awayTeam}`}
-      className="card-glass hover:border-primary/40 flex items-center gap-3 rounded-2xl px-4 py-3 transition-all hover:-translate-y-0.5"
+      className="card-glass card-glass-hover flex items-center gap-3 rounded-2xl px-4 py-3"
     >
       <TeamLink name={opponent} className="flex min-w-0 flex-1 items-center gap-3">
         <TeamCrest crest={oppCrest} flag={oppFlag} name={opponent} size={28} className="shrink-0" />

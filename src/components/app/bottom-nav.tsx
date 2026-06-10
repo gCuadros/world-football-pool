@@ -110,7 +110,7 @@ export function BottomNav({ user }: { user: SidebarUser }) {
             className={cn(
               "flex h-11 shrink-0 items-center justify-center rounded-full transition-all",
               active
-                ? "bg-primary text-primary-foreground gap-1.5 px-4 text-xs font-bold shadow-[0_4px_18px_-2px_var(--color-primary)]"
+                ? "bg-primary text-primary-foreground gap-1.5 px-4 text-xs font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_4px_18px_-2px_var(--color-primary)]"
                 : "text-muted-foreground active:text-foreground size-11",
             )}
           >
