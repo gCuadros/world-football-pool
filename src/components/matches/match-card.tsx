@@ -36,10 +36,10 @@ function TeamSide({
       <TeamCrest crest={crest} flag={flag} name={name} size={30} />
     </span>
   );
-  // Solo el NOMBRE enlaza al equipo: el escudo y el resto de la columna van
-  // al partido (con toda la columna como link era fácil el misclick).
+  // Escudo + nombre enlazan al equipo; el partido tiene su CTA explícito
+  // "Ver partido" en el pie (y la tarjeta entera en publicMode).
   return (
-    <div className="flex min-w-0 flex-col items-center gap-1.5">
+    <TeamLink name={name} className="flex min-w-0 flex-col items-center gap-1.5">
       {crestName ? (
         <ViewTransition name={crestName} default="none">
           {chip}
@@ -47,16 +47,15 @@ function TeamSide({
       ) : (
         chip
       )}
-      <TeamLink
-        name={name}
+      <span
         className={cn(
           "max-w-full truncate text-center text-xs",
           winner ? "font-bold" : "text-foreground/80 font-medium",
         )}
       >
         {name}
-      </TeamLink>
-    </div>
+      </span>
+    </TeamLink>
   );
 }
 
@@ -170,7 +169,22 @@ export function MatchCard({
 
       {/* Pie: predicción / countdown / CTA */}
       {publicMode ? (
-        imminent ? <Countdown kickoffAt={match.kickoffAt} /> : null
+        <>
+          {imminent ? <Countdown kickoffAt={match.kickoffAt} /> : null}
+          {/* CTA explícito al partido: con los equipos enlazando a su ficha,
+              la acción "abrir el partido" necesita su propio afford. */}
+          <Link
+            href={`/partido/${match.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className={cn(
+              "flex items-center justify-center gap-1 text-xs font-semibold transition-opacity hover:opacity-80",
+              isLive ? "text-live" : "text-primary",
+            )}
+          >
+            {isLive ? "Ver en directo" : "Ver partido"}
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </>
       ) : (
         <div className="mt-auto">
           {imminent ? (
