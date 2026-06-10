@@ -46,6 +46,7 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-live: var(--live);
   --color-live-foreground: var(--live-foreground);
+  --color-glass-border: var(--glass-card-border);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -60,20 +61,21 @@
 }
 
 :root {
-  --background: #EEF3FF;
-  --foreground: #060F24;
+  /* ── Light mode ── */
+  --background: #F4F7FF;
+  --foreground: #08142B;
   --card: #FFFFFF;
-  --card-foreground: #060F24;
+  --card-foreground: #08142B;
   --popover: #FFFFFF;
-  --popover-foreground: #060F24;
-  --primary: #1558E0;
+  --popover-foreground: #08142B;
+  --primary: #1D6FF2;
   --primary-foreground: #FFFFFF;
-  --secondary: #E2ECFF;
-  --secondary-foreground: #0A2050;
-  --muted: #DAE6F8;
-  --muted-foreground: #304F78;
-  --accent: #E2ECFF;
-  --accent-foreground: #1558E0;
+  --secondary: #EAF1FF;
+  --secondary-foreground: #0E2650;
+  --muted: #E5EDFA;
+  --muted-foreground: #3A5C85;
+  --accent: #EAF1FF;
+  --accent-foreground: #1D6FF2;
   --destructive: #DC2626;
   --destructive-foreground: #ffffff;
   --success: #059669;
@@ -82,40 +84,53 @@
   --warning-foreground: #ffffff;
   --live: #E11D38;
   --live-foreground: #ffffff;
-  --border: #BBCFE8;
-  --input: #BBCFE8;
-  --ring: #1558E0;
-  --chart-1: #1558E0;
+  --border: #C0D4F0;
+  --input: #C0D4F0;
+  --ring: #1D6FF2;
+  --chart-1: #1D6FF2;
   --chart-2: #4D8EFF;
   --chart-3: #7BB8FF;
   --chart-4: #059669;
   --chart-5: #D97706;
   --radius: 1rem;
-  --sidebar: #F4F8FF;
-  --sidebar-foreground: #060F24;
-  --sidebar-primary: #1558E0;
+  --sidebar: #EAF1FF;
+  --sidebar-foreground: #08142B;
+  --sidebar-primary: #1D6FF2;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #E2ECFF;
-  --sidebar-accent-foreground: #1558E0;
-  --sidebar-border: #BBCFE8;
-  --sidebar-ring: #1558E0;
-  /* Theme-aware utility variables */
-  --gradient-primary-start: #1558E0;
-  --gradient-primary-end: #3B3EF0;
+  --sidebar-accent: #EAF1FF;
+  --sidebar-accent-foreground: #1D6FF2;
+  --sidebar-border: #C0D4F0;
+  --sidebar-ring: #1D6FF2;
+  --gradient-primary-start: #1D6FF2;
+  --gradient-primary-end: #6C3FF5;
   --glow-live-ring: rgba(225, 29, 56, 0.22);
   --glow-live-shadow: rgba(225, 29, 56, 0.16);
-  --glow-primary-ring: rgba(21, 88, 224, 0.24);
-  --glow-primary-shadow: rgba(21, 88, 224, 0.16);
-  /* Sombra de tarjeta pronunciada: da profundidad real en light mode */
-  --shadow-card: 0 1px 3px rgba(0, 20, 80, 0.08), 0 8px 28px -6px rgba(0, 20, 90, 0.14);
-  --shadow-nav: 0 -2px 20px -4px rgba(0, 20, 80, 0.14), 0 -1px 0 0 rgba(0, 30, 100, 0.08);
-  /* Aurora más visible en light mode */
-  --aurora-glow-1: rgba(21, 88, 224, 0.13);
-  --aurora-glow-2: rgba(59, 62, 240, 0.10);
-  --hero-base: #0b1430;
+  --glow-primary-ring: rgba(29, 111, 242, 0.26);
+  --glow-primary-shadow: rgba(29, 111, 242, 0.18);
+  --shadow-card: 0 1px 3px rgba(0, 24, 96, 0.07), 0 8px 32px -6px rgba(0, 24, 96, 0.11);
+  --shadow-nav: 0 -2px 24px -4px rgba(0, 20, 80, 0.13), 0 -1px 0 0 rgba(0, 30, 100, 0.07);
+  --aurora-glow-1: rgba(29, 111, 242, 0.12);
+  --aurora-glow-2: rgba(108, 63, 245, 0.09);
+  --hero-base: #080e24;
+  /* Liquid Glass: el cristal es SIEMPRE más claro que el fondo (velo blanco). */
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-card-bg: rgba(255, 255, 255, 0.58);
+  --glass-card-border: rgba(255, 255, 255, 0.85);
+  --glass-card-shine: rgba(255, 255, 255, 0.95);
+  --glass-card-shadow: 0 8px 32px -10px rgba(13, 38, 99, 0.16);
+  --glass-nav-bg: rgba(255, 255, 255, 0.68);
+  --glass-nav-border: rgba(255, 255, 255, 0.85);
+  --glass-nav-shadow: 0 12px 36px -8px rgba(13, 38, 99, 0.28);
+  /* Lavado de fondo: color arriba fundiéndose hacia abajo (estilo Scorify) */
+  --bg-wash:
+    radial-gradient(110% 55% at 50% -12%, rgba(29, 111, 242, 0.14), transparent 62%),
+    radial-gradient(70% 45% at 108% -5%, rgba(108, 63, 245, 0.10), transparent 56%),
+    linear-gradient(180deg, #ecf2fe 0%, #f4f7ff 50%, #eef2fb 100%);
 }
 
 .dark {
+  /* ── Dark mode: "Estadio de medianoche" ── */
   --background: #07090F;
   --foreground: #F0F4FF;
   --card: #0C1018;
@@ -138,8 +153,8 @@
   --warning-foreground: #1A0F00;
   --live: #FF3B55;
   --live-foreground: #1A0407;
-  --border: oklch(1 0 0 / 7%);
-  --input: oklch(1 0 0 / 10%);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 14%);
   --ring: #4D8EFF;
   --chart-1: #4D8EFF;
   --chart-2: #7BB8FF;
@@ -152,21 +167,36 @@
   --sidebar-primary-foreground: #F8FAFF;
   --sidebar-accent: #111827;
   --sidebar-accent-foreground: #4D8EFF;
-  --sidebar-border: oklch(1 0 0 / 7%);
+  --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: #4D8EFF;
-  /* Theme-aware utility variables */
   --gradient-primary-start: #4D8EFF;
-  --gradient-primary-end: #7B5CFF;
-  --glow-live-ring: rgba(255, 59, 85, 0.3);
-  --glow-live-shadow: rgba(255, 59, 85, 0.2);
-  --glow-primary-ring: rgba(77, 142, 255, 0.2);
-  --glow-primary-shadow: rgba(77, 142, 255, 0.15);
+  --gradient-primary-end: #A855F7;
+  --glow-live-ring: rgba(255, 59, 85, 0.32);
+  --glow-live-shadow: rgba(255, 59, 85, 0.22);
+  --glow-primary-ring: rgba(77, 142, 255, 0.24);
+  --glow-primary-shadow: rgba(77, 142, 255, 0.18);
   --shadow-card: none;
-  --shadow-nav: 0 -12px 40px -8px rgba(0, 0, 0, 0.5);
-  /* Ambiente (ver :root). */
-  --aurora-glow-1: rgba(77, 142, 255, 0.1);
-  --aurora-glow-2: rgba(123, 92, 255, 0.09);
-  --hero-base: #0a1126;
+  --shadow-nav: 0 -12px 40px -8px rgba(0, 0, 0, 0.55);
+  --aurora-glow-1: rgba(77, 142, 255, 0.22);
+  --aurora-glow-2: rgba(168, 85, 247, 0.18);
+  --hero-base: #070c1e;
+  /* Liquid Glass: velo blanco translúcido SOBRE el fondo oscuro — el cristal
+     siempre es más claro que lo que tiene detrás, nunca más oscuro. */
+  --glass-bg: rgba(16, 22, 36, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-card-bg: rgba(255, 255, 255, 0.055);
+  --glass-card-border: rgba(255, 255, 255, 0.10);
+  --glass-card-shine: rgba(255, 255, 255, 0.13);
+  --glass-card-shadow: 0 8px 32px -10px rgba(0, 0, 0, 0.45);
+  --glass-nav-bg: rgba(18, 24, 40, 0.60);
+  --glass-nav-border: rgba(255, 255, 255, 0.12);
+  --glass-nav-shadow: 0 12px 40px -6px rgba(0, 0, 0, 0.65);
+  /* Lavado de fondo: glow de marca arriba fundiéndose a negro profundo abajo */
+  --bg-wash:
+    radial-gradient(110% 60% at 50% -12%, rgba(77, 142, 255, 0.26), transparent 64%),
+    radial-gradient(75% 48% at 110% -6%, rgba(168, 85, 247, 0.22), transparent 58%),
+    radial-gradient(90% 55% at -12% 110%, rgba(108, 63, 245, 0.14), transparent 60%),
+    linear-gradient(180deg, #0c1226 0%, #070a13 48%, #05060c 100%);
 }
 
 @layer base {
@@ -190,18 +220,16 @@
   body {
     overflow-x: clip;
   }
-  /* Aurora ambiental: dos glows fijos arriba que dan profundidad al fondo en
-     toda la app. Pseudo-elemento fixed (background-attachment: fixed está roto
-     en iOS) detrás de todo y sin capturar gestos. */
+  /* Lavado ambiental: gradiente vertical con glow de marca arriba que se funde
+     hacia abajo, como las apps deportivas premium. Pseudo-elemento fixed
+     (background-attachment: fixed está roto en iOS) detrás de todo. */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background:
-      radial-gradient(60rem 42rem at 110% -12%, var(--aurora-glow-2), transparent 60%),
-      radial-gradient(52rem 38rem at -15% -10%, var(--aurora-glow-1), transparent 55%);
+    background: var(--bg-wash);
   }
   html {
     @apply font-sans;
@@ -224,11 +252,12 @@
   }
 }
 
-/* Padding inferior del <main> en móvil: hueco del bottom-nav (4rem) + margen
-   (2rem) + safe-area del iPhone. Como @utility participa en el orden de
-   variantes de Tailwind, así `lg:pb-6` puede sobreescribirlo en desktop. */
+/* Padding inferior del <main> en móvil: hueco de la tab bar flotante
+   (3.5rem de barra + 0.75rem de gap inferior) + margen + safe-area.
+   Como @utility participa en el orden de variantes de Tailwind, así
+   `lg:pb-6` puede sobreescribirlo en desktop. */
 @utility pb-nav-safe {
-  padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(6.5rem + env(safe-area-inset-bottom));
 }
 
 @layer utilities {
@@ -245,12 +274,13 @@
   .bg-primary-gradient {
     background: linear-gradient(135deg, var(--gradient-primary-start) 0%, var(--gradient-primary-end) 100%);
   }
-  /* Panel hero "estadio de noche": navy profundo con glows azul/violeta.
+  /* Panel hero "estadio de noche": negro profundo con glows azul/púrpura vibrantes.
      Texto siempre claro encima (es oscuro también en tema claro). */
   .bg-aurora {
     background:
-      radial-gradient(120% 150% at 88% -20%, color-mix(in oklab, var(--gradient-primary-end) 38%, transparent), transparent 55%),
-      radial-gradient(110% 140% at -5% -15%, color-mix(in oklab, var(--gradient-primary-start) 32%, transparent), transparent 55%),
+      radial-gradient(130% 90% at 95% -15%, color-mix(in oklab, var(--gradient-primary-end) 72%, transparent), transparent 56%),
+      radial-gradient(100% 120% at -8% -10%, color-mix(in oklab, var(--gradient-primary-start) 65%, transparent), transparent 56%),
+      radial-gradient(80% 60% at 50% 115%, color-mix(in oklab, var(--gradient-primary-end) 32%, transparent), transparent 58%),
       var(--hero-base);
   }
   /* Hairline superior: realce sutil del borde de cristal en paneles oscuros. */
@@ -264,9 +294,9 @@
     background-clip: text;
     color: transparent;
   }
-  /* Variante clara del degradado, para titulares sobre .bg-aurora (navy). */
+  /* Titular sobre panel oscuro: degradado azul-cian vibrante */
   .text-gradient-hero {
-    background: linear-gradient(135deg, #8fc2ff, #b49cff);
+    background: linear-gradient(135deg, #93c5fd, #c4b5fd);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -282,6 +312,79 @@
   }
   .shadow-nav {
     box-shadow: var(--shadow-nav);
+  }
+  /* Liquid Glass: velo blanco translúcido + blur sobre el lavado del body.
+     El cristal es más claro que el fondo (nunca más oscuro): velo white/5.5%
+     en dark, white/58% en light, con hairline brillante y shine superior. */
+  .card-glass {
+    background: var(--glass-card-bg);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid var(--glass-card-border);
+    box-shadow:
+      inset 0 1px 0 var(--glass-card-shine),
+      var(--glass-card-shadow);
+  }
+  /* Variante live del cristal: tinte y anillo rojo + acento izquierdo.
+     Definida después de .card-glass para ganar la cascada del border. */
+  .card-glass-live {
+    border-color: color-mix(in srgb, var(--live) 45%, var(--glass-card-border));
+    border-left: 3px solid var(--live);
+    box-shadow:
+      inset 0 1px 0 var(--glass-card-shine),
+      0 0 0 1px var(--glow-live-ring),
+      0 8px 28px -6px var(--glow-live-shadow);
+  }
+  /* Tab bar flotante estilo Liquid Glass: cristal más denso (legibilidad
+     sobre contenido en scroll) con blur fuerte y sombra de elevación. */
+  .glass-nav {
+    background: var(--glass-nav-bg);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border: 1px solid var(--glass-nav-border);
+    box-shadow:
+      inset 0 1px 0 var(--glass-card-shine),
+      var(--glass-nav-shadow);
+  }
+
+  /* ── Gradientes de componentes premium ── */
+
+  /* Hero de partido en vivo: glow rojo central sobre fondo oscuro */
+  .bg-live-hero {
+    background:
+      radial-gradient(ellipse 95% 60% at 50% -8%, color-mix(in oklab, var(--live) 42%, transparent), transparent 62%),
+      radial-gradient(ellipse 65% 45% at 12% 112%, color-mix(in oklab, var(--primary) 26%, transparent), transparent 58%),
+      var(--hero-base);
+  }
+  /* Tint de tarjeta en vivo: gradiente sutil en lista de partidos */
+  .bg-card-live {
+    background: linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--live) 8%, var(--card)) 0%,
+      var(--card) 55%
+    );
+  }
+  /* Glassmorphism: panel translúcido con blur, hairline y shine */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 1px 0 var(--glass-card-shine);
+  }
+  /* Card destacada con mesh gradient de marca */
+  .bg-card-featured {
+    background:
+      radial-gradient(ellipse 70% 50% at 90% -10%, color-mix(in oklab, var(--gradient-primary-end) 22%, transparent), transparent 55%),
+      radial-gradient(ellipse 60% 45% at -5% 105%, color-mix(in oklab, var(--gradient-primary-start) 18%, transparent), transparent 55%),
+      var(--card);
+  }
+  /* Borde con degradado de marca (usando background-clip trick) */
+  .border-gradient-primary {
+    background:
+      linear-gradient(var(--card), var(--card)) padding-box,
+      linear-gradient(135deg, var(--gradient-primary-start), var(--gradient-primary-end)) border-box;
+    border: 1px solid transparent;
   }
 
   /* El chrome del shell (topbar/nav/sidebar) recibe su propio

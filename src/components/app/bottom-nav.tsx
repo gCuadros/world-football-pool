@@ -23,29 +23,24 @@ const GUEST_ITEMS: NavItem[] = [
 ];
 
 /**
- * Fallback estático del menú inferior: misma barra (altura, blur, safe-area)
- * con los tabs públicos deshabilitados visualmente. Evita que el menú
- * "desaparezca" mientras el slot con datos de usuario está suspendido.
+ * Fallback estático del menú inferior: misma barra flotante (forma, blur,
+ * safe-area) con los tabs públicos deshabilitados visualmente. Evita que el
+ * menú "desaparezca" mientras el slot con datos de usuario está suspendido.
  */
 export function BottomNavSkeleton() {
   return (
     <nav
       aria-hidden
-      className="border-border/50 dark:border-white/5 bg-background/90 vt-bottom-nav fixed bottom-0 left-0 right-0 z-30 flex select-none items-stretch border-t backdrop-blur-xl shadow-nav lg:hidden"
-      style={{
-        height: "calc(4rem + env(safe-area-inset-bottom))",
-        paddingBottom: "env(safe-area-inset-bottom)",
-      }}
+      className="vt-bottom-nav glass-nav fixed inset-x-4 z-30 mx-auto flex h-14 max-w-sm select-none items-center justify-around rounded-full px-2 lg:hidden"
+      style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
     >
       {GUEST_ITEMS.map(({ href, label, icon: Icon }) => (
         <span
           key={href}
-          className="text-muted-foreground/50 flex flex-1 flex-col items-center justify-center gap-0.5 text-3xs font-semibold"
+          aria-label={label}
+          className="text-muted-foreground/40 flex size-11 items-center justify-center"
         >
-          <span className="flex h-7 w-13 items-center justify-center rounded-full">
-            <Icon className="size-5" strokeWidth={1.75} />
-          </span>
-          <span className="truncate">{label}</span>
+          <Icon className="size-5" strokeWidth={1.75} />
         </span>
       ))}
     </nav>
@@ -88,15 +83,12 @@ export function BottomNav({ user }: { user: SidebarUser }) {
   };
 
   return (
+    /* Tab bar flotante Liquid Glass: barra píldora despegada de los bordes,
+       tabs inactivos solo-icono y el activo como pill rellena icono+label. */
     <nav
       aria-label="Navegación principal"
-      className="border-border/50 dark:border-white/5 bg-background/90 vt-bottom-nav fixed bottom-0 left-0 right-0 z-30 flex select-none items-stretch border-t backdrop-blur-xl shadow-nav lg:hidden"
-      // Altura = 4rem de tabs + safe-area: el inset se suma fuera, no comprime
-      // los iconos (con h-16 fijo los tabs quedarían a 30px en iPhone).
-      style={{
-        height: "calc(4rem + env(safe-area-inset-bottom))",
-        paddingBottom: "env(safe-area-inset-bottom)",
-      }}
+      className="vt-bottom-nav glass-nav fixed inset-x-4 z-30 mx-auto flex h-14 max-w-sm select-none items-center justify-between rounded-full px-2 lg:hidden"
+      style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
     >
       {items.map(({ href, label, icon: Icon, exact }) => {
         const active = isActive(href, exact);
@@ -104,22 +96,17 @@ export function BottomNav({ user }: { user: SidebarUser }) {
           <Link
             key={href}
             href={href}
+            aria-label={label}
             onClick={() => haptics.tap()}
             className={cn(
-              "relative flex flex-1 flex-col items-center justify-center gap-0.5 min-w-0 text-3xs font-semibold transition-colors",
-              active ? "text-primary" : "text-muted-foreground active:text-foreground",
+              "flex h-11 shrink-0 items-center justify-center rounded-full transition-all",
+              active
+                ? "bg-primary text-primary-foreground gap-1.5 px-4 text-xs font-bold shadow-[0_4px_18px_-2px_var(--color-primary)]"
+                : "text-muted-foreground active:text-foreground size-11",
             )}
           >
-            {/* Pill detrás del icono: indicador de tab activa estilo app nativa */}
-            <span
-              className={cn(
-                "flex h-7 w-13 items-center justify-center rounded-full transition-colors",
-                active && "bg-primary/10 dark:bg-primary/15",
-              )}
-            >
-              <Icon className={cn("size-5", active && "drop-shadow-[0_0_5px_rgba(29,111,242,0.5)] dark:drop-shadow-[0_0_6px_rgba(77,142,255,0.6)]")} strokeWidth={active ? 2.5 : 1.75} />
-            </span>
-            <span className="truncate">{label}</span>
+            <Icon className={active ? "size-4" : "size-5"} strokeWidth={active ? 2.5 : 1.75} />
+            {active && <span className="whitespace-nowrap">{label}</span>}
           </Link>
         );
       })}

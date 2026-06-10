@@ -62,7 +62,7 @@ async function StandingsSection() {
         {groups.map((g) => (
           <div
             key={g.group}
-            className="border-border bg-card min-w-0 overflow-hidden rounded-xl border"
+            className="card-glass min-w-0 overflow-hidden rounded-xl"
           >
             <div className="bg-primary/5 border-border border-b px-3 py-2">
               <span className="text-primary font-mono text-xs font-bold tracking-widest uppercase">
@@ -138,7 +138,7 @@ async function TopScorersSection() {
         <Goal className="text-primary size-4" />
         Bota de Oro
       </h2>
-      <div className="border-border bg-card overflow-hidden rounded-xl border">
+      <div className="card-glass overflow-hidden rounded-xl">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-muted-foreground border-border bg-muted/30 border-b font-mono text-3xs tracking-wide uppercase">
@@ -196,7 +196,7 @@ async function TopAssistersSection() {
         <Handshake className="text-primary size-4" />
         Máximos Asistentes
       </h2>
-      <div className="border-border bg-card overflow-hidden rounded-xl border">
+      <div className="card-glass overflow-hidden rounded-xl">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-muted-foreground border-border bg-muted/30 border-b font-mono text-3xs tracking-wide uppercase">

@@ -48,7 +48,7 @@ async function LigaContent({ params }: { params: Promise<{ id: string }> }) {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       {/* Cabecera de la liga */}
-      <div className="border-border bg-card rounded-2xl border p-5">
+      <div className="card-glass rounded-2xl p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
           <div className="min-w-0">
             <h1 className="truncate text-xl font-bold">{league.name}</h1>
@@ -76,7 +76,7 @@ async function LigaContent({ params }: { params: Promise<{ id: string }> }) {
       </div>
 
       {/* Clasificación */}
-      <div className="border-border bg-card overflow-hidden rounded-2xl border">
+      <div className="card-glass overflow-hidden rounded-2xl">
         <div className="border-border flex items-center gap-2 border-b px-5 py-3">
           <Trophy className="text-primary size-4" />
           <h2 className="font-semibold">Clasificación</h2>

@@ -85,7 +85,7 @@ function KoMatchCard({ match }: { match: MatchBase }) {
   return (
     <Link
       href={`/partido/${match.id}`}
-      className="border-border bg-card hover:border-primary/40 hover:bg-card/80 group rounded-xl border p-3 transition-colors"
+      className="card-glass hover:border-primary/40 group rounded-xl p-3 transition-all hover:-translate-y-0.5"
     >
       <TeamRow
         name={match.homeTeam}

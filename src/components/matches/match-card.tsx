@@ -32,7 +32,7 @@ function TeamSide({
   crestName?: string;
 }) {
   const chip = (
-    <span className="bg-card ring-border dark:bg-white/6 dark:ring-white/10 flex size-14 items-center justify-center rounded-2xl shadow-card ring-1">
+    <span className="card-glass flex size-14 items-center justify-center rounded-2xl">
       <TeamCrest crest={crest} flag={flag} name={name} size={34} />
     </span>
   );
@@ -83,12 +83,11 @@ export function MatchCard({
 
   const imminent = status === "UPCOMING" && isLockImminent(match.kickoffAt, now);
 
+  // El borde y la sombra los aporta .card-glass; aquí solo estados.
   const cardClass = cn(
-    "bg-card flex flex-col gap-3 rounded-2xl border p-4 transition-all shadow-card",
-    isLive
-      ? "border-live/30 border-l-[3px] border-l-live glow-live"
-      : "border-border/70",
-    publicMode && !isLive && "hover:border-primary/40 hover:glow-primary hover:-translate-y-0.5",
+    "card-glass flex flex-col gap-3 rounded-2xl p-4 transition-all",
+    isLive && "card-glass-live",
+    publicMode && !isLive && "hover:border-primary/40 hover:-translate-y-0.5",
   );
 
   // Tono del marcador: en directo todo en primary; finalizado, el del perdedor
