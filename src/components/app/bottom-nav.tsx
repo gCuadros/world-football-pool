@@ -31,7 +31,7 @@ export function BottomNavSkeleton() {
   return (
     <nav
       aria-hidden
-      className="border-border/50 dark:border-white/5 bg-background/90 vt-bottom-nav fixed bottom-0 left-0 right-0 z-30 flex select-none items-stretch border-t backdrop-blur-xl shadow-nav lg:hidden"
+      className="vt-bottom-nav border-t border-border/30 dark:border-white/5 bg-background/85 fixed bottom-0 left-0 right-0 z-30 flex select-none items-stretch backdrop-blur-2xl shadow-nav lg:hidden"
       style={{
         height: "calc(4rem + env(safe-area-inset-bottom))",
         paddingBottom: "env(safe-area-inset-bottom)",
@@ -40,12 +40,10 @@ export function BottomNavSkeleton() {
       {GUEST_ITEMS.map(({ href, label, icon: Icon }) => (
         <span
           key={href}
-          className="text-muted-foreground/50 flex flex-1 flex-col items-center justify-center gap-0.5 text-3xs font-semibold"
+          className="text-muted-foreground/40 flex flex-1 flex-col items-center justify-center gap-0.5"
         >
-          <span className="flex h-7 w-13 items-center justify-center rounded-full">
-            <Icon className="size-5" strokeWidth={1.75} />
-          </span>
-          <span className="truncate">{label}</span>
+          <Icon className="size-5" strokeWidth={1.75} />
+          <span className="text-3xs font-medium truncate">{label}</span>
         </span>
       ))}
     </nav>
@@ -90,9 +88,7 @@ export function BottomNav({ user }: { user: SidebarUser }) {
   return (
     <nav
       aria-label="Navegación principal"
-      className="border-border/50 dark:border-white/5 bg-background/90 vt-bottom-nav fixed bottom-0 left-0 right-0 z-30 flex select-none items-stretch border-t backdrop-blur-xl shadow-nav lg:hidden"
-      // Altura = 4rem de tabs + safe-area: el inset se suma fuera, no comprime
-      // los iconos (con h-16 fijo los tabs quedarían a 30px en iPhone).
+      className="vt-bottom-nav border-t border-border/30 dark:border-white/5 bg-background/85 fixed bottom-0 left-0 right-0 z-30 flex select-none items-stretch backdrop-blur-2xl shadow-nav lg:hidden"
       style={{
         height: "calc(4rem + env(safe-area-inset-bottom))",
         paddingBottom: "env(safe-area-inset-bottom)",
@@ -105,21 +101,23 @@ export function BottomNav({ user }: { user: SidebarUser }) {
             key={href}
             href={href}
             onClick={() => haptics.tap()}
-            className={cn(
-              "relative flex flex-1 flex-col items-center justify-center gap-0.5 min-w-0 text-3xs font-semibold transition-colors",
-              active ? "text-primary" : "text-muted-foreground active:text-foreground",
-            )}
+            className="relative flex flex-1 items-center justify-center min-w-0 px-1"
           >
-            {/* Pill detrás del icono: indicador de tab activa estilo app nativa */}
-            <span
-              className={cn(
-                "flex h-7 w-13 items-center justify-center rounded-full transition-colors",
-                active && "bg-primary/10 dark:bg-primary/15",
-              )}
-            >
-              <Icon className={cn("size-5", active && "drop-shadow-[0_0_6px_rgba(29,111,242,0.55)] dark:drop-shadow-[0_0_8px_rgba(77,142,255,0.65)]")} strokeWidth={active ? 2.5 : 1.75} />
-            </span>
-            <span className="truncate">{label}</span>
+            {active ? (
+              /* Pill rellena con icono + label: patrón de app nativa premium */
+              <span className="bg-primary text-primary-foreground flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold shadow-[0_0_22px_-4px_var(--color-primary)] transition-all max-w-full">
+                <Icon className="size-4 shrink-0" strokeWidth={2.5} />
+                <span className="truncate">{label}</span>
+              </span>
+            ) : (
+              <span className={cn(
+                "flex flex-col items-center gap-0.5 transition-colors",
+                "text-muted-foreground active:text-foreground",
+              )}>
+                <Icon className="size-5" strokeWidth={1.75} />
+                <span className="text-3xs font-medium truncate">{label}</span>
+              </span>
+            )}
           </Link>
         );
       })}

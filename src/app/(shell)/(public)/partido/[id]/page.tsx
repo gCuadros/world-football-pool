@@ -101,7 +101,7 @@ function MatchHeader({ match }: { match: MatchBase }) {
       : STAGE_LABELS[match.stage];
 
   return (
-    <div className="border-border bg-card rounded-2xl border p-6">
+    <div className="border-border/60 card-glass rounded-2xl border p-6">
       <div className="mb-4 flex items-center justify-center gap-2">
         <span className="text-muted-foreground font-mono text-2xs tracking-widest uppercase">
           {stageTag}

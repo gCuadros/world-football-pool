@@ -14,7 +14,7 @@ export function MundialNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-1 overflow-x-auto border-b border-border scrollbar-none">
+    <nav className="flex gap-2 overflow-x-auto py-3 scrollbar-none">
       {TABS.map(({ href, label, exact }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         return (
@@ -22,10 +22,10 @@ export function MundialNav() {
             key={href}
             href={href}
             className={cn(
-              "shrink-0 px-4 py-2 text-sm font-medium border-b-2 transition-colors",
+              "shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition-all",
               active
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
+                ? "bg-primary text-primary-foreground shadow-[0_0_18px_-4px_var(--color-primary)]"
+                : "text-muted-foreground hover:text-foreground bg-muted/50 hover:bg-muted",
             )}
           >
             {label}

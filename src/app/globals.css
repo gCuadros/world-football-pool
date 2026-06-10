@@ -114,6 +114,8 @@
   /* Glassmorphism tints */
   --glass-bg: rgba(255, 255, 255, 0.65);
   --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-card-bg: rgba(255, 255, 255, 0.76);
+  --glass-card-shine: rgba(255, 255, 255, 0.92);
 }
 
 .dark {
@@ -164,12 +166,14 @@
   --glow-primary-shadow: rgba(77, 142, 255, 0.18);
   --shadow-card: none;
   --shadow-nav: 0 -12px 40px -8px rgba(0, 0, 0, 0.55);
-  --aurora-glow-1: rgba(77, 142, 255, 0.12);
-  --aurora-glow-2: rgba(168, 85, 247, 0.10);
+  --aurora-glow-1: rgba(77, 142, 255, 0.22);
+  --aurora-glow-2: rgba(168, 85, 247, 0.18);
   --hero-base: #070c1e;
   /* Glassmorphism tints */
   --glass-bg: rgba(12, 16, 24, 0.72);
   --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-card-bg: rgba(10, 14, 22, 0.68);
+  --glass-card-shine: rgba(255, 255, 255, 0.09);
 }
 
 @layer base {
@@ -203,9 +207,10 @@
     z-index: -1;
     pointer-events: none;
     background:
-      radial-gradient(72rem 52rem at 110% -8%, var(--aurora-glow-2), transparent 58%),
-      radial-gradient(64rem 48rem at -18% -6%, var(--aurora-glow-1), transparent 55%),
-      radial-gradient(40rem 30rem at 50% 100%, color-mix(in oklab, var(--aurora-glow-1) 50%, transparent), transparent 60%);
+      radial-gradient(96rem 72rem at 112% -10%, var(--aurora-glow-2), transparent 55%),
+      radial-gradient(88rem 66rem at -20% -8%, var(--aurora-glow-1), transparent 52%),
+      radial-gradient(58rem 46rem at 50% 108%, color-mix(in oklab, var(--aurora-glow-2) 65%, transparent), transparent 58%),
+      radial-gradient(80rem 60rem at 48% 28%, color-mix(in oklab, var(--aurora-glow-1) 30%, transparent), transparent 68%);
   }
   html {
     @apply font-sans;
@@ -288,6 +293,15 @@
   .shadow-nav {
     box-shadow: var(--shadow-nav);
   }
+  /* Liquid Glass: fondo translúcido + blur sobre el gradiente aurora del body.
+     La transparencia (68% dark / 76% light) deja pasar el color del fondo
+     para que el blur lo recoja y cree el efecto de cristal real. */
+  .card-glass {
+    background: var(--glass-card-bg);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    box-shadow: inset 0 1px 0 var(--glass-card-shine);
+  }
 
   /* ── Gradientes de componentes premium ── */
 
@@ -306,12 +320,13 @@
       var(--card) 55%
     );
   }
-  /* Glassmorphism: panel translúcido con blur y hairline */
+  /* Glassmorphism: panel translúcido con blur, hairline y shine */
   .glass {
     background: var(--glass-bg);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid var(--glass-border);
+    box-shadow: inset 0 1px 0 var(--glass-card-shine);
   }
   /* Card destacada con mesh gradient de marca */
   .bg-card-featured {

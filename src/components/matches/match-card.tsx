@@ -32,7 +32,7 @@ function TeamSide({
   crestName?: string;
 }) {
   const chip = (
-    <span className="bg-card ring-border dark:bg-white/6 dark:ring-white/10 flex size-14 items-center justify-center rounded-2xl shadow-card ring-1">
+    <span className="card-glass ring-border/60 dark:ring-white/10 flex size-14 items-center justify-center rounded-2xl ring-1">
       <TeamCrest crest={crest} flag={flag} name={name} size={34} />
     </span>
   );
@@ -84,11 +84,10 @@ export function MatchCard({
   const imminent = status === "UPCOMING" && isLockImminent(match.kickoffAt, now);
 
   const cardClass = cn(
-    "flex flex-col gap-3 rounded-2xl border p-4 transition-all shadow-card",
+    "flex flex-col gap-3 rounded-2xl border p-4 transition-all card-glass",
     isLive
-      ? "bg-card-live border-live/25 border-l-[3px] border-l-live glow-live"
-      : "bg-card border-border/60",
-    isFinished && "bg-card-featured",
+      ? "border-live/30 border-l-[3px] border-l-live glow-live"
+      : "border-border/60 shadow-card",
     publicMode && !isLive && "hover:border-primary/40 hover:glow-primary hover:-translate-y-0.5",
   );
 
