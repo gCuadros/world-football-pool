@@ -117,7 +117,7 @@ export function BottomNav({ user }: { user: SidebarUser }) {
                 active && "bg-primary/10 dark:bg-primary/15",
               )}
             >
-              <Icon className={cn("size-5", active && "drop-shadow-[0_0_6px_rgba(22,163,74,0.6)] dark:drop-shadow-[0_0_8px_rgba(74,222,128,0.7)]")} strokeWidth={active ? 2.5 : 1.75} />
+              <Icon className={cn("size-5", active && "drop-shadow-[0_0_6px_rgba(29,111,242,0.55)] dark:drop-shadow-[0_0_8px_rgba(77,142,255,0.65)]")} strokeWidth={active ? 2.5 : 1.75} />
             </span>
             <span className="truncate">{label}</span>
           </Link>

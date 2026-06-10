@@ -6,6 +6,7 @@ import { TeamLink } from "@/components/matches/team-link";
 import { ClickCard } from "@/components/ui/click-card";
 import { PitchLines } from "@/components/ui/pitch-lines";
 import { ArrowRight, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function HeroMatch({ match, now }: { match: MatchBase; now?: Date }) {
   const live = match.status === "LIVE";
@@ -22,7 +23,10 @@ export function HeroMatch({ match, now }: { match: MatchBase; now?: Date }) {
     <ClickCard
       href={`/partido/${match.id}`}
       ariaLabel={`${match.homeTeam} contra ${match.awayTeam}`}
-      className="bg-aurora inset-hairline relative block overflow-hidden rounded-3xl p-5 text-white transition-transform hover:-translate-y-0.5 sm:p-6"
+      className={cn(
+        "inset-hairline relative block overflow-hidden rounded-3xl p-5 text-white transition-transform hover:-translate-y-0.5 sm:p-6",
+        live ? "bg-live-hero" : "bg-aurora",
+      )}
     >
       <PitchLines />
       <div className="relative space-y-5">

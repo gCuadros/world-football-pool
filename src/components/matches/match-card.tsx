@@ -84,10 +84,11 @@ export function MatchCard({
   const imminent = status === "UPCOMING" && isLockImminent(match.kickoffAt, now);
 
   const cardClass = cn(
-    "bg-card flex flex-col gap-3 rounded-2xl border p-4 transition-all shadow-card",
+    "flex flex-col gap-3 rounded-2xl border p-4 transition-all shadow-card",
     isLive
-      ? "border-live/30 border-l-[3px] border-l-live glow-live"
-      : "border-border/70",
+      ? "bg-card-live border-live/25 border-l-[3px] border-l-live glow-live"
+      : "bg-card border-border/60",
+    isFinished && "bg-card-featured",
     publicMode && !isLive && "hover:border-primary/40 hover:glow-primary hover:-translate-y-0.5",
   );
 

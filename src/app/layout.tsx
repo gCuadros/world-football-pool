@@ -44,8 +44,8 @@ export const viewport: Viewport = {
   themeColor: [
     // El claro coincide con --background para que la barra de estado se funda
     // con la app (como una app nativa), no con el azul de marca.
-    { media: "(prefers-color-scheme: light)", color: "#F0FAF2" },
-    { media: "(prefers-color-scheme: dark)", color: "#080F09" },
+    { media: "(prefers-color-scheme: light)", color: "#F4F7FF" },
+    { media: "(prefers-color-scheme: dark)", color: "#07090F" },
   ],
 };
 
