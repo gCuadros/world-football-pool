@@ -62,6 +62,7 @@
 
 :root {
   /* ── Light mode ── */
+  color-scheme: light;
   --background: #F4F7FF;
   --foreground: #08142B;
   --card: #FFFFFF;
@@ -134,6 +135,7 @@
 
 .dark {
   /* ── Dark mode: "Estadio de medianoche" ── */
+  color-scheme: dark;
   --background: #07090F;
   --foreground: #F0F4FF;
   --card: #0C1018;
@@ -219,6 +221,11 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* El canvas del documento (detrás de todo, visible en view transitions,
+     overscroll y al volver del background) nunca debe ser blanco en dark. */
+  html {
+    background-color: var(--background);
   }
   /* Una app no tiene scroll horizontal: cualquier desbordamiento puntual se
      recorta en vez de crear una banda de scroll lateral. */
@@ -540,6 +547,43 @@
 ::view-transition-new(bottom-nav),
 ::view-transition-new(sidebar) {
   animation: none;
+}
+
+/* Navegación direccional (Link/router con transitionTypes): drill-down
+   desliza a la izquierda (nav-forward), volver a la derecha (nav-back).
+   Salida rápida (150ms), entrada suave y retrasada (210ms) — asimetría
+   deliberada: lo viejo no compite por la atención con lo nuevo. */
+::view-transition-old(.nav-forward) {
+  --slide-offset: -28px;
+  animation:
+    150ms ease-in both vt-fade reverse,
+    320ms ease-in-out both vt-slide-x reverse;
+}
+::view-transition-new(.nav-forward) {
+  --slide-offset: 28px;
+  animation:
+    210ms ease-out 150ms both vt-fade,
+    320ms ease-in-out both vt-slide-x;
+}
+::view-transition-old(.nav-back) {
+  --slide-offset: 28px;
+  animation:
+    150ms ease-in both vt-fade reverse,
+    320ms ease-in-out both vt-slide-x reverse;
+}
+::view-transition-new(.nav-back) {
+  --slide-offset: -28px;
+  animation:
+    210ms ease-out 150ms both vt-fade,
+    320ms ease-in-out both vt-slide-x;
+}
+@keyframes vt-slide-x {
+  from {
+    translate: var(--slide-offset) 0;
+  }
+  to {
+    translate: 0 0;
+  }
 }
 
 /* Revelado skeleton → contenido (componente <Reveal>): el skeleton sale rápido,

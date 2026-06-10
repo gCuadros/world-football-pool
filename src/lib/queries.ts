@@ -55,6 +55,14 @@ export type MatchVM = MatchBase & {
   locked: boolean;
 };
 
+/** Solo letras A-L son grupos reales: la BD puede arrastrar pseudo-grupos
+ *  de la API ("RANKING OF THIRD-PLACED TEAMS") de syncs anteriores. */
+function cleanGroup(g: string | null): string | null {
+  if (!g) return null;
+  const t = g.trim().toUpperCase();
+  return /^[A-L]$/.test(t) ? t : null;
+}
+
 /**
  * Calendario completo (compartido entre todos los usuarios) — CACHEADO (`use cache`).
  * Invalida con tag `matches` cuando se actualiza el calendario o resultados.
@@ -79,7 +87,7 @@ export async function getMatchesBase(): Promise<MatchBase[]> {
     awayCrest: m.awayCrest,
     kickoffAt: m.kickoffAt.toISOString(),
     stage: m.stage,
-    group: m.group,
+    group: cleanGroup(m.group),
     stadium: m.stadium,
     city: m.city,
     homeScore: m.homeScore,
@@ -374,7 +382,7 @@ export async function getKnockoutMatches(): Promise<KnockoutRound[]> {
       awayCrest: m.awayCrest,
       kickoffAt: m.kickoffAt.toISOString(),
       stage: m.stage,
-      group: m.group,
+      group: cleanGroup(m.group),
       stadium: m.stadium,
       city: m.city,
       homeScore: m.homeScore,
@@ -603,7 +611,7 @@ export async function getTeamPage(slug: string): Promise<TeamPageData | null> {
       awayCrest: m.awayCrest,
       kickoffAt: m.kickoffAt.toISOString(),
       stage: m.stage,
-      group: m.group,
+      group: cleanGroup(m.group),
       stadium: m.stadium,
       city: m.city,
       homeScore: m.homeScore,

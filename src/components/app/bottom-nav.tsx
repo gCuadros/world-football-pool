@@ -108,10 +108,10 @@ export function BottomNav({ user }: { user: SidebarUser }) {
             aria-label={label}
             onClick={() => haptics.tap()}
             className={cn(
-              "flex h-11 shrink-0 items-center justify-center rounded-full transition-all",
+              "flex h-11 shrink-0 items-center justify-center rounded-full",
               active
-                ? "bg-primary text-primary-foreground gap-1.5 px-4 text-xs font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_4px_18px_-2px_var(--color-primary)]"
-                : "text-muted-foreground active:text-foreground size-11",
+                ? "bg-primary text-primary-foreground gap-1.5 px-4 text-xs font-bold shadow-[0_2px_14px_-3px_var(--color-primary)]"
+                : "text-muted-foreground active:text-foreground size-11 transition-colors",
             )}
           >
             {/* fill cuando activo: el cambio de peso del icono es la señal

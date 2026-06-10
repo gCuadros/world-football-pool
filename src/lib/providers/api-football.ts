@@ -102,8 +102,10 @@ async function getGroupMap(): Promise<Map<number, string>> {
     );
     for (const group of resp[0]?.league?.standings ?? []) {
       for (const row of group) {
-        const g = (row.group ?? "").replace(/group/i, "").trim();
-        if (g) map.set(row.team.id, g);
+        // Solo "Group A".."Group L": la API añade pseudo-grupos como
+        // "RANKING OF THIRD-PLACED TEAMS" que pisarían el grupo real.
+        const m = /^group\s+([a-l])$/i.exec((row.group ?? "").trim());
+        if (m) map.set(row.team.id, m[1].toUpperCase());
       }
     }
   } catch {

@@ -24,7 +24,7 @@ export function MundialNav() {
             className={cn(
               "shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition-all",
               active
-                ? "bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_0_18px_-4px_var(--color-primary)]"
+                ? "bg-primary text-primary-foreground shadow-[0_2px_14px_-3px_var(--color-primary)]"
                 : "chip-glass text-muted-foreground hover:text-foreground",
             )}
           >
