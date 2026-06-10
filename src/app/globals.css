@@ -60,20 +60,21 @@
 }
 
 :root {
-  --background: #EEF3FF;
-  --foreground: #060F24;
+  /* ── Light mode: "Día de partido" ── */
+  --background: #F0FAF2;
+  --foreground: #071A0C;
   --card: #FFFFFF;
-  --card-foreground: #060F24;
+  --card-foreground: #071A0C;
   --popover: #FFFFFF;
-  --popover-foreground: #060F24;
-  --primary: #1558E0;
+  --popover-foreground: #071A0C;
+  --primary: #16A34A;
   --primary-foreground: #FFFFFF;
-  --secondary: #E2ECFF;
-  --secondary-foreground: #0A2050;
-  --muted: #DAE6F8;
-  --muted-foreground: #304F78;
-  --accent: #E2ECFF;
-  --accent-foreground: #1558E0;
+  --secondary: #DCFCE7;
+  --secondary-foreground: #14532D;
+  --muted: #D1FAE5;
+  --muted-foreground: #166534;
+  --accent: #DCFCE7;
+  --accent-foreground: #16A34A;
   --destructive: #DC2626;
   --destructive-foreground: #ffffff;
   --success: #059669;
@@ -82,91 +83,87 @@
   --warning-foreground: #ffffff;
   --live: #E11D38;
   --live-foreground: #ffffff;
-  --border: #BBCFE8;
-  --input: #BBCFE8;
-  --ring: #1558E0;
-  --chart-1: #1558E0;
-  --chart-2: #4D8EFF;
-  --chart-3: #7BB8FF;
-  --chart-4: #059669;
+  --border: #A3D9AB;
+  --input: #A3D9AB;
+  --ring: #16A34A;
+  --chart-1: #16A34A;
+  --chart-2: #4ADE80;
+  --chart-3: #86EFAC;
+  --chart-4: #0891B2;
   --chart-5: #D97706;
   --radius: 1rem;
-  --sidebar: #F4F8FF;
-  --sidebar-foreground: #060F24;
-  --sidebar-primary: #1558E0;
+  --sidebar: #F5FBF6;
+  --sidebar-foreground: #071A0C;
+  --sidebar-primary: #16A34A;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #E2ECFF;
-  --sidebar-accent-foreground: #1558E0;
-  --sidebar-border: #BBCFE8;
-  --sidebar-ring: #1558E0;
-  /* Theme-aware utility variables */
-  --gradient-primary-start: #1558E0;
-  --gradient-primary-end: #3B3EF0;
+  --sidebar-accent: #DCFCE7;
+  --sidebar-accent-foreground: #16A34A;
+  --sidebar-border: #A3D9AB;
+  --sidebar-ring: #16A34A;
+  --gradient-primary-start: #16A34A;
+  --gradient-primary-end: #0891B2;
   --glow-live-ring: rgba(225, 29, 56, 0.22);
   --glow-live-shadow: rgba(225, 29, 56, 0.16);
-  --glow-primary-ring: rgba(21, 88, 224, 0.24);
-  --glow-primary-shadow: rgba(21, 88, 224, 0.16);
-  /* Sombra de tarjeta pronunciada: da profundidad real en light mode */
-  --shadow-card: 0 1px 3px rgba(0, 20, 80, 0.08), 0 8px 28px -6px rgba(0, 20, 90, 0.14);
-  --shadow-nav: 0 -2px 20px -4px rgba(0, 20, 80, 0.14), 0 -1px 0 0 rgba(0, 30, 100, 0.08);
-  /* Aurora más visible en light mode */
-  --aurora-glow-1: rgba(21, 88, 224, 0.13);
-  --aurora-glow-2: rgba(59, 62, 240, 0.10);
-  --hero-base: #0b1430;
+  --glow-primary-ring: rgba(22, 163, 74, 0.26);
+  --glow-primary-shadow: rgba(22, 163, 74, 0.18);
+  --shadow-card: 0 1px 3px rgba(0, 50, 15, 0.08), 0 8px 28px -6px rgba(0, 50, 15, 0.12);
+  --shadow-nav: 0 -2px 20px -4px rgba(0, 50, 20, 0.14), 0 -1px 0 0 rgba(0, 60, 20, 0.08);
+  --aurora-glow-1: rgba(22, 163, 74, 0.14);
+  --aurora-glow-2: rgba(8, 145, 178, 0.10);
+  --hero-base: #051208;
 }
 
 .dark {
-  --background: #07090F;
-  --foreground: #F0F4FF;
-  --card: #0C1018;
-  --card-foreground: #F0F4FF;
-  --popover: #0C1018;
-  --popover-foreground: #F0F4FF;
-  --primary: #4D8EFF;
-  --primary-foreground: #F8FAFF;
-  --secondary: #111827;
-  --secondary-foreground: #94A8C4;
-  --muted: #111827;
-  --muted-foreground: #5E7A99;
-  --accent: #111827;
-  --accent-foreground: #4D8EFF;
-  --destructive: #F87171;
-  --destructive-foreground: #1a0606;
-  --success: #00C48C;
-  --success-foreground: #001A12;
-  --warning: #F59E0B;
+  /* ── Dark mode: "Estadio de noche" ── */
+  --background: #080F09;
+  --foreground: #E4F0E6;
+  --card: #0D1A0E;
+  --card-foreground: #E4F0E6;
+  --popover: #0D1A0E;
+  --popover-foreground: #E4F0E6;
+  --primary: #4ADE80;
+  --primary-foreground: #042008;
+  --secondary: #142816;
+  --secondary-foreground: #7CB887;
+  --muted: #142816;
+  --muted-foreground: #4A7A52;
+  --accent: #142816;
+  --accent-foreground: #4ADE80;
+  --destructive: #FF6B6B;
+  --destructive-foreground: #1a0000;
+  --success: #22C55E;
+  --success-foreground: #042008;
+  --warning: #FACC15;
   --warning-foreground: #1A0F00;
   --live: #FF3B55;
   --live-foreground: #1A0407;
-  --border: oklch(1 0 0 / 7%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: #4D8EFF;
-  --chart-1: #4D8EFF;
-  --chart-2: #7BB8FF;
-  --chart-3: #A9D0FF;
-  --chart-4: #00C48C;
-  --chart-5: #F59E0B;
-  --sidebar: #080A10;
-  --sidebar-foreground: #F0F4FF;
-  --sidebar-primary: #4D8EFF;
-  --sidebar-primary-foreground: #F8FAFF;
-  --sidebar-accent: #111827;
-  --sidebar-accent-foreground: #4D8EFF;
-  --sidebar-border: oklch(1 0 0 / 7%);
-  --sidebar-ring: #4D8EFF;
-  /* Theme-aware utility variables */
-  --gradient-primary-start: #4D8EFF;
-  --gradient-primary-end: #7B5CFF;
-  --glow-live-ring: rgba(255, 59, 85, 0.3);
-  --glow-live-shadow: rgba(255, 59, 85, 0.2);
-  --glow-primary-ring: rgba(77, 142, 255, 0.2);
-  --glow-primary-shadow: rgba(77, 142, 255, 0.15);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 11%);
+  --ring: #4ADE80;
+  --chart-1: #4ADE80;
+  --chart-2: #86EFAC;
+  --chart-3: #BBF7D0;
+  --chart-4: #22C55E;
+  --chart-5: #FACC15;
+  --sidebar: #060D07;
+  --sidebar-foreground: #E4F0E6;
+  --sidebar-primary: #4ADE80;
+  --sidebar-primary-foreground: #042008;
+  --sidebar-accent: #142816;
+  --sidebar-accent-foreground: #4ADE80;
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: #4ADE80;
+  --gradient-primary-start: #4ADE80;
+  --gradient-primary-end: #06B6D4;
+  --glow-live-ring: rgba(255, 59, 85, 0.32);
+  --glow-live-shadow: rgba(255, 59, 85, 0.22);
+  --glow-primary-ring: rgba(74, 222, 128, 0.22);
+  --glow-primary-shadow: rgba(74, 222, 128, 0.16);
   --shadow-card: none;
-  --shadow-nav: 0 -12px 40px -8px rgba(0, 0, 0, 0.5);
-  /* Ambiente (ver :root). */
-  --aurora-glow-1: rgba(77, 142, 255, 0.1);
-  --aurora-glow-2: rgba(123, 92, 255, 0.09);
-  --hero-base: #0a1126;
+  --shadow-nav: 0 -12px 40px -8px rgba(0, 0, 0, 0.55);
+  --aurora-glow-1: rgba(74, 222, 128, 0.10);
+  --aurora-glow-2: rgba(6, 182, 212, 0.08);
+  --hero-base: #040C05;
 }
 
 @layer base {
@@ -264,9 +261,9 @@
     background-clip: text;
     color: transparent;
   }
-  /* Variante clara del degradado, para titulares sobre .bg-aurora (navy). */
+  /* Variante clara del degradado, para titulares sobre .bg-aurora (verde oscuro). */
   .text-gradient-hero {
-    background: linear-gradient(135deg, #8fc2ff, #b49cff);
+    background: linear-gradient(135deg, #86efac, #67e8f9);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;

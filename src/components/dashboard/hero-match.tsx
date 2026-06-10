@@ -32,10 +32,10 @@ export function HeroMatch({ match, now }: { match: MatchBase; now?: Date }) {
             {stageTag}
           </span>
           {live ? (
-            <span className="flex items-center gap-1.5 font-mono text-xs font-bold tracking-wider text-rose-300">
+            <span className="text-live flex items-center gap-1.5 font-mono text-xs font-bold tracking-wider">
               <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-rose-400 opacity-75" />
-                <span className="relative inline-flex size-2 rounded-full bg-rose-400" />
+                <span className="bg-live absolute inline-flex size-full animate-ping rounded-full opacity-75" />
+                <span className="bg-live relative inline-flex size-2 rounded-full" />
               </span>
               {match.liveMinute ? `${match.liveMinute}'` : "EN VIVO"}
             </span>
@@ -86,7 +86,7 @@ export function HeroMatch({ match, now }: { match: MatchBase; now?: Date }) {
           <span className="truncate font-mono text-3xs text-white/50">
             {match.stadium}{match.city ? ` · ${match.city}` : ""}
           </span>
-          <span className={`flex shrink-0 items-center gap-0.5 text-xs font-semibold ${live ? "text-rose-300" : "text-white/80"}`}>
+          <span className={`flex shrink-0 items-center gap-0.5 text-xs font-semibold ${live ? "text-live" : "text-white/80"}`}>
             {live ? "Ver en directo" : "Ver partido"}
             <ChevronRight className="size-3.5" />
           </span>
