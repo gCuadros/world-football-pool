@@ -31,24 +31,16 @@ export function ClickCard({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    let cancelled = false;
     const io = new IntersectionObserver(
       (entries) => {
         if (!entries.some((e) => e.isIntersecting)) return;
         io.disconnect();
-        // onInvalidate re-prefetcha si los datos precargados caducan.
-        const warm = () => {
-          if (!cancelled) router.prefetch(href, { onInvalidate: warm });
-        };
-        warm();
+        router.prefetch(href);
       },
       { rootMargin: "200px" },
     );
     io.observe(el);
-    return () => {
-      cancelled = true;
-      io.disconnect();
-    };
+    return () => io.disconnect();
   }, [href, router]);
 
   return (
