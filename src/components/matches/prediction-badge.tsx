@@ -1,4 +1,4 @@
-import { Check, Target } from "lucide-react";
+import { Check, Target, X } from "lucide-react";
 
 import type { PredictionVM, MatchBase } from "@/lib/queries";
 import { cn } from "@/lib/utils";
@@ -23,30 +23,22 @@ export function PredictionBadge({
     return (
       <div
         className={cn(
-          "text-muted-foreground bg-muted flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium",
+          "text-muted-foreground bg-muted/60 border-border/50 flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium",
           className,
         )}
       >
-        <Target className="size-3.5 shrink-0" />
-        Tu pred: <span className="text-foreground font-mono">{score}</span>
+        <Target className="size-3.5 shrink-0 opacity-60" />
+        <span>Tu pred:</span>
+        <span className="text-foreground font-mono font-semibold">{score}</span>
         {match && prediction.advancePick && (
-          <span className="opacity-60">
-            · pasa {prediction.advancePick === "HOME" ? match.homeTeam : match.awayTeam}
+          <span className="text-muted-foreground/70 ml-auto">
+            pasa {prediction.advancePick === "HOME" ? match.homeTeam : match.awayTeam}
           </span>
         )}
       </div>
     );
   }
 
-  const tone = exact
-    ? "border-success/40 bg-success/10 text-success"
-    : points > 0
-      ? "border-primary/30 bg-primary/10 text-primary"
-      : "border-border bg-muted text-muted-foreground";
-
-  const label = exact ? "Exacto" : points > 0 ? "Parcial" : "Fallaste";
-
-  // Show who the user predicted to advance vs who actually advanced
   const advanceNote =
     match && prediction.advancePick && match.advanced
       ? prediction.advancePick === match.advanced
@@ -54,25 +46,54 @@ export function PredictionBadge({
         : `✗ pasó ${match.advanced === "HOME" ? match.homeTeam : match.awayTeam}`
       : null;
 
+  if (exact) {
+    return (
+      <div className={cn("overflow-hidden rounded-xl", className)}>
+        <div className="bg-success flex items-center gap-2 px-3 py-2 text-white">
+          <Check className="size-3.5 shrink-0" strokeWidth={2.5} />
+          <span className="font-mono font-bold tracking-tight">{score}</span>
+          <span className="text-white/80 text-xs">· Exacto</span>
+          <span className="ml-auto font-mono text-sm font-black">+{formatPts(points)} pts</span>
+        </div>
+        {advanceNote && (
+          <div className="bg-success/10 text-success border-t border-success/20 px-3 py-1 text-2xs font-medium">
+            {advanceNote}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (points > 0) {
+    return (
+      <div className={cn("overflow-hidden rounded-xl", className)}>
+        <div className="bg-primary/10 border-primary/25 flex items-center gap-2 rounded-xl border px-3 py-2 text-xs">
+          <Check className="text-primary size-3.5 shrink-0" strokeWidth={2.5} />
+          <span className="text-primary font-mono font-semibold">{score}</span>
+          <span className="text-primary/70">· Parcial</span>
+          <span className="text-primary ml-auto font-mono font-black">+{formatPts(points)} pts</span>
+        </div>
+        {advanceNote && (
+          <div className="text-primary/70 border-primary/15 border-t bg-primary/5 px-3 py-1 text-2xs font-medium">
+            {advanceNote}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={cn(
-        "flex flex-col gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium",
-        tone,
-        className,
-      )}
-    >
-      <div className="flex items-center gap-1.5">
-        {points > 0 ? <Check className="size-3.5 shrink-0" /> : <Target className="size-3.5 shrink-0" />}
-        <span className="font-mono">{score}</span>
-        <span className="opacity-70">·</span>
-        <span>{label}</span>
-        <span className="ml-auto font-mono font-bold">
-          {points > 0 ? `+${formatPts(points)}` : "0"} pts
-        </span>
+    <div className={cn("overflow-hidden rounded-xl", className)}>
+      <div className="bg-muted/60 border-border/60 flex items-center gap-2 rounded-xl border px-3 py-2 text-xs">
+        <X className="text-muted-foreground size-3.5 shrink-0" strokeWidth={2.5} />
+        <span className="text-muted-foreground font-mono">{score}</span>
+        <span className="text-muted-foreground/70">· Fallaste</span>
+        <span className="text-muted-foreground ml-auto font-mono font-semibold">0 pts</span>
       </div>
       {advanceNote && (
-        <span className="opacity-70 pl-5 text-2xs">{advanceNote}</span>
+        <div className="text-muted-foreground/70 border-border/40 border-t bg-muted/40 px-3 py-1 text-2xs font-medium">
+          {advanceNote}
+        </div>
       )}
     </div>
   );

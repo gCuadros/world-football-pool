@@ -60,20 +60,20 @@
 }
 
 :root {
-  --background: #F4F7FF;
-  --foreground: #08142B;
+  --background: #EEF3FF;
+  --foreground: #060F24;
   --card: #FFFFFF;
-  --card-foreground: #08142B;
+  --card-foreground: #060F24;
   --popover: #FFFFFF;
-  --popover-foreground: #08142B;
-  --primary: #1D6FF2;
+  --popover-foreground: #060F24;
+  --primary: #1558E0;
   --primary-foreground: #FFFFFF;
-  --secondary: #EAF1FF;
-  --secondary-foreground: #0E2650;
-  --muted: #E8F0FA;
-  --muted-foreground: #3A5C85;
-  --accent: #EAF1FF;
-  --accent-foreground: #1D6FF2;
+  --secondary: #E2ECFF;
+  --secondary-foreground: #0A2050;
+  --muted: #DAE6F8;
+  --muted-foreground: #304F78;
+  --accent: #E2ECFF;
+  --accent-foreground: #1558E0;
   --destructive: #DC2626;
   --destructive-foreground: #ffffff;
   --success: #059669;
@@ -82,36 +82,36 @@
   --warning-foreground: #ffffff;
   --live: #E11D38;
   --live-foreground: #ffffff;
-  --border: #C8D8EE;
-  --input: #C8D8EE;
-  --ring: #1D6FF2;
-  --chart-1: #1D6FF2;
+  --border: #BBCFE8;
+  --input: #BBCFE8;
+  --ring: #1558E0;
+  --chart-1: #1558E0;
   --chart-2: #4D8EFF;
   --chart-3: #7BB8FF;
   --chart-4: #059669;
   --chart-5: #D97706;
   --radius: 1rem;
-  --sidebar: #FFFFFF;
-  --sidebar-foreground: #08142B;
-  --sidebar-primary: #1D6FF2;
+  --sidebar: #F4F8FF;
+  --sidebar-foreground: #060F24;
+  --sidebar-primary: #1558E0;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #EAF1FF;
-  --sidebar-accent-foreground: #1D6FF2;
-  --sidebar-border: #C8D8EE;
-  --sidebar-ring: #1D6FF2;
+  --sidebar-accent: #E2ECFF;
+  --sidebar-accent-foreground: #1558E0;
+  --sidebar-border: #BBCFE8;
+  --sidebar-ring: #1558E0;
   /* Theme-aware utility variables */
-  --gradient-primary-start: #1D6FF2;
-  --gradient-primary-end: #4848F5;
-  --glow-live-ring: rgba(225, 29, 56, 0.2);
-  --glow-live-shadow: rgba(225, 29, 56, 0.14);
-  --glow-primary-ring: rgba(29, 111, 242, 0.22);
-  --glow-primary-shadow: rgba(29, 111, 242, 0.14);
-  --shadow-card: 0 1px 2px rgba(0, 40, 130, 0.06), 0 4px 16px -4px rgba(0, 40, 130, 0.08);
-  --shadow-nav: 0 -2px 16px -2px rgba(0, 30, 100, 0.1), 0 -1px 0 0 rgba(0, 40, 130, 0.08);
-  /* Ambiente: glows del fondo de la app y base del panel hero (el hero es
-     siempre un panel oscuro "estadio de noche", también en tema claro). */
-  --aurora-glow-1: rgba(29, 111, 242, 0.07);
-  --aurora-glow-2: rgba(72, 72, 245, 0.06);
+  --gradient-primary-start: #1558E0;
+  --gradient-primary-end: #3B3EF0;
+  --glow-live-ring: rgba(225, 29, 56, 0.22);
+  --glow-live-shadow: rgba(225, 29, 56, 0.16);
+  --glow-primary-ring: rgba(21, 88, 224, 0.24);
+  --glow-primary-shadow: rgba(21, 88, 224, 0.16);
+  /* Sombra de tarjeta pronunciada: da profundidad real en light mode */
+  --shadow-card: 0 1px 3px rgba(0, 20, 80, 0.08), 0 8px 28px -6px rgba(0, 20, 90, 0.14);
+  --shadow-nav: 0 -2px 20px -4px rgba(0, 20, 80, 0.14), 0 -1px 0 0 rgba(0, 30, 100, 0.08);
+  /* Aurora más visible en light mode */
+  --aurora-glow-1: rgba(21, 88, 224, 0.13);
+  --aurora-glow-2: rgba(59, 62, 240, 0.10);
   --hero-base: #0b1430;
 }
 
@@ -276,6 +276,9 @@
   }
   .glow-primary {
     box-shadow: 0 0 0 1px var(--glow-primary-ring), 0 4px 24px -4px var(--glow-primary-shadow);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
   }
   .shadow-nav {
     box-shadow: var(--shadow-nav);

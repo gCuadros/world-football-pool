@@ -28,8 +28,6 @@ export function Dashboard({
     data;
   const firstName = userName.split(" ")[0] || userName;
 
-  // Partido destacado del hero: el primero en directo o, si no, el siguiente.
-  // Se excluye de las listas de abajo para no repetirlo.
   const featured = liveMatches[0] ?? upcomingMatches[0] ?? null;
   const liveRest = liveMatches.filter((m) => m.id !== featured?.id);
   const upcomingRest = upcomingMatches.filter((m) => m.id !== featured?.id);
@@ -41,8 +39,10 @@ export function Dashboard({
       {/* Saludo + CTA pendientes */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Hola, {firstName} 👋</h1>
-          <p className="text-muted-foreground text-sm">
+          <h1 className="text-2xl font-bold tracking-tight">
+            Hola, <span className="text-gradient-primary">{firstName}</span>
+          </h1>
+          <p className="text-muted-foreground mt-0.5 text-sm">
             {leagues.length > 0
               ? "Esto es lo que pasa en tus ligas."
               : "Únete a una liga para empezar a predecir."}
@@ -51,7 +51,7 @@ export function Dashboard({
         {primaryLeagueId && pendingCount > 0 && (
           <Link
             href={`/liga/${primaryLeagueId}/predicciones`}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors"
+            className="bg-primary-gradient shadow-primary/25 flex shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-90"
           >
             <Target className="size-4" />
             {pendingCount} {pendingCount === 1 ? "predicción" : "predicciones"} pendiente
@@ -65,7 +65,7 @@ export function Dashboard({
       {leagues.length === 0 && (
         <Link
           href="/ligas"
-          className="border-primary/30 bg-primary/5 hover:bg-primary/10 flex items-center gap-4 rounded-2xl border border-dashed p-6 transition-colors"
+          className="border-primary/30 bg-primary/5 hover:bg-primary/8 flex items-center gap-4 rounded-2xl border border-dashed p-6 transition-colors"
         >
           <div className="bg-primary/10 flex size-12 shrink-0 items-center justify-center rounded-xl">
             <Users className="text-primary size-6" />
@@ -104,9 +104,9 @@ export function Dashboard({
               <Link
                 key={l.id}
                 href={`/liga/${l.id}`}
-                className="border-border bg-card hover:bg-card/70 group flex items-center gap-4 rounded-2xl border p-4 transition-colors"
+                className="border-border bg-card shadow-card hover:border-primary/30 group flex items-center gap-4 rounded-2xl border p-4 transition-all hover:-translate-y-0.5"
               >
-                <div className="bg-primary/10 flex size-11 shrink-0 items-center justify-center rounded-xl font-mono text-lg font-bold text-primary">
+                <div className="bg-primary/10 flex size-11 shrink-0 items-center justify-center rounded-xl font-mono text-lg font-black text-primary">
                   {l.rank ? `#${l.rank}` : "—"}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -115,12 +115,12 @@ export function Dashboard({
                     {l.points} pts · {l.accuracy}% · {l.memberCount} jugadores
                   </p>
                 </div>
-                <ArrowRight className="text-muted-foreground group-hover:text-foreground size-4 shrink-0 transition-colors" />
+                <ArrowRight className="text-muted-foreground group-hover:text-primary size-4 shrink-0 transition-colors" />
               </Link>
             ))}
             <Link
               href="/ligas"
-              className="border-border text-muted-foreground hover:bg-muted/40 hover:text-foreground flex items-center justify-center gap-2 rounded-2xl border border-dashed p-4 text-sm font-medium transition-colors"
+              className="border-border text-muted-foreground hover:border-primary/30 hover:text-foreground flex items-center justify-center gap-2 rounded-2xl border border-dashed p-4 text-sm font-medium transition-colors"
             >
               <Plus className="size-4" />
               Crear o unirse a otra liga
@@ -188,26 +188,29 @@ function MiniMatch({
       ? `Grupo ${match.group}`
       : STAGE_SHORT[match.stage];
   const hasScore = match.homeScore !== null && match.awayScore !== null;
+  const homeWins = hasScore && match.homeScore! > match.awayScore!;
+  const awayWins = hasScore && match.awayScore! > match.homeScore!;
 
   return (
     <ClickCard
       href={`/partido/${match.id}`}
       ariaLabel={`${match.homeTeam} contra ${match.awayTeam}`}
-      className={`bg-card hover:border-primary/40 flex flex-col gap-2 rounded-xl border p-3 transition-colors ${live ? "border-live/40" : "border-border"}`}
+      className={`bg-card shadow-card flex flex-col gap-2.5 rounded-2xl border p-3.5 transition-all hover:-translate-y-0.5 ${live ? "border-live/40 glow-live" : "border-border/70 hover:border-primary/30"}`}
     >
       <div className="flex items-center justify-between">
         <span className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">
           {stageTag}
         </span>
         {live && (
-          <span className="text-live font-mono text-3xs font-bold">
+          <span className="text-live flex items-center gap-1 font-mono text-3xs font-bold">
+            <span className="bg-live inline-block size-1.5 animate-pulse rounded-full" />
             {match.liveMinute ? `${match.liveMinute}'` : "EN VIVO"}
           </span>
         )}
       </div>
       <div className="space-y-1.5">
-        <TeamRow flag={match.homeFlag} crest={match.homeCrest} name={match.homeTeam} score={hasScore ? match.homeScore : null} />
-        <TeamRow flag={match.awayFlag} crest={match.awayCrest} name={match.awayTeam} score={hasScore ? match.awayScore : null} />
+        <TeamRow flag={match.homeFlag} crest={match.homeCrest} name={match.homeTeam} score={hasScore ? match.homeScore : null} winner={homeWins} />
+        <TeamRow flag={match.awayFlag} crest={match.awayCrest} name={match.awayTeam} score={hasScore ? match.awayScore : null} winner={awayWins} />
       </div>
     </ClickCard>
   );
@@ -218,24 +221,28 @@ function TeamRow({
   crest,
   name,
   score,
+  winner,
 }: {
   flag: string | null;
   crest: string | null;
   name: string;
   score: number | null;
+  winner?: boolean;
 }) {
-  // Bandera + nombre enlazan al equipo (link ceñido a su contenido); el
-  // resto de la fila abre el partido.
   return (
     <div className="flex items-center gap-2">
       <div className="min-w-0 flex-1">
         <TeamLink name={name} className="flex w-fit max-w-full items-center gap-2">
           <TeamCrest crest={crest} flag={flag} name={name} size={20} className="shrink-0" />
-          <span className="truncate text-sm font-medium">{name}</span>
+          <span className={`truncate text-sm ${winner ? "font-bold text-foreground" : "font-medium text-muted-foreground"}`}>
+            {name}
+          </span>
         </TeamLink>
       </div>
       {score !== null && (
-        <span className="font-mono text-base font-bold tabular-nums">{score}</span>
+        <span className={`font-mono text-base tabular-nums ${winner ? "font-black text-foreground" : "font-semibold text-muted-foreground"}`}>
+          {score}
+        </span>
       )}
     </div>
   );
@@ -253,7 +260,7 @@ function QuickLink({
   return (
     <Link
       href={href}
-      className="border-border bg-card hover:border-primary/30 hover:glow-primary flex flex-col items-center justify-center gap-2.5 rounded-2xl border p-5 text-center transition"
+      className="border-border bg-card shadow-card hover:border-primary/30 hover:glow-primary flex flex-col items-center justify-center gap-2.5 rounded-2xl border p-5 text-center transition-all hover:-translate-y-0.5"
     >
       <span className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-xl">
         {icon}
