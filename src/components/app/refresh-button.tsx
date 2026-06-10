@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw } from "lucide-react";
+import { ArrowsClockwise } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,7 @@ export function RefreshButton({ className }: { className?: string }) {
       }}
       className={className}
     >
-      <RefreshCw className={cn("size-4", pending && "animate-spin")} />
+      <ArrowsClockwise className={cn("size-4", pending && "animate-spin")} weight="bold" />
     </Button>
   );
 }

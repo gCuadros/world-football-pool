@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, ChevronDown } from "lucide-react";
+import { CalendarDots, CaretDown } from "@phosphor-icons/react";
 
 import type { MatchBase } from "@/lib/queries";
 import { useNow } from "@/hooks/use-now";
@@ -85,7 +85,7 @@ export function CalendarView({ matches }: { matches: MatchBase[] }) {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <CalendarDays className="text-primary size-5" />
+          <CalendarDots className="text-primary size-5" />
           <div>
             <h1 className="text-xl font-bold">Calendario</h1>
             <p className="text-muted-foreground text-sm">
@@ -117,7 +117,7 @@ export function CalendarView({ matches }: { matches: MatchBase[] }) {
             </option>
           ))}
         </select>
-        <ChevronDown className="text-muted-foreground pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2" />
+        <CaretDown className="text-muted-foreground pointer-events-none absolute right-2.5 top-1/2 size-4 -translate-y-1/2" />
       </div>
 
       {byDay.size === 0 ? (

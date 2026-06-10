@@ -1,7 +1,7 @@
 import { Reveal } from "@/components/ui/reveal";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Target, Trophy } from "lucide-react";
+import { Target, Trophy } from "@phosphor-icons/react/dist/ssr";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getLeagueLeaderboard } from "@/lib/leaderboard";

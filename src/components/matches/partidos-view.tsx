@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Radio, Trophy, Target, Percent } from "lucide-react";
+import { Broadcast, Trophy, Target, Percent } from "@phosphor-icons/react";
 
 import type { MatchVM } from "@/lib/queries";
 type UserStatsVM = { points: number; rank: number | null; totalPlayers: number; accuracy: number; predictionsCount: number; exactCount: number; currentStreak: number };
@@ -87,7 +87,7 @@ export function PartidosView({
       icon: Trophy,
     },
     { label: "Precisión", value: `${stats.accuracy}%`, icon: Percent },
-    { label: "Predicciones", value: stats.predictionsCount, icon: Radio },
+    { label: "Predicciones", value: stats.predictionsCount, icon: Broadcast },
   ];
 
   return (

@@ -1,4 +1,4 @@
-import { Check, Target, X } from "lucide-react";
+import { Check, Target, X } from "@phosphor-icons/react/dist/ssr";
 
 import type { PredictionVM, MatchBase } from "@/lib/queries";
 import { cn } from "@/lib/utils";
@@ -50,7 +50,7 @@ export function PredictionBadge({
     return (
       <div className={cn("overflow-hidden rounded-xl", className)}>
         <div className="bg-success flex items-center gap-2 px-3 py-2 text-white">
-          <Check className="size-3.5 shrink-0" strokeWidth={2.5} />
+          <Check className="size-3.5 shrink-0" weight="bold" />
           <span className="font-mono font-bold tracking-tight">{score}</span>
           <span className="text-white/80 text-xs">· Exacto</span>
           <span className="ml-auto font-mono text-sm font-black">+{formatPts(points)} pts</span>
@@ -68,7 +68,7 @@ export function PredictionBadge({
     return (
       <div className={cn("overflow-hidden rounded-xl", className)}>
         <div className="bg-primary/10 border-primary/25 flex items-center gap-2 rounded-xl border px-3 py-2 text-xs">
-          <Check className="text-primary size-3.5 shrink-0" strokeWidth={2.5} />
+          <Check className="text-primary size-3.5 shrink-0" weight="bold" />
           <span className="text-primary font-mono font-semibold">{score}</span>
           <span className="text-primary/70">· Parcial</span>
           <span className="text-primary ml-auto font-mono font-black">+{formatPts(points)} pts</span>
@@ -85,7 +85,7 @@ export function PredictionBadge({
   return (
     <div className={cn("overflow-hidden rounded-xl", className)}>
       <div className="bg-muted/60 border-border/60 flex items-center gap-2 rounded-xl border px-3 py-2 text-xs">
-        <X className="text-muted-foreground size-3.5 shrink-0" strokeWidth={2.5} />
+        <X className="text-muted-foreground size-3.5 shrink-0" weight="bold" />
         <span className="text-muted-foreground font-mono">{score}</span>
         <span className="text-muted-foreground/70">· Fallaste</span>
         <span className="text-muted-foreground ml-auto font-mono font-semibold">0 pts</span>

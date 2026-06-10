@@ -2,12 +2,12 @@ import Link from "next/link";
 import {
   Trophy,
   Target,
-  Radio,
-  Globe,
+  Broadcast,
+  GlobeHemisphereWest,
   ArrowRight,
   Plus,
-  Users,
-} from "lucide-react";
+  UsersThree,
+} from "@phosphor-icons/react/dist/ssr";
 
 import type { DashboardData } from "@/lib/dashboard";
 import { STAGE_SHORT } from "@/lib/labels";
@@ -53,7 +53,7 @@ export function Dashboard({
             href={`/liga/${primaryLeagueId}/predicciones`}
             className="bg-primary-gradient shadow-primary/25 flex shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-md transition-opacity hover:opacity-90"
           >
-            <Target className="size-4" />
+            <Target className="size-4" weight="bold" />
             {pendingCount} {pendingCount === 1 ? "predicción" : "predicciones"} pendiente
             {pendingCount === 1 ? "" : "s"}
             <ArrowRight className="size-4" />
@@ -68,7 +68,7 @@ export function Dashboard({
           className="card-glass hover:border-primary/50 flex items-center gap-4 rounded-2xl p-6 transition-all hover:-translate-y-0.5"
         >
           <div className="bg-primary/10 flex size-12 shrink-0 items-center justify-center rounded-xl">
-            <Users className="text-primary size-6" />
+            <UsersThree className="text-primary size-6" weight="duotone" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-semibold">Crea o únete a una liga</p>
@@ -86,7 +86,7 @@ export function Dashboard({
       {/* En vivo */}
       {liveRest.length > 0 && (
         <section className="space-y-3">
-          <SectionHeader icon={<Radio className="size-4" />} title="En directo" accent="live" />
+          <SectionHeader icon={<Broadcast className="size-4" weight="duotone" />} title="En directo" accent="live" />
           <div className="grid gap-3 sm:grid-cols-2">
             {liveRest.map((m) => (
               <MiniMatch key={m.id} match={m} live />
@@ -98,7 +98,7 @@ export function Dashboard({
       {/* Mis ligas */}
       {leagues.length > 0 && (
         <section className="space-y-3">
-          <SectionHeader icon={<Trophy className="size-4" />} title="Mis ligas" />
+          <SectionHeader icon={<Trophy className="size-4" weight="duotone" />} title="Mis ligas" />
           <div className="grid gap-3 sm:grid-cols-2">
             {leagues.map((l) => (
               <Link
@@ -133,7 +133,7 @@ export function Dashboard({
       {upcomingRest.length > 0 && (
         <section className="space-y-3">
           <div className="flex items-center justify-between">
-            <SectionHeader icon={<Target className="size-4" />} title="Próximos partidos" />
+            <SectionHeader icon={<Target className="size-4" weight="duotone" />} title="Próximos partidos" />
             <Link
               href="/resultados"
               className="text-primary flex items-center gap-1 text-xs font-medium hover:underline"
@@ -151,9 +151,9 @@ export function Dashboard({
 
       {/* Accesos rápidos */}
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <QuickLink href="/resultados" icon={<Radio className="size-5" />} label="Resultados" />
-        <QuickLink href="/mundial" icon={<Globe className="size-5" />} label="Mundial" />
-        <QuickLink href="/ligas" icon={<Users className="size-5" />} label="Mis ligas" />
+        <QuickLink href="/resultados" icon={<Broadcast className="size-5" weight="duotone" />} label="Resultados" />
+        <QuickLink href="/mundial" icon={<GlobeHemisphereWest className="size-5" weight="duotone" />} label="Mundial" />
+        <QuickLink href="/ligas" icon={<UsersThree className="size-5" weight="duotone" />} label="Mis ligas" />
       </section>
     </div>
   );

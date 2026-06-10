@@ -6,11 +6,11 @@ import {
   Bell,
   Clock,
   Trophy,
-  Goal,
-  Users,
-  TrendingUp,
-  type LucideIcon,
-} from "lucide-react";
+  SoccerBall,
+  UsersThree,
+  TrendUp,
+  type Icon as PhosphorIcon,
+} from "@phosphor-icons/react";
 
 import type { NotificationVM } from "@/lib/notifications";
 import type { NotificationType } from "@prisma/client";
@@ -27,13 +27,13 @@ import {
   markNotificationReadAction,
 } from "@/app/(shell)/(app)/notificaciones/actions";
 
-const ICONS: Record<NotificationType, LucideIcon> = {
+const ICONS: Record<NotificationType, PhosphorIcon> = {
   PREDICTION_REMINDER: Clock,
   MATCH_RESULT: Trophy,
   MATCH_STARTING: Clock,
-  LEAGUE_RANK: TrendingUp,
-  LEAGUE_JOIN: Users,
-  LIVE_GOAL: Goal,
+  LEAGUE_RANK: TrendUp,
+  LEAGUE_JOIN: UsersThree,
+  LIVE_GOAL: SoccerBall,
 };
 
 function relative(iso: string): string {
@@ -78,7 +78,7 @@ export function NotificationBell({
           <Button variant="ghost" size="icon" aria-label="Notificaciones" className="relative" />
         }
       >
-        <Bell className="size-4" />
+        <Bell className="size-4.5" weight="bold" />
         {count > 0 && (
           <span className="bg-live text-live-foreground absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full px-1 font-mono text-3xs font-bold">
             {count > 9 ? "9+" : count}
@@ -100,7 +100,7 @@ export function NotificationBell({
 
         {items.length === 0 ? (
           <div className="text-muted-foreground flex flex-col items-center gap-3 p-10 text-center text-sm">
-            <Bell className="size-8 opacity-40" />
+            <Bell className="size-8 opacity-40" weight="duotone" />
             No tienes notificaciones.
           </div>
         ) : (

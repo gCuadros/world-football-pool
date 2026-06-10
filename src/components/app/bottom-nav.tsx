@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Radio, Users, LogIn, Globe, SquarePen, Trophy } from "lucide-react";
+import {
+  House,
+  Broadcast,
+  UsersThree,
+  SignIn,
+  GlobeHemisphereWest,
+  PencilSimpleLine,
+  Trophy,
+  type Icon as PhosphorIcon,
+} from "@phosphor-icons/react";
 
 import { cn } from "@/lib/utils";
 import { haptics } from "@/lib/haptics";
@@ -11,15 +20,15 @@ import type { SidebarUser } from "@/components/app/nav-content";
 type NavItem = {
   href: string;
   label: string;
-  icon: React.ElementType;
+  icon: PhosphorIcon;
   exact?: boolean;
 };
 
 const GUEST_ITEMS: NavItem[] = [
-  { href: "/", label: "Inicio", icon: Home, exact: true },
-  { href: "/resultados", label: "Partidos", icon: Radio },
-  { href: "/mundial", label: "Grupos", icon: Globe },
-  { href: "/login", label: "Entrar", icon: LogIn },
+  { href: "/", label: "Inicio", icon: House, exact: true },
+  { href: "/resultados", label: "Partidos", icon: Broadcast },
+  { href: "/mundial", label: "Grupos", icon: GlobeHemisphereWest },
+  { href: "/login", label: "Entrar", icon: SignIn },
 ];
 
 /**
@@ -40,7 +49,7 @@ export function BottomNavSkeleton() {
           aria-label={label}
           className="text-muted-foreground/40 flex size-11 items-center justify-center"
         >
-          <Icon className="size-5" strokeWidth={1.75} />
+          <Icon className="size-5" weight="regular" />
         </span>
       ))}
     </nav>
@@ -56,18 +65,18 @@ export function BottomNav({ user }: { user: SidebarUser }) {
   // (el nombre lo ponen los usuarios y puede ser largo o raro para un tab).
   const leagueItem: NavItem = activeLeague
     ? { href: `/liga/${activeLeague.id}`, label: "Liga", icon: Trophy }
-    : { href: "/ligas", label: "Ligas", icon: Users };
+    : { href: "/ligas", label: "Ligas", icon: UsersThree };
 
   // Perfil vive en el topbar (avatar); aquí entra Partidos, núcleo de la app.
   const items: NavItem[] = user.isLoggedIn
     ? [
-        { href: "/", label: "Inicio", icon: Home, exact: true },
-        { href: "/resultados", label: "Partidos", icon: Radio },
+        { href: "/", label: "Inicio", icon: House, exact: true },
+        { href: "/resultados", label: "Partidos", icon: Broadcast },
         ...(activeLeagueId
-          ? [{ href: `/liga/${activeLeagueId}/predicciones`, label: "Predecir", icon: SquarePen }]
+          ? [{ href: `/liga/${activeLeagueId}/predicciones`, label: "Predecir", icon: PencilSimpleLine }]
           : []),
         leagueItem,
-        { href: "/mundial", label: "Mundial", icon: Globe },
+        { href: "/mundial", label: "Mundial", icon: GlobeHemisphereWest },
       ]
     : GUEST_ITEMS;
 
@@ -105,7 +114,9 @@ export function BottomNav({ user }: { user: SidebarUser }) {
                 : "text-muted-foreground active:text-foreground size-11",
             )}
           >
-            <Icon className={active ? "size-4" : "size-5"} strokeWidth={active ? 2.5 : 1.75} />
+            {/* fill cuando activo: el cambio de peso del icono es la señal
+                de estado de las tab bars nativas premium */}
+            <Icon className={active ? "size-4.5" : "size-5.5"} weight={active ? "fill" : "regular"} />
             {active && <span className="whitespace-nowrap">{label}</span>}
           </Link>
         );

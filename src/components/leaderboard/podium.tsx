@@ -1,4 +1,4 @@
-import { Crown } from "lucide-react";
+import { Crown } from "@phosphor-icons/react/dist/ssr";
 
 import type { LeaderboardRow } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";

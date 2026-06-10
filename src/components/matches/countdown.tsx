@@ -1,6 +1,6 @@
 "use client";
 
-import { Timer } from "lucide-react";
+import { Timer } from "@phosphor-icons/react";
 
 import { useNow } from "@/hooks/use-now";
 import { PREDICTION_LOCK_MINUTES, secondsUntilLock } from "@/lib/scoring";
