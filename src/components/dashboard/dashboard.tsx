@@ -224,12 +224,19 @@ function TeamRow({
   name: string;
   score: number | null;
 }) {
+  // El link al equipo ocupa solo el ancho del nombre (el resto de la fila
+  // abre el partido): menos misclicks en tarjetas pequeñas.
   return (
     <div className="flex items-center gap-2">
-      <TeamLink name={name} className="flex min-w-0 flex-1 items-center gap-2">
-        <TeamCrest crest={crest} flag={flag} name={name} size={20} className="shrink-0" />
-        <span className="min-w-0 flex-1 truncate text-sm font-medium">{name}</span>
-      </TeamLink>
+      <TeamCrest crest={crest} flag={flag} name={name} size={20} className="shrink-0" />
+      <div className="min-w-0 flex-1">
+        <TeamLink
+          name={name}
+          className="block w-fit max-w-full truncate text-sm font-medium"
+        >
+          {name}
+        </TeamLink>
+      </div>
       {score !== null && (
         <span className="font-mono text-base font-bold tabular-nums">{score}</span>
       )}

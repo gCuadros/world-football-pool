@@ -1,12 +1,12 @@
-import { Suspense, ViewTransition } from "react";
+import { cache, Suspense, ViewTransition } from "react";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getFirstLeagueInfo, getUserLeagues } from "@/lib/leaderboard";
 import { prisma } from "@/lib/prisma";
 import { getUnreadCount, getRecentNotifications } from "@/lib/notifications";
 import { Sidebar } from "@/components/app/sidebar";
-import { Topbar } from "@/components/app/topbar";
-import { BottomNav } from "@/components/app/bottom-nav";
+import { Topbar, type TopbarNotifications } from "@/components/app/topbar";
+import { BottomNav, BottomNavSkeleton } from "@/components/app/bottom-nav";
 import { PullToRefresh } from "@/components/app/pull-to-refresh";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SidebarUser } from "@/components/app/nav-content";
@@ -35,58 +35,81 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </PullToRefresh>
         </main>
       </div>
-      <Suspense>
+      {/* Fallback con la misma barra: el menú nunca desaparece mientras
+          cargan los datos de usuario (BD lenta, refresh, navegación fría). */}
+      <Suspense fallback={<BottomNavSkeleton />}>
         <BottomNavSlot />
       </Suspense>
     </div>
   );
 }
 
-async function loadNavUser(): Promise<SidebarUser> {
-  const user = await getCurrentUser();
+const GUEST_NAV: SidebarUser = {
+  isLoggedIn: false,
+  name: "",
+  email: "",
+  initials: "",
+  rank: null,
+  leagueName: null,
+  leagues: [],
+  activeLeagueId: null,
+};
 
-  // Guest: shell con nav pública + CTA de login.
-  if (!user) {
-    return {
-      isLoggedIn: false,
-      name: "",
-      email: "",
-      initials: "",
-      rank: null,
-      leagueName: null,
-      leagues: [],
-      activeLeagueId: null,
-    };
+// `cache()`: los tres slots del shell (sidebar/topbar/bottom-nav) comparten UNA
+// sola ejecución por request — antes eran 3 tandas de queries idénticas, que
+// con la BD fría multiplicaban el tiempo en fallback (flash de skeletons).
+// Nunca lanza: si la BD no responde, degrada (nav de invitado o usuario sin
+// ligas) en vez de tumbar el shell entero.
+const loadNavUser = cache(async function loadNavUser(): Promise<SidebarUser> {
+  let user: Awaited<ReturnType<typeof getCurrentUser>> = null;
+  try {
+    user = await getCurrentUser();
+  } catch {
+    return GUEST_NAV;
   }
 
-  // Logged: rank/liga del shell + lista de ligas + avatar/favorita fresca desde BD.
-  const [{ rank, leagueName }, leagues, dbUser] = await Promise.all([
-    getFirstLeagueInfo(user.id),
-    getUserLeagues(user.id),
-    prisma.user.findUnique({
-      where: { id: user.id },
-      select: { avatar: true, favoriteLeagueId: true },
-    }),
-  ]);
+  // Guest: shell con nav pública + CTA de login.
+  if (!user) return GUEST_NAV;
 
-  // Liga activa: la favorita si sigue siendo válida, si no la primera.
-  const leagueIds = leagues.map((l) => l.id);
-  const fav = dbUser?.favoriteLeagueId ?? null;
-  const activeLeagueId =
-    fav && leagueIds.includes(fav) ? fav : (leagues[0]?.id ?? null);
+  try {
+    // Logged: rank/liga del shell + lista de ligas + avatar/favorita desde BD.
+    const [{ rank, leagueName }, leagues, dbUser] = await Promise.all([
+      getFirstLeagueInfo(user.id),
+      getUserLeagues(user.id),
+      prisma.user.findUnique({
+        where: { id: user.id },
+        select: { avatar: true, favoriteLeagueId: true },
+      }),
+    ]);
 
-  return {
-    isLoggedIn: true,
-    name: user.name,
-    email: user.email,
-    initials: user.initials,
-    avatar: dbUser?.avatar ?? null,
-    rank,
-    leagueName,
-    leagues: leagues.map((l) => ({ id: l.id, name: l.name })),
-    activeLeagueId,
-  };
-}
+    // Liga activa: la favorita si sigue siendo válida, si no la primera.
+    const leagueIds = leagues.map((l) => l.id);
+    const fav = dbUser?.favoriteLeagueId ?? null;
+    const activeLeagueId =
+      fav && leagueIds.includes(fav) ? fav : (leagues[0]?.id ?? null);
+
+    return {
+      isLoggedIn: true,
+      name: user.name,
+      email: user.email,
+      initials: user.initials,
+      avatar: dbUser?.avatar ?? null,
+      rank,
+      leagueName,
+      leagues: leagues.map((l) => ({ id: l.id, name: l.name })),
+      activeLeagueId,
+    };
+  } catch {
+    // BD caída a mitad: usuario logueado con nav mínima antes que sin nav.
+    return {
+      ...GUEST_NAV,
+      isLoggedIn: true,
+      name: user.name,
+      email: user.email,
+      initials: user.initials,
+    };
+  }
+});
 
 async function SidebarSlot() {
   return <Sidebar user={await loadNavUser()} />;
@@ -96,12 +119,19 @@ async function TopbarSlot() {
   const user = await loadNavUser();
   if (!user.isLoggedIn) return <Topbar user={user} />;
 
-  const me = await getCurrentUser();
-  const [count, items] = await Promise.all([
-    getUnreadCount(me!.id),
-    getRecentNotifications(me!.id),
-  ]);
-  return <Topbar user={user} notifications={{ count, items }} />;
+  // Las notificaciones son secundarias: si la BD falla, topbar sin campana.
+  let notifications: TopbarNotifications | undefined;
+  try {
+    const me = await getCurrentUser();
+    const [count, items] = await Promise.all([
+      getUnreadCount(me!.id),
+      getRecentNotifications(me!.id),
+    ]);
+    notifications = { count, items };
+  } catch {
+    notifications = undefined;
+  }
+  return <Topbar user={user} notifications={notifications} />;
 }
 
 async function BottomNavSlot() {

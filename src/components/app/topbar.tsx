@@ -8,6 +8,7 @@ import { useTheme } from "next-themes";
 
 import { titleForPath } from "@/lib/nav";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { signOutAction } from "@/app/(shell)/(app)/actions";
 import { MobileNav } from "@/components/app/mobile-nav";
 import { RefreshButton } from "@/components/app/refresh-button";
@@ -69,15 +70,35 @@ export function Topbar({
         )}
 
         {user.isLoggedIn ? (
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={pending}
-            onClick={() => startTransition(() => signOutAction())}
-          >
-            <LogOut className="size-4" />
-            <span className="hidden sm:inline">Salir</span>
-          </Button>
+          <>
+            {/* Salir solo en desktop: en móvil vive en Perfil (ajustes). */}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={pending}
+              onClick={() => startTransition(() => signOutAction())}
+              className="hidden lg:inline-flex"
+            >
+              <LogOut className="size-4" />
+              <span className="hidden sm:inline">Salir</span>
+            </Button>
+            {/* Badge de perfil: avatar → ajustes, como una app nativa. */}
+            <Link
+              href="/ajustes"
+              aria-label="Tu perfil"
+              className="ring-border hover:ring-primary/50 ml-0.5 rounded-full ring-2 transition-shadow"
+            >
+              <Avatar className="size-8">
+                <AvatarImage
+                  src={
+                    user.avatar?.startsWith("data:") || user.avatar?.startsWith("http")
+                      ? user.avatar
+                      : "/avatar-default.webp"
+                  }
+                />
+              </Avatar>
+            </Link>
+          </>
         ) : (
           <Button variant="default" size="sm" render={<Link href="/login" />}>
             <LogIn className="size-4" />
