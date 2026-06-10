@@ -282,8 +282,9 @@
   }
 
   /* El chrome del shell (topbar/nav/sidebar) recibe su propio
-     view-transition-name: queda fuera del cross-fade de `root` al navegar y
-     no parpadea (su snapshot viejo y nuevo son idénticos). */
+     view-transition-name: queda fuera del cross-fade de `root` al navegar.
+     El anclaje real (sin animación ni doble snapshot) está más abajo en las
+     reglas ::view-transition-*. */
   .vt-topbar {
     view-transition-name: topbar;
   }
@@ -304,6 +305,15 @@
   html {
     overscroll-behavior-y: contain;
   }
+  /* Cinturón y tirantes contra el pan horizontal del documento en iOS (el
+     overflow-x: clip ya recorta; esto además impide el gesto). Los scrollers
+     horizontales intencionados (tablas, bracket, tabs) recuperan su pan-x. */
+  body {
+    touch-action: pan-y pinch-zoom;
+  }
+  .overflow-x-auto {
+    touch-action: pan-x pan-y;
+  }
   header,
   nav {
     -webkit-touch-callout: none;
@@ -318,6 +328,26 @@
 ::view-transition-new(root) {
   animation-duration: 0.25s;
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Anclaje del chrome del shell (patrón "Anchoring the header" de la guía de
+   Next): sin animación del grupo, snapshot viejo oculto (evita el doble
+   visible / parpadeo) y por encima del contenido que transiciona. */
+::view-transition-group(topbar),
+::view-transition-group(bottom-nav),
+::view-transition-group(sidebar) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(topbar),
+::view-transition-old(bottom-nav),
+::view-transition-old(sidebar) {
+  display: none;
+}
+::view-transition-new(topbar),
+::view-transition-new(bottom-nav),
+::view-transition-new(sidebar) {
+  animation: none;
 }
 
 /* Revelado skeleton → contenido (componente <Reveal>): el skeleton sale rápido,

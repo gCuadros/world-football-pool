@@ -94,14 +94,18 @@ function HeroTeam({
   crest: string | null;
   name: string;
 }) {
+  // Solo el nombre enlaza al equipo; el resto de la columna abre el partido.
   return (
-    <TeamLink name={name} className="flex min-w-0 flex-col items-center gap-2">
+    <div className="flex min-w-0 flex-col items-center gap-2">
       <span className="flex size-16 items-center justify-center rounded-3xl bg-white/10 ring-1 ring-white/15">
         <TeamCrest crest={crest} flag={flag} name={name} size={38} />
       </span>
-      <span className="w-full truncate text-center text-sm font-semibold">
+      <TeamLink
+        name={name}
+        className="max-w-full truncate text-center text-sm font-semibold"
+      >
         {name}
-      </span>
-    </TeamLink>
+      </TeamLink>
+    </div>
   );
 }

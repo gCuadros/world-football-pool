@@ -36,8 +36,10 @@ function TeamSide({
       <TeamCrest crest={crest} flag={flag} name={name} size={30} />
     </span>
   );
+  // Solo el NOMBRE enlaza al equipo: el escudo y el resto de la columna van
+  // al partido (con toda la columna como link era fácil el misclick).
   return (
-    <TeamLink name={name} className="flex min-w-0 flex-col items-center gap-1.5">
+    <div className="flex min-w-0 flex-col items-center gap-1.5">
       {crestName ? (
         <ViewTransition name={crestName} default="none">
           {chip}
@@ -45,15 +47,16 @@ function TeamSide({
       ) : (
         chip
       )}
-      <span
+      <TeamLink
+        name={name}
         className={cn(
-          "w-full truncate text-center text-xs",
+          "max-w-full truncate text-center text-xs",
           winner ? "font-bold" : "text-foreground/80 font-medium",
         )}
       >
         {name}
-      </span>
-    </TeamLink>
+      </TeamLink>
+    </div>
   );
 }
 

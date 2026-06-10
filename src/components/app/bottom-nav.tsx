@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Radio, Users, User, LogIn, Globe, SquarePen, Trophy } from "lucide-react";
+import { Home, Radio, Users, LogIn, Globe, SquarePen, Trophy } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { haptics } from "@/lib/haptics";
@@ -22,6 +22,36 @@ const GUEST_ITEMS: NavItem[] = [
   { href: "/login", label: "Entrar", icon: LogIn },
 ];
 
+/**
+ * Fallback estático del menú inferior: misma barra (altura, blur, safe-area)
+ * con los tabs públicos deshabilitados visualmente. Evita que el menú
+ * "desaparezca" mientras el slot con datos de usuario está suspendido.
+ */
+export function BottomNavSkeleton() {
+  return (
+    <nav
+      aria-hidden
+      className="border-border/50 dark:border-white/5 bg-background/90 vt-bottom-nav fixed bottom-0 left-0 right-0 z-30 flex select-none items-stretch border-t backdrop-blur-xl shadow-nav lg:hidden"
+      style={{
+        height: "calc(4rem + env(safe-area-inset-bottom))",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
+    >
+      {GUEST_ITEMS.map(({ href, label, icon: Icon }) => (
+        <span
+          key={href}
+          className="text-muted-foreground/50 flex flex-1 flex-col items-center justify-center gap-0.5 text-3xs font-semibold"
+        >
+          <span className="flex h-7 w-13 items-center justify-center rounded-full">
+            <Icon className="size-5" strokeWidth={1.75} />
+          </span>
+          <span className="truncate">{label}</span>
+        </span>
+      ))}
+    </nav>
+  );
+}
+
 export function BottomNav({ user }: { user: SidebarUser }) {
   const pathname = usePathname();
   const activeLeagueId = user.activeLeagueId;
@@ -33,15 +63,16 @@ export function BottomNav({ user }: { user: SidebarUser }) {
     ? { href: `/liga/${activeLeague.id}`, label: "Liga", icon: Trophy }
     : { href: "/ligas", label: "Ligas", icon: Users };
 
+  // Perfil vive en el topbar (avatar); aquí entra Partidos, núcleo de la app.
   const items: NavItem[] = user.isLoggedIn
     ? [
         { href: "/", label: "Inicio", icon: Home, exact: true },
-        { href: "/mundial", label: "Mundial", icon: Globe },
+        { href: "/partidos", label: "Partidos", icon: Radio },
         ...(activeLeagueId
           ? [{ href: `/liga/${activeLeagueId}/predicciones`, label: "Predecir", icon: SquarePen }]
           : []),
         leagueItem,
-        { href: "/ajustes", label: "Perfil", icon: User },
+        { href: "/mundial", label: "Mundial", icon: Globe },
       ]
     : GUEST_ITEMS;
 
