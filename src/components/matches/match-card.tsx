@@ -174,6 +174,7 @@ export function MatchCard({
               la acción "abrir el partido" necesita su propio afford. */}
           <Link
             href={`/partido/${match.id}`}
+            transitionTypes={["nav-forward"]}
             onClick={(e) => e.stopPropagation()}
             className={cn(
               "flex items-center justify-center gap-1 text-xs font-semibold transition-opacity hover:opacity-80",

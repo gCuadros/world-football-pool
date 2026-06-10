@@ -29,7 +29,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </Suspense>
         <main className="flex-1 p-4 pb-nav-safe lg:p-6 lg:pb-6">
           <PullToRefresh>
-            <ViewTransition>
+            {/* Navegación direccional (patrón de la guía de view transitions):
+                drill-down (nav-forward) desliza hacia la izquierda, volver
+                (nav-back) hacia la derecha; sin tipo → cross-fade de siempre. */}
+            <ViewTransition
+              enter={{ "nav-forward": "nav-forward", "nav-back": "nav-back", default: "auto" }}
+              exit={{ "nav-forward": "nav-forward", "nav-back": "nav-back", default: "auto" }}
+            >
               <div className="mx-auto w-full max-w-6xl overflow-x-clip">{children}</div>
             </ViewTransition>
           </PullToRefresh>

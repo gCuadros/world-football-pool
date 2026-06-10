@@ -260,14 +260,24 @@ export function MatchesView({
             </div>
           )}
 
-          {/* Botón para mostrar jornadas anteriores */}
-          {!showPast && pastDayCount > 0 && (
+          {/* Toggle de jornadas anteriores: siempre arriba (plegar desde el
+              final de un calendario largo era inalcanzable). */}
+          {pastDayCount > 0 && (
             <button
-              onClick={() => setShowPast(true)}
+              onClick={() => setShowPast((v) => !v)}
               className="border-border text-muted-foreground hover:border-primary/40 hover:text-primary flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-3 text-sm transition-colors"
             >
-              <CaretUp className="size-4" />
-              Ver {pastDayCount} {pastDayCount === 1 ? "jornada anterior" : "jornadas anteriores"}
+              {showPast ? (
+                <>
+                  <CaretDown className="size-4" />
+                  Ocultar jornadas anteriores
+                </>
+              ) : (
+                <>
+                  <CaretUp className="size-4" />
+                  Ver {pastDayCount} {pastDayCount === 1 ? "jornada anterior" : "jornadas anteriores"}
+                </>
+              )}
             </button>
           )}
 
@@ -293,16 +303,6 @@ export function MatchesView({
             </div>
           )}
 
-          {/* Ocultar anteriores cuando están visibles */}
-          {showPast && pastDayCount > 0 && (
-            <button
-              onClick={() => setShowPast(false)}
-              className="text-muted-foreground hover:text-foreground flex w-full items-center justify-center gap-1.5 py-2 text-xs transition-colors"
-            >
-              <CaretDown className="size-3.5" />
-              Ocultar anteriores
-            </button>
-          )}
         </>
       )}
 
