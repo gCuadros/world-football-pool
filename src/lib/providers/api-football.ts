@@ -250,6 +250,7 @@ export async function getApiFootballStandings(): Promise<GroupStanding[]> {
   const groups = resp[0]?.league?.standings ?? [];
   return groups
     .filter((g) => g.length > 0)
+    .filter((g) => /^group\s+[a-l]$/i.test((g[0].group ?? "").trim()))
     .map((g) => {
       const groupName = (g[0].group ?? "").replace(/group\s*/i, "").trim();
       return {

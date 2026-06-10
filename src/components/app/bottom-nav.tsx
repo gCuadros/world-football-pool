@@ -67,7 +67,7 @@ export function BottomNav({ user }: { user: SidebarUser }) {
   const items: NavItem[] = user.isLoggedIn
     ? [
         { href: "/", label: "Inicio", icon: Home, exact: true },
-        { href: "/partidos", label: "Partidos", icon: Radio },
+        { href: "/resultados", label: "Partidos", icon: Radio },
         ...(activeLeagueId
           ? [{ href: `/liga/${activeLeagueId}/predicciones`, label: "Predecir", icon: SquarePen }]
           : []),
