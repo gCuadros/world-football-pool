@@ -2,7 +2,7 @@
 
 import { ViewTransition } from "react";
 import Link from "next/link";
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight, LockSimple } from "@phosphor-icons/react";
 
 import type { MatchVM } from "@/lib/queries";
 import { STAGE_SHORT } from "@/lib/labels";
@@ -200,7 +200,7 @@ export function MatchCard({
             </Link>
           ) : (
             <div className="text-muted-foreground bg-muted flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium">
-              <Lock className="size-3.5" />
+              <LockSimple className="size-3.5" weight="fill" />
               Sin predicción
             </div>
           )}

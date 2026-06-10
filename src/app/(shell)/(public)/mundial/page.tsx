@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Globe, Shield, Goal, Handshake, TrendingUp } from "lucide-react";
+import { GlobeHemisphereWest, Shield, SoccerBall, Handshake, TrendUp } from "@phosphor-icons/react/dist/ssr";
 
 import { teamSlug } from "@/lib/utils";
 import { getWorldCupStandings, getWorldCupTopScorers } from "@/lib/queries";
@@ -15,7 +15,7 @@ export default function MundialPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <Globe className="text-primary size-5 shrink-0" />
+        <GlobeHemisphereWest className="text-primary size-5 shrink-0" weight="duotone" />
         <h1 className="text-xl font-bold">Clasificación</h1>
         <span className="text-muted-foreground text-sm">Mundial 2026</span>
       </div>
@@ -55,7 +55,7 @@ async function StandingsSection() {
   return (
     <section className="space-y-4">
       <h2 className="flex items-center gap-2 text-base font-bold">
-        <Shield className="text-primary size-4" />
+        <Shield className="text-primary size-4" weight="duotone" />
         Fase de Grupos
       </h2>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -135,7 +135,7 @@ async function TopScorersSection() {
   return (
     <section className="space-y-4">
       <h2 className="flex items-center gap-2 text-base font-bold">
-        <Goal className="text-primary size-4" />
+        <SoccerBall className="text-primary size-4" weight="duotone" />
         Bota de Oro
       </h2>
       <div className="card-glass overflow-hidden rounded-xl">
@@ -193,7 +193,7 @@ async function TopAssistersSection() {
   return (
     <section className="space-y-4">
       <h2 className="flex items-center gap-2 text-base font-bold">
-        <Handshake className="text-primary size-4" />
+        <Handshake className="text-primary size-4" weight="duotone" />
         Máximos Asistentes
       </h2>
       <div className="card-glass overflow-hidden rounded-xl">
@@ -253,7 +253,7 @@ async function TournamentStatsSection() {
   return (
     <section className="space-y-4">
       <h2 className="flex items-center gap-2 text-base font-bold">
-        <TrendingUp className="text-primary size-4" />
+        <TrendUp className="text-primary size-4" weight="duotone" />
         Estadísticas del torneo
       </h2>
       <div className="grid gap-3 sm:grid-cols-3">

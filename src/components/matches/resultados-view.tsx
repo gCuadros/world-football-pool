@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Radio } from "lucide-react";
+import { Broadcast } from "@phosphor-icons/react";
 
 import type { MatchBase } from "@/lib/queries";
 import type { MatchFilter } from "@/lib/labels";
@@ -79,7 +79,7 @@ export function ResultadosView({
 
       <div>
         <div className="flex items-center gap-3">
-          <Radio className="text-primary size-5" />
+          <Broadcast className="text-primary size-5" />
           <h1 className="text-xl font-bold">{title}</h1>
           {liveCount > 0 && (
             <Badge variant="outline" className="border-live/40 text-live font-mono ml-auto">

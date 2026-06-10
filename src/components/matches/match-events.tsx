@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Loader2, ListChecks } from "lucide-react";
+import { CaretDown, CircleNotch, ListChecks } from "@phosphor-icons/react";
 
 import { cn } from "@/lib/utils";
 
@@ -54,7 +54,7 @@ export function MatchEvents({ matchId }: { matchId: string }) {
       >
         <ListChecks className="size-3.5" />
         Eventos del partido
-        <ChevronDown
+        <CaretDown
           className={cn("ml-auto size-4 transition-transform", open && "rotate-180")}
         />
       </button>
@@ -63,7 +63,7 @@ export function MatchEvents({ matchId }: { matchId: string }) {
         <div className="mt-3 space-y-1.5">
           {loading ? (
             <div className="text-muted-foreground flex items-center gap-2 py-2 text-xs">
-              <Loader2 className="size-3.5 animate-spin" /> Cargando…
+              <CircleNotch className="size-3.5 animate-spin" /> Cargando…
             </div>
           ) : events && events.length > 0 ? (
             events.map((e, i) => (

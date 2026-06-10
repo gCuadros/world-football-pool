@@ -1,7 +1,7 @@
 import { Reveal } from "@/components/ui/reveal";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Plus, ArrowRight } from "lucide-react";
+import { Plus, ArrowRight } from "@phosphor-icons/react/dist/ssr";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getUserLeagues, getLeagueLeaderboard } from "@/lib/leaderboard";

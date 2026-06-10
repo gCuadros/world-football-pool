@@ -5,7 +5,7 @@ import { TeamCrest } from "@/components/matches/team-crest";
 import { TeamLink } from "@/components/matches/team-link";
 import { ClickCard } from "@/components/ui/click-card";
 import { PitchLines } from "@/components/ui/pitch-lines";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { CaretRight } from "@phosphor-icons/react/dist/ssr";
 import { cn } from "@/lib/utils";
 
 export function HeroMatch({ match, now }: { match: MatchBase; now?: Date }) {
@@ -92,7 +92,7 @@ export function HeroMatch({ match, now }: { match: MatchBase; now?: Date }) {
           </span>
           <span className={`flex shrink-0 items-center gap-0.5 text-xs font-semibold ${live ? "text-live" : "text-white/80"}`}>
             {live ? "Ver en directo" : "Ver partido"}
-            <ChevronRight className="size-3.5" />
+            <CaretRight className="size-3.5" weight="bold" />
           </span>
         </div>
       </div>

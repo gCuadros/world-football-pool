@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarDays, List, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { CalendarDots, List, CaretDown, CaretUp, ArrowsClockwise } from "@phosphor-icons/react";
 
 import type { MatchBase, MatchVM } from "@/lib/queries";
 import type { MatchFilter } from "@/lib/labels";
@@ -164,7 +164,7 @@ export function MatchesView({
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
-            <CalendarDays className="size-3.5" />
+            <CalendarDots className="size-3.5" />
             Calendario
           </button>
           <button
@@ -195,7 +195,7 @@ export function MatchesView({
           title="Actualizar"
           aria-label="Actualizar"
         >
-          <RefreshCw className={cn("size-4", refreshing && "animate-spin")} />
+          <ArrowsClockwise className={cn("size-4", refreshing && "animate-spin")} />
         </button>
       </div>
 
@@ -241,7 +241,7 @@ export function MatchesView({
               <option key={t} value={t}>{t}</option>
             ))}
           </select>
-          <ChevronDown className="text-muted-foreground pointer-events-none absolute right-2 top-1/2 size-3 -translate-y-1/2" />
+          <CaretDown className="text-muted-foreground pointer-events-none absolute right-2 top-1/2 size-3 -translate-y-1/2" />
         </div>
       </div>
 
@@ -266,7 +266,7 @@ export function MatchesView({
               onClick={() => setShowPast(true)}
               className="border-border text-muted-foreground hover:border-primary/40 hover:text-primary flex w-full items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-3 text-sm transition-colors"
             >
-              <ChevronUp className="size-4" />
+              <CaretUp className="size-4" />
               Ver {pastDayCount} {pastDayCount === 1 ? "jornada anterior" : "jornadas anteriores"}
             </button>
           )}
@@ -299,7 +299,7 @@ export function MatchesView({
               onClick={() => setShowPast(false)}
               className="text-muted-foreground hover:text-foreground flex w-full items-center justify-center gap-1.5 py-2 text-xs transition-colors"
             >
-              <ChevronDown className="size-3.5" />
+              <CaretDown className="size-3.5" />
               Ocultar anteriores
             </button>
           )}

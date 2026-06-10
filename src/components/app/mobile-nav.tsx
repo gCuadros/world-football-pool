@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { List } from "@phosphor-icons/react";
 
 import {
   Sheet,
@@ -28,7 +28,7 @@ export function MobileNav({ user }: { user: SidebarUser }) {
           />
         }
       >
-        <Menu className="size-5" />
+        <List className="size-5" weight="bold" />
       </SheetTrigger>
       <SheetContent
         side="left"

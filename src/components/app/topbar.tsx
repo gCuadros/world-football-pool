@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTransition } from "react";
-import { LogOut, LogIn, Moon, Sun } from "lucide-react";
+import { SignOut, SignIn, MoonStars, SunDim } from "@phosphor-icons/react";
 import { useTheme } from "next-themes";
 
 import { titleForPath } from "@/lib/nav";
@@ -58,8 +58,8 @@ export function Topbar({
           aria-label="Cambiar tema"
           onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
         >
-          <Sun className="size-4 dark:hidden" />
-          <Moon className="hidden size-4 dark:block" />
+          <SunDim className="size-4.5 dark:hidden" weight="bold" />
+          <MoonStars className="hidden size-4.5 dark:block" weight="bold" />
         </Button>
 
         {user.isLoggedIn && notifications && (
@@ -79,7 +79,7 @@ export function Topbar({
               onClick={() => startTransition(() => signOutAction())}
               className="hidden lg:inline-flex"
             >
-              <LogOut className="size-4" />
+              <SignOut className="size-4" weight="bold" />
               <span className="hidden sm:inline">Salir</span>
             </Button>
             {/* Badge de perfil: avatar → ajustes, como una app nativa. */}
@@ -101,7 +101,7 @@ export function Topbar({
           </>
         ) : (
           <Button variant="default" size="sm" render={<Link href="/login" />}>
-            <LogIn className="size-4" />
+            <SignIn className="size-4" weight="bold" />
             <span className="hidden sm:inline">Entrar</span>
           </Button>
         )}

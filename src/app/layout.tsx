@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -13,9 +13,12 @@ const jakartaSans = Plus_Jakarta_Sans({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-const jetBrainsMono = JetBrains_Mono({
+// Display técnica-deportiva para marcadores y micro-etiquetas: mantiene la
+// variable --font-mono para que todos los `font-mono` existentes la hereden.
+const spaceGrotesk = Space_Grotesk({
   variable: "--font-mono",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -60,7 +63,7 @@ export default function RootLayout({
       className={cn(
         "h-full",
         "antialiased",
-        jetBrainsMono.variable,
+        spaceGrotesk.variable,
         "font-sans",
         jakartaSans.variable,
       )}

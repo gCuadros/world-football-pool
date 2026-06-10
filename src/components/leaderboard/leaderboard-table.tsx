@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Flame, ChevronLeft, ChevronRight } from "lucide-react";
+import { Fire, CaretLeft, CaretRight } from "@phosphor-icons/react";
 
 import type { LeaderboardRow } from "@/lib/leaderboard";
 import { cn } from "@/lib/utils";
@@ -86,7 +86,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
             <span className="flex items-center justify-end gap-0.5 text-right font-mono text-xs">
               {row.currentStreak > 0 ? (
                 <>
-                  <Flame className="text-warning size-3.5" />
+                  <Fire className="text-warning size-3.5" />
                   {row.currentStreak}
                 </>
               ) : (
@@ -106,7 +106,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
             onClick={() => setPage((p) => Math.max(0, p - 1))}
             className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs disabled:opacity-40"
           >
-            <ChevronLeft className="size-4" /> Anterior
+            <CaretLeft className="size-4" /> Anterior
           </button>
           <span className="text-muted-foreground font-mono text-xs">
             {page + 1} / {pageCount}
@@ -117,7 +117,7 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
             onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
             className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs disabled:opacity-40"
           >
-            Siguiente <ChevronRight className="size-4" />
+            Siguiente <CaretRight className="size-4" />
           </button>
         </div>
       ) : null}

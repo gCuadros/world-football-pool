@@ -1,6 +1,6 @@
 import { Reveal } from "@/components/ui/reveal";
 import Link from "next/link";
-import { Network } from "lucide-react";
+import { TreeStructure } from "@phosphor-icons/react/dist/ssr";
 
 import { getKnockoutMatches, type KnockoutRound, type MatchBase } from "@/lib/queries";
 import { TeamCrest } from "@/components/matches/team-crest";
@@ -13,7 +13,7 @@ export default function EliminatoriasPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <Network className="text-primary size-5" />
+        <TreeStructure className="text-primary size-5" />
         <h1 className="text-xl font-bold">Cuadro de Eliminatorias</h1>
       </div>
 
