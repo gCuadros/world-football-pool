@@ -87,7 +87,7 @@ export function MatchCard({
   const cardClass = cn(
     "card-glass flex flex-col gap-3 rounded-2xl p-4 transition-all",
     isLive && "card-glass-live",
-    publicMode && !isLive && "hover:border-primary/40 hover:-translate-y-0.5",
+    publicMode && !isLive && "card-glass-hover",
   );
 
   // Tono del marcador: en directo todo en primary; finalizado, el del perdedor
