@@ -21,6 +21,23 @@ export function SwRegister() {
       return;
     }
 
+    // En dev el SW solo estorba: cachear chunks de Turbopack (mismo nombre,
+    // contenido distinto) congela CSS/JS rancios. Además de no registrar, se
+    // limpia cualquier SW/caché que quedara de sesiones anteriores.
+    if (process.env.NODE_ENV !== "production") {
+      navigator.serviceWorker
+        .getRegistrations()
+        .then((regs) => regs.forEach((r) => r.unregister()))
+        .catch(() => {});
+      if ("caches" in window) {
+        caches
+          .keys()
+          .then((keys) => keys.forEach((k) => caches.delete(k)))
+          .catch(() => {});
+      }
+      return;
+    }
+
     const promptUpdate = (worker: ServiceWorker) => {
       toast("Nueva versión disponible", {
         description: "Actualiza para tener las últimas mejoras.",

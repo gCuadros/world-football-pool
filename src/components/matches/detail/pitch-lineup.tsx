@@ -40,7 +40,9 @@ function lastName(name: string): string {
 function PlayerChip({ player }: { player: LineupPlayer }) {
   return (
     <div className="flex flex-col items-center gap-0.5">
-      <div className="flex size-8 items-center justify-center rounded-full bg-white/20 text-2xs font-bold text-white shadow backdrop-blur-sm">
+      {/* Sin backdrop-blur: 22 chips con blur penalizan la GPU en iOS y a
+          8px sobre el césped uniforme el efecto es invisible. */}
+      <div className="flex size-8 items-center justify-center rounded-full bg-white/25 text-2xs font-bold text-white shadow">
         {player.number ?? "?"}
       </div>
       <span className="max-w-[52px] truncate text-center text-3xs font-medium leading-tight text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">

@@ -16,7 +16,7 @@ export default function NotFound() {
       <p className="text-muted-foreground mt-2 max-w-md text-sm">
         La página que buscas no existe o se ha movido.
       </p>
-      <Button render={<Link href="/partidos" />} className="mt-6">
+      <Button render={<Link href="/resultados" />} className="mt-6">
         Volver a Partidos
       </Button>
     </div>

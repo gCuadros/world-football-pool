@@ -2,20 +2,29 @@
 // 1. Web Push (recepción + clic en notificación).
 // 2. Soporte offline: precache de la página offline, cache-first para los
 //    assets inmutables de Next, stale-while-revalidate para imágenes y
-//    network-first con fallback para navegaciones.
+//    network-first con fallback a /offline.html para navegaciones.
+//
+// ⚠️ NO se cachean páginas HTML: servir HTML de un deploy anterior referencia
+// chunks que ya no existen en el servidor → "module factory not available" →
+// crash en bucle de la PWA ("ha generado problemas repetidamente" en iOS).
+// Offline se degrada a la página de cortesía, nunca a una página rancia.
 //
 // ⚠️ Sube VERSION en cada cambio de este archivo: dispara el flujo de
 // actualización (toast "Nueva versión disponible" en sw-register).
 
-const VERSION = "quiniela-v1";
+const VERSION = "quiniela-v2";
 const STATIC_CACHE = `${VERSION}-static`;
-const PAGE_CACHE = `${VERSION}-pages`;
 const IMAGE_CACHE = `${VERSION}-images`;
 
 const OFFLINE_URL = "/offline.html";
 const PRECACHE = [OFFLINE_URL, "/icon-192.png", "/apple-icon-180.png"];
 
 self.addEventListener("install", (event) => {
+  // skipWaiting inmediato: las PWAs con la v1 rota (HTML rancio cacheado)
+  // crashean antes de poder pulsar el toast de actualización — la v2 debe
+  // tomar control y purgar cachés sin esperar interacción. Sin PAGE_CACHE
+  // ya no hay riesgo de mezclar versiones a mitad de sesión.
+  self.skipWaiting();
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE)),
   );
@@ -54,29 +63,28 @@ self.addEventListener("fetch", (event) => {
   // Las peticiones RSC de navegación cliente llevan estado de sesión: a red.
   if (url.searchParams.has("_rsc")) return;
 
-  // Navegaciones: red primero; si no hay red, última copia de la página o la
-  // página offline de cortesía.
+  // Navegaciones: siempre a red (HTML fresco = chunks vivos del deploy
+  // actual); sin red, la página offline de cortesía. Nunca HTML cacheado.
   if (request.mode === "navigate") {
     event.respondWith(
       (async () => {
         try {
-          const response = await fetch(request);
-          if (response.ok) {
-            const cache = await caches.open(PAGE_CACHE);
-            cache.put(request, response.clone());
-          }
-          return response;
+          return await fetch(request);
         } catch {
-          const cached = await caches.match(request, { cacheName: PAGE_CACHE });
-          return cached || caches.match(OFFLINE_URL);
+          return caches.match(OFFLINE_URL);
         }
       })(),
     );
     return;
   }
 
-  // Assets con hash de Next (inmutables): cache-first.
-  if (url.pathname.startsWith("/_next/static/")) {
+  // Assets con hash de Next (inmutables solo en producción): cache-first.
+  // En dev (localhost) Turbopack reutiliza nombres con contenido distinto —
+  // cachearlos congela CSS/JS rancios; se dejan pasar a red.
+  if (
+    url.pathname.startsWith("/_next/static/") &&
+    self.location.hostname !== "localhost"
+  ) {
     event.respondWith(
       (async () => {
         const cached = await caches.match(request);
