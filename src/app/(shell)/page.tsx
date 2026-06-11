@@ -39,7 +39,11 @@ async function DashboardSlot({
 }
 
 function HomeFallback() {
-  return <div className="min-h-[60vh]" />;
+  // El skeleton del dashboard, no un hueco vacío: mientras getCurrentUser
+  // resuelve (BD), un div en blanco dejaba la pantalla NEGRA al tocar
+  // "Inicio" — parecía que la app no reaccionaba. Para guests el skeleton
+  // se sustituye por la landing en cuanto resuelve, sin perjuicio.
+  return <DashboardSkeleton />;
 }
 
 function DashboardSkeleton() {
