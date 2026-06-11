@@ -50,10 +50,9 @@ export function ClickCard({
       tabIndex={0}
       aria-label={ariaLabel}
       className={cn("cursor-pointer", className)}
-      // Abrir una tarjeta es ir "hacia dentro": desliza con nav-forward.
-      onClick={() => router.push(href, { transitionTypes: ["nav-forward"] })}
+      onClick={() => router.push(href)}
       onKeyDown={(e) => {
-        if (e.key === "Enter") router.push(href, { transitionTypes: ["nav-forward"] });
+        if (e.key === "Enter") router.push(href);
       }}
     >
       {children}
