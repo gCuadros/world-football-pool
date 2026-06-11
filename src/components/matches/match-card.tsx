@@ -1,6 +1,5 @@
 "use client";
 
-import { ViewTransition } from "react";
 import Link from "next/link";
 import { ArrowRight, LockSimple } from "@phosphor-icons/react";
 
@@ -16,37 +15,27 @@ import { ClickCard } from "@/components/ui/click-card";
 
 /**
  * Columna de equipo del marcador central: escudo grande en un chip y nombre
- * debajo. El chip lleva el view-transition-name del morph escudo → ficha.
+ * debajo. Sin <ViewTransition>: el morph escudo→ficha obligaba a capturar
+ * el viewport en cada navegación (taps encolados durante la animación).
  */
 function TeamSide({
   flag,
   crest,
   name,
   winner,
-  crestName,
 }: {
   flag: string | null;
   crest: string | null;
   name: string;
   winner: boolean;
-  crestName?: string;
 }) {
-  const chip = (
-    <span className="card-glass flex size-14 items-center justify-center rounded-2xl">
-      <TeamCrest crest={crest} flag={flag} name={name} size={34} />
-    </span>
-  );
   // Escudo + nombre enlazan al equipo; el partido tiene su CTA explícito
   // "Ver partido" en el pie (y la tarjeta entera en publicMode).
   return (
     <TeamLink name={name} className="flex min-w-0 flex-col items-center gap-1.5">
-      {crestName ? (
-        <ViewTransition name={crestName} default="none">
-          {chip}
-        </ViewTransition>
-      ) : (
-        chip
-      )}
+      <span className="card-glass flex size-14 items-center justify-center rounded-2xl">
+        <TeamCrest crest={crest} flag={flag} name={name} size={34} />
+      </span>
       <span
         className={cn(
           "max-w-full truncate text-center text-xs",
@@ -132,7 +121,6 @@ export function MatchCard({
           crest={match.homeCrest}
           name={match.homeTeam}
           winner={homeWins}
-          crestName={publicMode ? `match-${match.id}-crest-home` : undefined}
         />
         <div className="flex flex-col items-center gap-0.5 pb-5">
           {hasScore ? (
@@ -157,7 +145,6 @@ export function MatchCard({
           crest={match.awayCrest}
           name={match.awayTeam}
           winner={awayWins}
-          crestName={publicMode ? `match-${match.id}-crest-away` : undefined}
         />
       </div>
 
@@ -174,7 +161,6 @@ export function MatchCard({
               la acción "abrir el partido" necesita su propio afford. */}
           <Link
             href={`/partido/${match.id}`}
-            transitionTypes={["nav-forward"]}
             onClick={(e) => e.stopPropagation()}
             className={cn(
               "flex items-center justify-center gap-1 text-xs font-semibold transition-opacity hover:opacity-80",
