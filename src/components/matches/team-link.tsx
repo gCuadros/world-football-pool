@@ -22,7 +22,6 @@ export function TeamLink({
   return (
     <Link
       href={`/equipo/${teamSlug(name)}`}
-      transitionTypes={["nav-forward"]}
       onClick={(e) => e.stopPropagation()}
       className={cn("transition-opacity hover:opacity-80", className)}
     >

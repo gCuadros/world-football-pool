@@ -1,6 +1,5 @@
-import { Suspense, ViewTransition } from "react";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 
 import { BackButton } from "@/components/ui/back-button";
 
@@ -123,9 +122,7 @@ function MatchHeader({ match }: { match: MatchBase }) {
           name={match.homeTeam}
           className="flex flex-1 flex-col items-center gap-2 text-center"
         >
-          <ViewTransition name={`match-${match.id}-crest-home`} default="none">
-            <TeamCrest crest={match.homeCrest} flag={match.homeFlag} name={match.homeTeam} size={56} />
-          </ViewTransition>
+          <TeamCrest crest={match.homeCrest} flag={match.homeFlag} name={match.homeTeam} size={56} />
           <span className="text-sm font-semibold sm:text-base">{match.homeTeam}</span>
         </TeamLink>
 
@@ -150,9 +147,7 @@ function MatchHeader({ match }: { match: MatchBase }) {
           name={match.awayTeam}
           className="flex flex-1 flex-col items-center gap-2 text-center"
         >
-          <ViewTransition name={`match-${match.id}-crest-away`} default="none">
-            <TeamCrest crest={match.awayCrest} flag={match.awayFlag} name={match.awayTeam} size={56} />
-          </ViewTransition>
+          <TeamCrest crest={match.awayCrest} flag={match.awayFlag} name={match.awayTeam} size={56} />
           <span className="text-sm font-semibold sm:text-base">{match.awayTeam}</span>
         </TeamLink>
       </div>

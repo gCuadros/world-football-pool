@@ -1,14 +1,13 @@
-import { Suspense, ViewTransition } from "react";
+import { Suspense } from "react";
 
 /**
- * Suspense con transición de revelado: al resolverse, el skeleton sale
- * (slide-down + fade) y el contenido entra (slide-up + fade) en lugar de un
- * cambio brusco. Drop-in de `<Suspense>` (mismas props `fallback`/`children`).
+ * Alias de <Suspense> (mismas props `fallback`/`children`).
  *
- * `default="none"` evita que el contenido se anime durante el cross-fade de
- * ruta del shell; solo anima en su propio "enter" al resolver el Suspense.
- * Las clases `reveal-in`/`reveal-out` se estilan en globals.css y respetan
- * `prefers-reduced-motion`.
+ * Antes envolvía skeleton y contenido en <ViewTransition> para animar el
+ * revelado, pero cada transición congela la pantalla mientras captura
+ * snapshots del viewport y encola los taps durante la animación: sumada a
+ * la transición de ruta eran ~2 ciclos de captura por navegación y en móvil
+ * se percibía como una app que no responde. El swap directo es instantáneo.
  */
 export function Reveal({
   fallback,
@@ -17,11 +16,5 @@ export function Reveal({
   fallback: React.ReactNode;
   children: React.ReactNode;
 }) {
-  return (
-    <Suspense fallback={<ViewTransition exit="reveal-out">{fallback}</ViewTransition>}>
-      <ViewTransition enter="reveal-in" default="none">
-        {children}
-      </ViewTransition>
-    </Suspense>
-  );
+  return <Suspense fallback={fallback}>{children}</Suspense>;
 }

@@ -25,10 +25,8 @@ export function BackButton({
   return (
     <button
       onClick={() => {
-        // router.back() no acepta transitionTypes (anima con morph + fade);
-        // el fallback sí desliza hacia atrás.
         if (window.history.length > 1) router.back();
-        else router.push(fallback, { transitionTypes: ["nav-back"] });
+        else router.push(fallback);
       }}
       className={className}
       type="button"

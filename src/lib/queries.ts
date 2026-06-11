@@ -75,7 +75,15 @@ export async function getMatchesBase(): Promise<MatchBase[]> {
   const matches = await prisma.match.findMany({
     orderBy: { kickoffAt: "asc" },
   });
-  return matches.map((m) => ({
+  // Partidos fantasma: cancelados/aplazados por la API (CANC, PST…) quedan
+  // como UPCOMING en BD (el enum no modela cancelación). Si el kickoff pasó
+  // hace >3h y nunca arrancó, el partido no se disputó: fuera de la app
+  // (no es "pendiente", ni "próximo", ni puntuable).
+  const ghostCutoff = Date.now() - 3 * 60 * 60 * 1000;
+  const played = matches.filter(
+    (m) => !(m.status === "UPCOMING" && m.kickoffAt.getTime() < ghostCutoff),
+  );
+  return played.map((m) => ({
     id: m.id,
     matchNo: m.matchNo,
     externalId: m.externalId,

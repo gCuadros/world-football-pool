@@ -1,4 +1,4 @@
-import { cache, Suspense, ViewTransition } from "react";
+import { cache, Suspense } from "react";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getFirstLeagueInfo, getUserLeagues } from "@/lib/leaderboard";
@@ -31,16 +31,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <main className="flex-1 p-4 pb-nav-safe lg:p-6 lg:pb-6">
           {/* Aviso de red caída (solo se pinta offline). */}
           <OfflineBanner />
+          {/* SIN <ViewTransition> en la navegación: cada transición congela
+              la pantalla mientras captura snapshots del viewport y encola los
+              taps que lleguen durante la animación (~350ms × 2 ciclos por
+              navegación con el Reveal). En móvil eso se percibía como "pulso
+              y no reacciona". El swap instantáneo ES la sensación nativa. */}
           <PullToRefresh>
-            {/* Navegación direccional (patrón de la guía de view transitions):
-                drill-down (nav-forward) desliza hacia la izquierda, volver
-                (nav-back) hacia la derecha; sin tipo → cross-fade de siempre. */}
-            <ViewTransition
-              enter={{ "nav-forward": "nav-forward", "nav-back": "nav-back", default: "auto" }}
-              exit={{ "nav-forward": "nav-forward", "nav-back": "nav-back", default: "auto" }}
-            >
-              <div className="mx-auto w-full max-w-6xl overflow-x-clip">{children}</div>
-            </ViewTransition>
+            <div className="mx-auto w-full max-w-6xl overflow-x-clip">{children}</div>
           </PullToRefresh>
         </main>
       </div>
