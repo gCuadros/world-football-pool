@@ -18,7 +18,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border-border bg-card rounded-2xl border p-5">
+    <section className="card-glass rounded-2xl p-5">
       <h2 className="mb-4 flex items-center gap-2 font-mono text-base font-bold">
         {icon && <span>{icon}</span>}
         {title}

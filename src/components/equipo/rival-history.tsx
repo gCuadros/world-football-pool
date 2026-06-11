@@ -57,7 +57,7 @@ export async function RivalHistory({
         Ante {rivalName}
       </h2>
 
-      <div className="bg-card border-border/60 space-y-4 rounded-2xl border p-4 shadow-sm">
+      <div className="card-glass space-y-4 rounded-2xl p-4">
         {/* Pronóstico de la API para el próximo cruce */}
         {prediction && (
           <div className="space-y-2">

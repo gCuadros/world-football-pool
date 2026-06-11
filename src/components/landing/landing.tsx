@@ -80,7 +80,7 @@ function FeatureCard({
   description: string;
 }) {
   return (
-    <div className="border-border hover:border-primary/30 hover:glow-primary rounded-2xl border bg-card p-6 transition motion-safe:hover:-translate-y-0.5">
+    <div className="card-glass card-glass-hover rounded-2xl p-6">
       <div className="bg-primary-gradient shadow-primary/30 mb-4 inline-flex rounded-xl p-3 text-white shadow-md">
         {icon}
       </div>

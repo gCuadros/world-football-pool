@@ -13,7 +13,7 @@ export function AchievementsWidget({
   const set = new Set(unlocked);
 
   return (
-    <div className="border-border bg-card rounded-2xl border p-4">
+    <div className="card-glass rounded-2xl p-4">
       <div className="mb-2 flex items-center justify-between">
         <h3 className="font-bold">Logros</h3>
         <span className="text-muted-foreground font-mono text-xs">

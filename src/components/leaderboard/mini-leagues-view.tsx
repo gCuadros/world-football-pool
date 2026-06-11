@@ -54,7 +54,7 @@ export function MiniLeaguesView({ leagues }: { leagues: MiniLeagueVM[] }) {
     <div className="space-y-6">
       {/* Crear / unirse */}
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="border-border bg-card rounded-2xl border p-4">
+        <div className="card-glass rounded-2xl p-4">
           <h3 className="mb-1 flex items-center gap-2 font-bold">
             <Plus className="text-primary size-4" /> Crear mini-liga
           </h3>
@@ -75,7 +75,7 @@ export function MiniLeaguesView({ leagues }: { leagues: MiniLeagueVM[] }) {
           </div>
         </div>
 
-        <div className="border-border bg-card rounded-2xl border p-4">
+        <div className="card-glass rounded-2xl p-4">
           <h3 className="mb-1 flex items-center gap-2 font-bold">
             <LogIn className="text-primary size-4" /> Unirse con código
           </h3>
