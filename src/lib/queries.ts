@@ -75,13 +75,18 @@ export async function getMatchesBase(): Promise<MatchBase[]> {
   const matches = await prisma.match.findMany({
     orderBy: { kickoffAt: "asc" },
   });
-  // Partidos fantasma: cancelados/aplazados por la API (CANC, PST…) quedan
-  // como UPCOMING en BD (el enum no modela cancelación). Si el kickoff pasó
-  // hace >3h y nunca arrancó, el partido no se disputó: fuera de la app
-  // (no es "pendiente", ni "próximo", ni puntuable).
+  // Fuera del torneo, fuera de la app — filtrado en el único punto del que
+  // beben dashboard, predicciones, resultados y fichas:
+  // 1. Amistosos: eran el banco de pruebas pre-Mundial; con el torneo en
+  //    marcha ya no aportan (los registros siguen en BD, solo se ocultan).
+  // 2. Fantasma: cancelados/aplazados por la API (CANC, PST…) quedan como
+  //    UPCOMING en BD (el enum no modela cancelación). Si el kickoff pasó
+  //    hace >3h y nunca arrancó, no se disputó: ni "pendiente" ni puntuable.
   const ghostCutoff = Date.now() - 3 * 60 * 60 * 1000;
   const played = matches.filter(
-    (m) => !(m.status === "UPCOMING" && m.kickoffAt.getTime() < ghostCutoff),
+    (m) =>
+      m.stage !== "FRIENDLY" &&
+      !(m.status === "UPCOMING" && m.kickoffAt.getTime() < ghostCutoff),
   );
   return played.map((m) => ({
     id: m.id,
@@ -112,23 +117,17 @@ export async function getMatchesViewForLeague(
   leagueId: string,
 ): Promise<MatchVM[]> {
   const now = new Date();
-  const [base, predictions, league] = await Promise.all([
+  const [base, predictions] = await Promise.all([
     getMatchesBase(),
     prisma.prediction.findMany({
       where: { userId, leagueId },
       select: { matchId: true, homeScore: true, awayScore: true, points: true, exact: true, advancePick: true },
     }),
-    prisma.miniLeague.findUnique({
-      where: { id: leagueId },
-      select: { isFriendly: true },
-    }),
   ]);
 
-  // Una liga de amistosos solo muestra amistosos; las del Mundial los excluyen.
-  const isFriendlyLeague = league?.isFriendly ?? false;
-  const scoped = base.filter((m) =>
-    isFriendlyLeague ? m.stage === "FRIENDLY" : m.stage !== "FRIENDLY",
-  );
+  // Los amistosos ya no existen en la app (getMatchesBase los filtra):
+  // todas las ligas son del Mundial.
+  const scoped = base;
 
   const byMatch = new Map(predictions.map((p) => [p.matchId, p]));
 
