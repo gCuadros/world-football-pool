@@ -2,12 +2,17 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    // `id` estable: permite renombrar start_url sin que el sistema trate la
+    // app instalada como una distinta.
+    id: "/",
     name: "Quiniela · Mundial 2026",
     short_name: "Quiniela",
     description:
       "Predice los 64 partidos del Mundial 2026 y compite con tus amigos.",
     lang: "es",
-    start_url: "/partidos",
+    // "/" directo: /partidos es un redirect de servidor a /resultados y cada
+    // arranque en frío de la app instalada pagaba ese salto extra.
+    start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
@@ -25,7 +30,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: "Partidos en directo",
         short_name: "Partidos",
-        url: "/partidos",
+        url: "/resultados",
         icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }],
       },
       {

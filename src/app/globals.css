@@ -651,3 +651,32 @@
     background: color-mix(in srgb, var(--card) 92%, transparent);
   }
 }
+
+/* ── Skeleton con barrido de luz ──────────────────────────────────────────
+   animate-pulse (opacidad 100↔50%) es invisible sobre cajas ya oscuras en
+   modo oscuro: los skeletons parecían rectángulos muertos y la app "colgada"
+   mientras carga la BD. El barrido de un brillo en diagonal se percibe como
+   actividad aunque el fondo sea casi negro. */
+.skeleton-shimmer {
+  background:
+    linear-gradient(
+      100deg,
+      transparent 35%,
+      color-mix(in srgb, var(--foreground) 9%, transparent) 50%,
+      transparent 65%
+    )
+    var(--muted);
+  background-size: 220% 100%;
+  background-position: 130% 0;
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+@keyframes skeleton-sweep {
+  to {
+    background-position: -90% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+  }
+}

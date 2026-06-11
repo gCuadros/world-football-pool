@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import {
   House,
@@ -53,6 +53,37 @@ export function BottomNavSkeleton() {
         </span>
       ))}
     </nav>
+  );
+}
+
+/**
+ * Contenido del tab con feedback de navegación en curso (useLinkStatus):
+ * mientras la ruta destino carga, el icono pulsa — el toque "responde" al
+ * instante aunque la BD tarde, como el spinner de una tab bar nativa.
+ * fill cuando activo: el cambio de peso del icono es la señal de estado
+ * de las tab bars nativas premium.
+ */
+function TabBody({
+  icon: Icon,
+  label,
+  active,
+}: {
+  icon: React.ElementType;
+  label: string;
+  active: boolean;
+}) {
+  const { pending } = useLinkStatus();
+  return (
+    <>
+      <Icon
+        className={cn(
+          active ? "size-4.5" : "size-5.5",
+          pending && !active && "motion-safe:animate-pulse text-foreground",
+        )}
+        weight={active || pending ? "fill" : "regular"}
+      />
+      {active && <span className="whitespace-nowrap">{label}</span>}
+    </>
   );
 }
 
@@ -114,10 +145,7 @@ export function BottomNav({ user }: { user: SidebarUser }) {
                 : "text-muted-foreground active:text-foreground size-11 transition-colors",
             )}
           >
-            {/* fill cuando activo: el cambio de peso del icono es la señal
-                de estado de las tab bars nativas premium */}
-            <Icon className={active ? "size-4.5" : "size-5.5"} weight={active ? "fill" : "regular"} />
-            {active && <span className="whitespace-nowrap">{label}</span>}
+            <TabBody icon={Icon} label={label} active={active} />
           </Link>
         );
       })}
