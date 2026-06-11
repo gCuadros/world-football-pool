@@ -161,37 +161,6 @@ export const apiFootballProvider: FootballProvider = {
   },
 };
 
-// ── Amistosos de selecciones (liga 10) ────────────────────────────────────
-export const FRIENDLY_LEAGUE = 10;
-
-/** ¿Es una selección juvenil o femenina? (las excluimos). */
-function isYouthOrWomen(name: string): boolean {
-  return /U-?1[5-9]|U-?2[0-3]|\bW\b|Women|Femenin/i.test(name);
-}
-
-/**
- * Amistosos de selecciones absolutas en una ventana de fechas (por defecto:
- * desde hoy hasta el inicio del Mundial). Devuelve fixtures sin `matchNo`
- * (lo asigna el import) con `stage` = FRIENDLY.
- */
-export async function getFriendlyFixtures(opts?: {
-  from?: string;
-  to?: string;
-}): Promise<Omit<ProviderFixture, "matchNo">[]> {
-  const from = opts?.from ?? new Date().toISOString().slice(0, 10);
-  const to = opts?.to ?? "2026-06-11";
-  const resp = await apiGet<AfFixture[]>(
-    `/fixtures?league=${FRIENDLY_LEAGUE}&season=${SEASON}&from=${from}&to=${to}`,
-  );
-  return resp
-    .filter(
-      (f) =>
-        !isYouthOrWomen(f.teams.home.name) && !isYouthOrWomen(f.teams.away.name),
-    )
-    .map((item) => ({ ...toFixture(item, null), stage: "FRIENDLY" as const }))
-    .sort((a, b) => a.kickoffAt.getTime() - b.kickoffAt.getTime());
-}
-
 // ── Eventos de un partido (on-demand) ─────────────────────────────────────
 export type MatchEvent = {
   minute: number | null;

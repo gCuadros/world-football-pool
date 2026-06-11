@@ -29,11 +29,9 @@ export function Dashboard({
     data;
   const firstName = userName.split(" ")[0] || userName;
 
-  // El hero destaca SOLO partidos del torneo: los amistosos no son cabecera
-  // (siguen disponibles en las listas de abajo).
-  const isTournament = (m: (typeof liveMatches)[number]) => m.stage !== "FRIENDLY";
-  const featured =
-    liveMatches.find(isTournament) ?? upcomingMatches.find(isTournament) ?? null;
+  // Los amistosos ya no llegan aquí (getMatchesBase los filtra): el hero
+  // destaca el primer partido en directo del torneo o el siguiente.
+  const featured = liveMatches[0] ?? upcomingMatches[0] ?? null;
   const liveRest = liveMatches.filter((m) => m.id !== featured?.id);
   const upcomingRest = upcomingMatches.filter((m) => m.id !== featured?.id);
 

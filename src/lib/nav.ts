@@ -3,7 +3,6 @@ import {
   Globe,
   Network,
   Newspaper,
-  Handshake,
   HelpCircle,
   Users,
   SquarePen,
@@ -25,7 +24,6 @@ export const EXPLORE_NAV: NavItem[] = [
   { href: "/resultados", label: "Partidos", title: "Partidos", icon: Radio },
   { href: "/mundial", label: "Grupos", title: "Grupos y clasificación", icon: Globe },
   { href: "/eliminatorias", label: "Eliminatorias", title: "Cuadro de eliminatorias", icon: Network },
-  { href: "/amistosos", label: "Amistosos", title: "Amistosos", icon: Handshake },
   { href: "/noticias", label: "Noticias", title: "Noticias", icon: Newspaper },
   { href: "/como-funciona", label: "Cómo funciona", title: "Cómo funciona", icon: HelpCircle },
 ];

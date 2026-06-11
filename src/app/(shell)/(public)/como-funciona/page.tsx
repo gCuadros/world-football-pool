@@ -16,7 +16,6 @@ const STAGE_ORDER: Stage[] = [
   "SEMI_FINAL",
   "THIRD_PLACE",
   "FINAL",
-  "FRIENDLY",
 ];
 
 const EXAMPLES = [
