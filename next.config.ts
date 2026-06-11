@@ -10,7 +10,9 @@ const nextConfig: NextConfig = {
     remotePatterns: [{ protocol: "https", hostname: "media.api-sports.io" }],
   },
   experimental: {
-    optimizePackageImports: ["lucide-react"],
+    // Phosphor incluido: sus imports de barril (~1.500 iconos) sin optimizar
+    // disparan el bundle cliente y la hidratación en móvil.
+    optimizePackageImports: ["lucide-react", "@phosphor-icons/react"],
     // Transiciones de vista entre rutas (React `<ViewTransition>` del canal
     // canary que usa el App Router; no requiere instalar react@canary).
     viewTransition: true,
