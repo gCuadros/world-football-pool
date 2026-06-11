@@ -56,6 +56,7 @@ const ROWS: LeaderboardRow[] = [1, 2, 3, 4].map((rank) => ({
   initials: ["LT", "MV", "AR", "PG"][rank - 1],
   avatar: null,
   points: [87, 81, 74, 70][rank - 1],
+  livePoints: [5, 0, 3, 0][rank - 1],
   accuracy: [64, 58, 55, 51][rank - 1],
   predictionsCount: 24,
   exactCount: 9,

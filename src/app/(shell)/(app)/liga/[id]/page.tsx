@@ -5,6 +5,7 @@ import { Target, Trophy } from "@phosphor-icons/react/dist/ssr";
 
 import { getCurrentUser } from "@/lib/current-user";
 import { getLeagueLeaderboard } from "@/lib/leaderboard";
+import { AutoRefresh } from "@/components/matches/auto-refresh";
 import { prisma } from "@/lib/prisma";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
@@ -44,9 +45,12 @@ async function LigaContent({ params }: { params: Promise<{ id: string }> }) {
 
   const rows = await getLeagueLeaderboard(id, user.id);
   const myRow = rows.find((r) => r.userId === user.id);
-
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      {/* Clasificación en directo: los puntos provisionales (+N) se mueven
+          gol a gol. Tick fijo de 60s — lee la caché del servidor (que el
+          cron de goles ya revalida), coste por usuario ~nulo. */}
+      <AutoRefresh intervalMs={60_000} />
       {/* Cabecera de la liga */}
       <div className="card-glass rounded-2xl p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">

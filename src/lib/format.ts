@@ -41,3 +41,13 @@ export function formatDuration(totalSeconds: number): string {
   const pad = (n: number) => n.toString().padStart(2, "0");
   return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
 }
+
+/**
+ * Minuto en vivo legible: -1 es el sentinel de pausa que escribe el provider
+ * (HT/BT) — sin él, el reloj se quedaba en "45'" durante todo el descanso.
+ */
+export function formatLiveMinute(minute: number | null): string {
+  if (minute === -1) return "Descanso";
+  if (minute === null) return "EN VIVO";
+  return `${minute}'`;
+}

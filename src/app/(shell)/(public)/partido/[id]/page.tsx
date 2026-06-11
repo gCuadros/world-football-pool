@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { formatLiveMinute } from "@/lib/format";
 
 import { BackButton } from "@/components/ui/back-button";
+import { AutoRefresh } from "@/components/matches/auto-refresh";
 
 import { getMatchesBase, type MatchBase } from "@/lib/queries";
 import { STAGE_LABELS } from "@/lib/labels";
@@ -15,6 +17,7 @@ import {
   StatsSection,
   CommunitySection,
 } from "@/components/matches/detail/sections";
+import { LeaguePredictionsSection } from "@/components/matches/detail/league-predictions";
 
 const DATE_FMT = new Intl.DateTimeFormat("es-ES", {
   weekday: "long",
@@ -60,13 +63,21 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
+      {/* Marcador/minuto frescos sin recargar: cada 30s mientras está en
+          juego. Coste ~cero: el tick lee la caché del servidor (la API
+          externa solo la sondea el cron a su propio ritmo). */}
+      {match.status === "LIVE" && <AutoRefresh intervalMs={30_000} />}
       <BackButton />
 
       <MatchHeader match={match} />
 
       {showLive ? (
         <>
-          {/* Alineaciones → cronología → estadísticas → comunidad */}
+          {/* Predicciones de la liga (reveladas al pitido) → alineaciones →
+              cronología → estadísticas → comunidad */}
+          <Suspense fallback={<SectionSkeleton />}>
+            <LeaguePredictionsSection matchId={match.id} />
+          </Suspense>
           <Suspense fallback={<SectionSkeleton />}>
             <LineupsSection externalId={match.externalId} />
           </Suspense>
@@ -111,7 +122,7 @@ function MatchHeader({ match }: { match: MatchBase }) {
               <span className="bg-live absolute inline-flex size-full animate-ping rounded-full opacity-75" />
               <span className="bg-live relative inline-flex size-2 rounded-full" />
             </span>
-            {match.liveMinute ? `${match.liveMinute}'` : "EN VIVO"}
+            {formatLiveMinute(match.liveMinute)}
           </span>
         )}
       </div>
