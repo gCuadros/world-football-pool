@@ -76,7 +76,15 @@ export function LeaderboardTable({ rows }: { rows: LeaderboardRow[] }) {
                 ) : null}
               </span>
             </Link>
-            <span className="text-right font-mono font-bold">{row.points}</span>
+            <span className="flex items-center justify-end gap-1 text-right font-mono font-bold">
+              {row.points}
+              {/* Puntos provisionales en juego: la clasificación se mueve gol a gol. */}
+              {row.livePoints > 0 && (
+                <span className="bg-live/15 text-live rounded-full px-1.5 py-0.5 text-3xs font-bold">
+                  +{row.livePoints}
+                </span>
+              )}
+            </span>
             <span className="text-muted-foreground hidden text-right font-mono text-xs sm:block">
               {row.accuracy}%
             </span>

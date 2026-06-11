@@ -1,6 +1,6 @@
 import type { MatchBase } from "@/lib/queries";
 import { STAGE_SHORT } from "@/lib/labels";
-import { formatRelativeDay, formatTime } from "@/lib/format";
+import { formatRelativeDay, formatTime, formatLiveMinute } from "@/lib/format";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { TeamLink } from "@/components/matches/team-link";
 import { ClickCard } from "@/components/ui/click-card";
@@ -41,7 +41,7 @@ export function HeroMatch({ match, now }: { match: MatchBase; now?: Date }) {
                 <span className="bg-live absolute inline-flex size-full animate-ping rounded-full opacity-75" />
                 <span className="bg-live relative inline-flex size-2 rounded-full" />
               </span>
-              {match.liveMinute ? `${match.liveMinute}'` : "EN VIVO"}
+              {formatLiveMinute(match.liveMinute)}
             </span>
           ) : finished ? (
             <span className="font-mono text-2xs text-white/50 uppercase tracking-widest">Final</span>

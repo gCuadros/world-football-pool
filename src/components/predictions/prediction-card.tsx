@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import type { MatchVM } from "@/lib/queries";
 import { STAGE_SHORT } from "@/lib/labels";
-import { formatRelativeDay, formatTime } from "@/lib/format";
+import { formatRelativeDay, formatTime, formatLiveMinute } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { haptics } from "@/lib/haptics";
 import { savePrediction } from "@/app/(shell)/(app)/predicciones/actions";
@@ -221,7 +221,7 @@ export function PredictionCard({
         </span>
         {live ? (
           <span className="text-live font-mono text-2xs font-bold">
-            {match.liveMinute ? `${match.liveMinute}'` : "EN VIVO"}
+            {formatLiveMinute(match.liveMinute)}
           </span>
         ) : resolved ? (
           <span className="text-muted-foreground font-mono text-2xs">

@@ -5,6 +5,7 @@ import { cacheTag, cacheLife } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { TAGS, leagueTag } from "@/lib/cache-tags";
 import type { AchievementType } from "@prisma/client";
+import { scorePrediction } from "@/lib/scoring";
 
 function initials(name: string | null | undefined, email: string): string {
   if (name && name.trim()) {
@@ -26,6 +27,8 @@ export type LeaderboardRow = {
   initials: string;
   avatar: string | null;
   points: number;
+  /** Puntos provisionales de partidos EN JUEGO (incluidos en `points`). */
+  livePoints: number;
   accuracy: number;
   predictionsCount: number;
   exactCount: number;
@@ -52,9 +55,11 @@ export async function getLeagueLeaderboard(
 ): Promise<LeaderboardRow[]> {
   "use cache";
   cacheLife("minutes");
-  cacheTag(leagueTag(leagueId), TAGS.users);
+  // TAGS.matches: el cron de goles revalida ese tag en cada gol — la
+  // clasificación en directo se refresca al instante con cada tanto.
+  cacheTag(leagueTag(leagueId), TAGS.users, TAGS.matches);
 
-  const [members, finishedMatches, predictions] = await Promise.all([
+  const [members, finishedMatches, liveMatches, predictions] = await Promise.all([
     prisma.miniLeagueMember.findMany({
       where: { miniLeagueId: leagueId },
       include: { user: { select: { id: true, name: true, email: true, avatar: true } } },
@@ -64,16 +69,20 @@ export async function getLeagueLeaderboard(
       orderBy: { kickoffAt: "asc" },
       select: { id: true },
     }),
+    prisma.match.findMany({
+      where: { status: "LIVE" },
+      select: { id: true, homeScore: true, awayScore: true, stage: true, advanced: true },
+    }),
     prisma.prediction.findMany({
       where: { leagueId },
-      select: { userId: true, matchId: true, points: true, exact: true },
+      select: { userId: true, matchId: true, points: true, exact: true, homeScore: true, awayScore: true, advancePick: true },
     }),
   ]);
 
   const finishedOrder = finishedMatches.map((m) => m.id);
   const finishedSet = new Set(finishedOrder);
 
-  const predsByUser = new Map<string, { matchId: string; points: number | null; exact: boolean }[]>();
+  const predsByUser = new Map<string, (typeof predictions)[number][]>();
   for (const p of predictions) {
     const arr = predsByUser.get(p.userId) ?? [];
     arr.push(p);
@@ -92,6 +101,20 @@ export async function getLeagueLeaderboard(
       predictionsCount > 0
         ? Math.round(((exactCount + correctCount) / predictionsCount) * 1000) / 10
         : 0;
+
+    // Clasificación en directo: puntos provisionales con el marcador actual
+    // de los partidos en juego (se consolidan o ajustan al pitido final).
+    const liveById = new Map(liveMatches.map((m) => [m.id, m]));
+    let livePoints = 0;
+    for (const p of userPreds) {
+      const lm = liveById.get(p.matchId);
+      if (!lm) continue;
+      const breakdown = scorePrediction(
+        { homeScore: p.homeScore, awayScore: p.awayScore, advancePick: p.advancePick },
+        { homeScore: lm.homeScore, awayScore: lm.awayScore, stage: lm.stage, advanced: lm.advanced },
+      );
+      livePoints += breakdown?.total ?? 0;
+    }
 
     const byMatch = new Map(finished.map((p) => [p.matchId, p]));
     let bestStreak = 0;
@@ -115,7 +138,8 @@ export async function getLeagueLeaderboard(
       name: user.name ?? user.email,
       initials: initials(user.name, user.email),
       avatar: user.avatar ?? null,
-      points: totalPoints,
+      points: totalPoints + livePoints,
+      livePoints,
       accuracy,
       predictionsCount,
       exactCount,

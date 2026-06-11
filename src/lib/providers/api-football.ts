@@ -139,9 +139,19 @@ function toFixture(item: AfFixture, group: string | null): Omit<ProviderFixture,
     homeScore: item.goals.home,
     awayScore: item.goals.away,
     status,
-    liveMinute: status === "LIVE" ? item.fixture.status.elapsed : null,
+    liveMinute: status === "LIVE" ? liveMinuteOf(item.fixture.status) : null,
     advanced,
   };
+}
+
+/**
+ * Minuto en vivo con sentinel de pausa: -1 = descanso (HT) o pausa del
+ * alargue (BT). Sin él, el reloj se quedaba congelado en "45'" durante todo
+ * el entretiempo. La UI lo traduce con formatLiveMinute.
+ */
+function liveMinuteOf(status: { short: string; elapsed: number | null }): number | null {
+  if (status.short === "HT" || status.short === "BT") return -1;
+  return status.elapsed;
 }
 
 export const apiFootballProvider: FootballProvider = {
@@ -321,7 +331,7 @@ export async function getLiveFixtures(
     externalId: String(item.fixture.id),
     homeScore: item.goals.home ?? 0,
     awayScore: item.goals.away ?? 0,
-    minute: item.fixture.status.elapsed,
+    minute: liveMinuteOf(item.fixture.status),
     status: mapStatus(item.fixture.status.short),
   }));
 }

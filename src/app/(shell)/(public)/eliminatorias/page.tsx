@@ -1,6 +1,7 @@
 import { Reveal } from "@/components/ui/reveal";
 import Link from "next/link";
 import { TreeStructure } from "@phosphor-icons/react/dist/ssr";
+import { formatLiveMinute } from "@/lib/format";
 
 import { getKnockoutMatches, type KnockoutRound, type MatchBase } from "@/lib/queries";
 import { TeamCrest } from "@/components/matches/team-crest";
@@ -172,7 +173,7 @@ function StatusBadge({
   if (status === "LIVE") {
     return (
       <span className="bg-live/10 text-live rounded-full px-1.5 py-0.5 font-mono text-3xs font-bold tracking-wide uppercase">
-        {liveMinute ? `${liveMinute}'` : "En vivo"}
+        {formatLiveMinute(liveMinute)}
       </span>
     );
   }

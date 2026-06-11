@@ -8,6 +8,7 @@ import {
   Plus,
   UsersThree,
 } from "@phosphor-icons/react/dist/ssr";
+import { formatLiveMinute } from "@/lib/format";
 
 import type { DashboardData } from "@/lib/dashboard";
 import { STAGE_SHORT } from "@/lib/labels";
@@ -17,6 +18,7 @@ import { ClickCard } from "@/components/ui/click-card";
 import { HeroMatch } from "@/components/dashboard/hero-match";
 import { PushPrompt } from "@/components/notifications/push-prompt";
 import { AppBadge } from "@/components/app/app-badge";
+import { AutoRefresh } from "@/components/matches/auto-refresh";
 
 export function Dashboard({
   data,
@@ -40,6 +42,8 @@ export function Dashboard({
       <PushPrompt />
       {/* Badge en el icono de la app instalada: predicciones pendientes. */}
       <AppBadge count={pendingCount} />
+      {/* Marcadores frescos en el hero/listas mientras haya partidos en juego. */}
+      <AutoRefresh enabled={liveMatches.length > 0} intervalMs={30_000} />
 
       {/* Saludo + CTA pendientes */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -209,7 +213,7 @@ function MiniMatch({
         {live && (
           <span className="text-live flex items-center gap-1 font-mono text-3xs font-bold">
             <span className="bg-live inline-block size-1.5 animate-pulse rounded-full" />
-            {match.liveMinute ? `${match.liveMinute}'` : "EN VIVO"}
+            {formatLiveMinute(match.liveMinute)}
           </span>
         )}
       </div>

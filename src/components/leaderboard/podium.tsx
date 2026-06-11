@@ -75,6 +75,11 @@ export function Podium({ rows }: { rows: LeaderboardRow[] }) {
               >
                 pts
               </span>
+              {row.livePoints > 0 && (
+                <span className="bg-live/15 text-live ml-1 rounded-full px-1.5 py-0.5 text-3xs font-bold">
+                  +{row.livePoints}
+                </span>
+              )}
             </p>
             <p
               className={cn(
