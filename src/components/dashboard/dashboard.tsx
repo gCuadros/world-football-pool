@@ -3,7 +3,6 @@ import {
   Trophy,
   Target,
   Broadcast,
-  GlobeHemisphereWest,
   ArrowRight,
   Plus,
   UsersThree,
@@ -158,12 +157,6 @@ export function Dashboard({
         </section>
       )}
 
-      {/* Accesos rápidos */}
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <QuickLink href="/resultados" icon={<Broadcast className="size-5" weight="duotone" />} label="Resultados" />
-        <QuickLink href="/mundial" icon={<GlobeHemisphereWest className="size-5" weight="duotone" />} label="Mundial" />
-        <QuickLink href="/ligas" icon={<UsersThree className="size-5" weight="duotone" />} label="Mis ligas" />
-      </section>
     </div>
   );
 }
@@ -257,24 +250,3 @@ function TeamRow({
   );
 }
 
-function QuickLink({
-  href,
-  icon,
-  label,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="card-glass card-glass-hover flex flex-col items-center justify-center gap-2.5 rounded-2xl p-5 text-center"
-    >
-      <span className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-xl">
-        {icon}
-      </span>
-      <span className="text-sm font-semibold">{label}</span>
-    </Link>
-  );
-}
