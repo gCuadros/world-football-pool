@@ -625,3 +625,29 @@
     animation-delay: 0s !important;
   }
 }
+
+/* ── Móvil: Liquid Glass sin backdrop-filter en el contenido ──────────────
+   Apilar decenas de blurs (tarjeta + 2 chips de equipo por partido + chips
+   de filtro) agota la GPU de WebKit en iOS: la pestaña crashea en bucle
+   ("ha generado problemas repetidamente") y cada view transition captura
+   capas carísimas (navegación lenta). En viewports < lg el cristal de los
+   elementos en scroll pasa a velo casi opaco SIN blur (mismo look sobre
+   fondo uniforme); el blur queda solo en el chrome fijo (glass-nav y
+   topbar), que son dos elementos. Sin @layer: gana a las utilities. */
+@media (max-width: 1023px) {
+  .card-glass,
+  .chip-glass,
+  .glass {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .card-glass {
+    background:
+      linear-gradient(115deg, var(--glass-sheen), transparent 45%),
+      color-mix(in srgb, var(--card) 92%, transparent);
+  }
+  .chip-glass,
+  .glass {
+    background: color-mix(in srgb, var(--card) 92%, transparent);
+  }
+}

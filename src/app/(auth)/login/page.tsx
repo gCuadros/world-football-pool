@@ -26,7 +26,9 @@ async function SessionGate({ searchParams }: { searchParams: SearchParams }) {
     user = null;
   }
   const { next } = await searchParams;
-  if (user) redirect(safePath(next) ?? "/partidos");
+  // /resultados directo: /partidos es solo un redirect de compatibilidad y
+  // encadenaría dos saltos de servidor tras el login.
+  if (user) redirect(safePath(next) ?? "/resultados");
   return null;
 }
 
