@@ -16,6 +16,7 @@ import { TeamLink } from "@/components/matches/team-link";
 import { ClickCard } from "@/components/ui/click-card";
 import { HeroMatch } from "@/components/dashboard/hero-match";
 import { PushPrompt } from "@/components/notifications/push-prompt";
+import { AppBadge } from "@/components/app/app-badge";
 
 export function Dashboard({
   data,
@@ -35,6 +36,8 @@ export function Dashboard({
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <PushPrompt />
+      {/* Badge en el icono de la app instalada: predicciones pendientes. */}
+      <AppBadge count={pendingCount} />
 
       {/* Saludo + CTA pendientes */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

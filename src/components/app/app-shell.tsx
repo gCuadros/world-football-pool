@@ -8,6 +8,7 @@ import { Sidebar } from "@/components/app/sidebar";
 import { Topbar, type TopbarNotifications } from "@/components/app/topbar";
 import { BottomNav, BottomNavSkeleton } from "@/components/app/bottom-nav";
 import { PullToRefresh } from "@/components/app/pull-to-refresh";
+import { OfflineBanner } from "@/components/app/offline-banner";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { SidebarUser } from "@/components/app/nav-content";
 
@@ -28,6 +29,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <TopbarSlot />
         </Suspense>
         <main className="flex-1 p-4 pb-nav-safe lg:p-6 lg:pb-6">
+          {/* Aviso de red caída (solo se pinta offline). */}
+          <OfflineBanner />
           <PullToRefresh>
             {/* Navegación direccional (patrón de la guía de view transitions):
                 drill-down (nav-forward) desliza hacia la izquierda, volver
