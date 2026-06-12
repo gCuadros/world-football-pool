@@ -310,9 +310,16 @@
     bottom: env(safe-area-inset-bottom);
   }
 
-  /* CTA de marca con canto de cristal: shine superior + glow del color. */
+  /* CTA de marca con canto de cristal: shine superior + glow del color.
+     Malla aurora (no un lineal de 2 paradas): radiales de hielo, rosa y
+     violeta fundiéndose sobre la base índigo — los blobs orgánicos de un
+     mesh gradient, emulados con capas radiales. */
   .bg-primary-gradient {
-    background: linear-gradient(135deg, var(--gradient-primary-start) 0%, var(--gradient-primary-end) 100%);
+    background:
+      radial-gradient(120% 150% at 10% 120%, rgba(140, 200, 255, 0.5), transparent 55%),
+      radial-gradient(100% 140% at 95% -20%, rgba(236, 160, 255, 0.45), transparent 55%),
+      radial-gradient(140% 170% at 80% 120%, rgba(124, 80, 255, 0.7), transparent 60%),
+      linear-gradient(135deg, var(--gradient-primary-start), var(--gradient-primary-end));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.28),
       inset 0 -1px 0 rgba(0, 0, 0, 0.12),
@@ -338,7 +345,14 @@
   }
   /* Titular con degradado de marca. */
   .text-gradient-primary {
-    background: linear-gradient(135deg, var(--gradient-primary-start), var(--gradient-primary-end));
+    /* Tercera parada rosa: el mismo arco azul → violeta → rosa de la malla
+       aurora de los CTA, en versión texto. */
+    background: linear-gradient(
+      110deg,
+      var(--gradient-primary-start),
+      var(--gradient-primary-end) 55%,
+      #e879f9
+    );
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
