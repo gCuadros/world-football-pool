@@ -229,11 +229,17 @@ export async function getApiFootballStandings(): Promise<GroupStanding[]> {
     `/standings?league=${LEAGUE}&season=${SEASON}`,
   );
   const groups = resp[0]?.league?.standings ?? [];
+  // La API nombra los grupos "Group Stage - Group A" (antes "Group A"):
+  // se ancla al final para sobrevivir a prefijos y descartar la tabla
+  // agregada "Group Stage" que viene de propina.
   return groups
     .filter((g) => g.length > 0)
-    .filter((g) => /^group\s+[a-l]$/i.test((g[0].group ?? "").trim()))
+    .filter((g) => /group\s+[a-l]$/i.test((g[0].group ?? "").trim()))
     .map((g) => {
-      const groupName = (g[0].group ?? "").replace(/group\s*/i, "").trim();
+      const groupName = (g[0].group ?? "")
+        .trim()
+        .match(/group\s+([a-l])$/i)![1]
+        .toUpperCase();
       return {
         group: groupName,
         teams: g.map((row) => {
