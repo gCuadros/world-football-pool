@@ -127,7 +127,7 @@ export async function LeaguePredictionsSection({ matchId }: { matchId: string })
   if (!blocks || blocks.length === 0) return null;
 
   return (
-    <section className="border-border bg-card rounded-2xl border p-5">
+    <section className="card-glass rounded-2xl p-5">
       <h2 className="mb-1 flex items-center gap-2 font-mono text-base font-bold">
         <span>🎯</span>
         Predicciones de tu liga

@@ -247,7 +247,7 @@ export function AjustesView({
         {/* Columna principal: perfil + info */}
         <div className="space-y-6">
           {/* Portada */}
-          <section className="border-border bg-card overflow-hidden rounded-2xl border">
+          <section className="card-glass overflow-hidden rounded-2xl">
             <div className="relative h-32 w-full">
               <Image
                 src={cover ?? "/front-page-default.webp"}
@@ -328,7 +328,7 @@ export function AjustesView({
           </section>
 
           {/* Información personal */}
-          <section className="border-border bg-card space-y-4 rounded-2xl border p-5">
+          <section className="card-glass space-y-4 rounded-2xl p-5">
             <h2 className="font-bold">Información personal</h2>
             <div className="space-y-2">
               <Label htmlFor="name">Nombre</Label>
@@ -365,7 +365,7 @@ export function AjustesView({
 
         {/* Columna lateral: apariencia + zona de peligro */}
         <div className="space-y-6">
-          <section className="border-border bg-card rounded-2xl border p-5">
+          <section className="card-glass rounded-2xl p-5">
             <h2 className="mb-1 font-bold">Tema</h2>
             <p className="text-muted-foreground mb-4 text-sm">
               Apariencia de la aplicación.
@@ -395,7 +395,7 @@ export function AjustesView({
           </section>
 
           {/* Notificaciones */}
-          <section className="border-border bg-card space-y-5 rounded-2xl border p-5">
+          <section className="card-glass space-y-5 rounded-2xl p-5">
             <div>
               <h2 className="mb-1 font-bold">Notificaciones</h2>
               <p className="text-muted-foreground text-sm">

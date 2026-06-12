@@ -79,7 +79,7 @@ async function LogrosContent() {
         return (
           <section key={leagueId} className="space-y-4">
             {/* Cabecera de liga */}
-            <div className="border-border bg-card rounded-2xl border p-5">
+            <div className="card-glass rounded-2xl p-5">
               <div className="flex items-center justify-between">
                 <div>
                   <Link

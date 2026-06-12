@@ -16,7 +16,7 @@ export function GroupTable({
   highlightTeam?: string;
 }) {
   return (
-    <div className="border-border bg-card overflow-hidden rounded-2xl border shadow-sm">
+    <div className="card-glass overflow-hidden rounded-2xl">
       <table className="w-full text-sm">
         <thead>
           <tr className="text-muted-foreground border-border bg-muted/30 border-b font-mono text-3xs tracking-wide uppercase">

@@ -46,7 +46,7 @@ export async function LastLineup({
         )}
       </h2>
 
-      <div className="bg-card border-border/60 rounded-2xl border p-4 shadow-sm">
+      <div className="card-glass rounded-2xl p-4">
         <div className="space-y-3">
           {LINES.map(({ pos, label }) => {
             const players = byLine.get(pos);

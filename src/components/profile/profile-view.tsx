@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Target, Zap, BarChart2, Star, ChevronDown, Goal } from "lucide-react";
 
 import type { PublicProfile, PublicPrediction } from "@/lib/queries";
+import { maxPointsFor } from "@/lib/scoring";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { BackButton } from "@/components/ui/back-button";
@@ -57,12 +58,12 @@ export function ProfileView({
   const visible = showAll ? predictions : predictions.slice(0, 15);
 
   const totalPoints = predictions.reduce((s, p) => s + (p.points ?? 0), 0);
-  const withPoints = predictions.filter((p) => (p.points ?? 0) > 0).length;
   const exact = predictions.filter((p) => p.exact).length;
+  // Precisión = puntos rascados / máximo puntuable de los partidos predichos.
+  // Acertar 1X2 sin el exacto NO es un 100%: es 1 de los 5 (u 8) en juego.
+  const maxPossible = predictions.reduce((s, p) => s + maxPointsFor(p.stage), 0);
   const accuracy =
-    predictions.length > 0
-      ? Math.round((withPoints / predictions.length) * 100)
-      : 0;
+    maxPossible > 0 ? Math.round((totalPoints / maxPossible) * 100) : 0;
 
   const memberSince = new Date(profile.createdAt).getFullYear();
 

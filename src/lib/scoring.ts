@@ -93,3 +93,13 @@ export function secondsUntilLock(kickoffAt: Date, now: Date = new Date()): numbe
   const lockAt = kickoffAt.getTime() - PREDICTION_LOCK_MINUTES * 60000;
   return Math.max(0, Math.floor((lockAt - now.getTime()) / 1000));
 }
+
+/**
+ * Máximo puntuable de un partido: pleno absoluto (1X2 + diferencia + exacto,
+ * más quién pasa en eliminatorias) × multiplicador de fase. Es el denominador
+ * de la precisión: cuántos puntos rascaste de los que había en juego.
+ */
+export function maxPointsFor(stage: Stage): number {
+  const base = KNOCKOUT_STAGES.has(stage) ? 8 : 5;
+  return base * MULTIPLIERS[stage];
+}
