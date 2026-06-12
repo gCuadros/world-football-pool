@@ -5,7 +5,7 @@ import { cacheTag, cacheLife } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { TAGS, leagueTag } from "@/lib/cache-tags";
 import type { AchievementType } from "@prisma/client";
-import { scorePrediction } from "@/lib/scoring";
+import { scorePrediction, maxPointsFor } from "@/lib/scoring";
 
 function initials(name: string | null | undefined, email: string): string {
   if (name && name.trim()) {
@@ -67,7 +67,7 @@ export async function getLeagueLeaderboard(
     prisma.match.findMany({
       where: { status: "FINISHED" },
       orderBy: { kickoffAt: "asc" },
-      select: { id: true },
+      select: { id: true, stage: true },
     }),
     prisma.match.findMany({
       where: { status: "LIVE" },
@@ -81,6 +81,7 @@ export async function getLeagueLeaderboard(
 
   const finishedOrder = finishedMatches.map((m) => m.id);
   const finishedSet = new Set(finishedOrder);
+  const stageByMatch = new Map(finishedMatches.map((m) => [m.id, m.stage]));
 
   const predsByUser = new Map<string, (typeof predictions)[number][]>();
   for (const p of predictions) {
@@ -95,12 +96,15 @@ export async function getLeagueLeaderboard(
 
     const totalPoints = finished.reduce((s, p) => s + (p.points ?? 0), 0);
     const exactCount = finished.filter((p) => p.exact).length;
-    const correctCount = finished.filter((p) => (p.points ?? 0) > 0 && !p.exact).length;
     const predictionsCount = finished.length;
+    // Precisión = puntos rascados / máximo puntuable de lo predicho. Un 1X2
+    // sin exacto no es un acierto pleno: es 1 de los 5 (u 8) en juego.
+    const maxPossible = finished.reduce(
+      (s, p) => s + maxPointsFor(stageByMatch.get(p.matchId)!),
+      0,
+    );
     const accuracy =
-      predictionsCount > 0
-        ? Math.round(((exactCount + correctCount) / predictionsCount) * 1000) / 10
-        : 0;
+      maxPossible > 0 ? Math.round((totalPoints / maxPossible) * 1000) / 10 : 0;
 
     // Clasificación en directo: puntos provisionales con el marcador actual
     // de los partidos en juego (se consolidan o ajustan al pitido final).
@@ -227,7 +231,7 @@ export async function getUserGlobalStats(userId: string): Promise<UserGlobalStat
     prisma.match.findMany({
       where: { status: "FINISHED" },
       orderBy: { kickoffAt: "asc" },
-      select: { id: true },
+      select: { id: true, stage: true },
     }),
     prisma.prediction.findMany({
       where: { userId },
@@ -238,8 +242,10 @@ export async function getUserGlobalStats(userId: string): Promise<UserGlobalStat
   const finishedOrder = finishedMatches.map((m) => m.id);
   const finishedSet = new Set(finishedOrder);
 
+  const stageByMatch = new Map(finishedMatches.map((m) => [m.id, m.stage]));
+
   // Deduplicar por partido: quedarse con la predicción con más puntos.
-  const byMatch = new Map<string, { points: number | null; exact: boolean }>();
+  const byMatch = new Map<string, { matchId: string; points: number | null; exact: boolean }>();
   for (const p of predictions) {
     if (!finishedSet.has(p.matchId)) continue;
     const existing = byMatch.get(p.matchId);
@@ -251,12 +257,14 @@ export async function getUserGlobalStats(userId: string): Promise<UserGlobalStat
   const finished = [...byMatch.values()];
   const totalPoints = finished.reduce((s, p) => s + (p.points ?? 0), 0);
   const exactCount = finished.filter((p) => p.exact).length;
-  const correctCount = finished.filter((p) => (p.points ?? 0) > 0).length;
   const predictionsCount = finished.length;
+  // Precisión = puntos / máximo puntuable (ver getLeagueLeaderboard).
+  const maxPossible = finished.reduce(
+    (s, p) => s + maxPointsFor(stageByMatch.get(p.matchId)!),
+    0,
+  );
   const accuracy =
-    predictionsCount > 0
-      ? Math.round((correctCount / predictionsCount) * 1000) / 10
-      : 0;
+    maxPossible > 0 ? Math.round((totalPoints / maxPossible) * 1000) / 10 : 0;
 
   let bestStreak = 0;
   let runningStreak = 0;

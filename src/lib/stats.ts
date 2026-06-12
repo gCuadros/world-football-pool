@@ -1,6 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/prisma";
+import { maxPointsFor } from "@/lib/scoring";
 import type { Stage } from "@prisma/client";
 
 export type StageStat = {
@@ -62,7 +63,7 @@ export async function getUserStatsDetailed(
   let exact = 0;
   let correct = 0;
   let missed = 0;
-  const stageMap = new Map<Stage, { total: number; hits: number; exact: number }>();
+  const stageMap = new Map<Stage, { total: number; hits: number; exact: number; points: number }>();
 
   for (const p of preds) {
     const pts = p.points ?? 0;
@@ -70,10 +71,11 @@ export async function getUserStatsDetailed(
     else if (pts > 0) correct++;
     else missed++;
 
-    const s = stageMap.get(p.match.stage) ?? { total: 0, hits: 0, exact: 0 };
+    const s = stageMap.get(p.match.stage) ?? { total: 0, hits: 0, exact: 0, points: 0 };
     s.total++;
     if (pts > 0) s.hits++;
     if (p.exact) s.exact++;
+    s.points += pts;
     stageMap.set(p.match.stage, s);
   }
 
@@ -85,7 +87,11 @@ export async function getUserStatsDetailed(
         total: s.total,
         hits: s.hits,
         exact: s.exact,
-        accuracy: s.total > 0 ? Math.round((s.hits / s.total) * 100) : 0,
+        // Precisión = puntos / máximo puntuable de la fase (no aciertos binarios).
+        accuracy:
+          s.total > 0
+            ? Math.round((s.points / (s.total * maxPointsFor(stage))) * 100)
+            : 0,
       };
     },
   );

@@ -426,6 +426,7 @@ export type PublicPrediction = {
   actualAway: number | null; // resultado real
   points: number | null;
   exact: boolean;
+  stage: Stage;
   breakdown: import("@/lib/scoring").ScoreBreakdown | null;
 };
 
@@ -508,6 +509,7 @@ export async function getPublicPredictions(
       actualAway: p.match.awayScore,
       points: p.points,
       exact: p.exact,
+      stage: p.match.stage,
       breakdown: scorePrediction(
         { homeScore: p.homeScore, awayScore: p.awayScore, advancePick: p.advancePick },
         { homeScore: p.match.homeScore, awayScore: p.match.awayScore, stage: p.match.stage, advanced: p.match.advanced },
