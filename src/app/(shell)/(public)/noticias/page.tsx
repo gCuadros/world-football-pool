@@ -54,6 +54,8 @@ const DATE_FMT = new Intl.DateTimeFormat("es-ES", {
   month: "short",
   hour: "2-digit",
   minute: "2-digit",
+  // Hora peninsular fija: en servidor (UTC en Vercel) salía 2h antes.
+  timeZone: "Europe/Madrid",
 });
 
 function formatDate(iso: string | null): string {
