@@ -18,6 +18,8 @@ import {
   CommunitySection,
 } from "@/components/matches/detail/sections";
 import { LeaguePredictionsSection } from "@/components/matches/detail/league-predictions";
+import { MatchVideo } from "@/components/matches/detail/match-video";
+import { getMatchVideo, type MatchVideoKind } from "@/lib/match-videos";
 
 const DATE_FMT = new Intl.DateTimeFormat("es-ES", {
   weekday: "long",
@@ -71,6 +73,18 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
 
       <MatchHeader match={match} />
 
+      {/* Resumen del partido (canal @Replay) entre el marcador y las
+          predicciones, en cuanto lo suben tras el pitido final. */}
+      {match.status === "FINISHED" && (
+        <Suspense fallback={null}>
+          <MatchVideoSection
+            homeTeam={match.homeTeam}
+            awayTeam={match.awayTeam}
+            kind="resumen"
+          />
+        </Suspense>
+      )}
+
       {showLive ? (
         <>
           {/* Predicciones de la liga (reveladas al pitido) → alineaciones →
@@ -92,13 +106,37 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
           </Suspense>
         </>
       ) : (
-        <div className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center text-sm">
-          El partido aún no ha comenzado. Aquí verás las alineaciones, la
-          cronología y las estadísticas cuando arranque.
-        </div>
+        <>
+          {/* Previa del partido (canal @Replay) antes del pitido inicial. */}
+          <Suspense fallback={null}>
+            <MatchVideoSection
+              homeTeam={match.homeTeam}
+              awayTeam={match.awayTeam}
+              kind="previa"
+            />
+          </Suspense>
+          <div className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center text-sm">
+            El partido aún no ha comenzado. Aquí verás las alineaciones, la
+            cronología y las estadísticas cuando arranque.
+          </div>
+        </>
       )}
     </div>
   );
+}
+
+async function MatchVideoSection({
+  homeTeam,
+  awayTeam,
+  kind,
+}: {
+  homeTeam: string;
+  awayTeam: string;
+  kind: MatchVideoKind;
+}) {
+  const videoId = await getMatchVideo(homeTeam, awayTeam, kind);
+  if (!videoId) return null; // aún no lo han subido → no se muestra nada
+  return <MatchVideo videoId={videoId} kind={kind} />;
 }
 
 function MatchHeader({ match }: { match: MatchBase }) {
