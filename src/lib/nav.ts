@@ -22,8 +22,8 @@ export type NavItem = {
 // EXPLORAR — zona pública (sin login).
 export const EXPLORE_NAV: NavItem[] = [
   { href: "/resultados", label: "Partidos", title: "Partidos", icon: Radio },
-  { href: "/mundial", label: "Grupos", title: "Grupos y clasificación", icon: Globe },
-  { href: "/eliminatorias", label: "Eliminatorias", title: "Cuadro de eliminatorias", icon: Network },
+  { href: "/mundial", label: "Mundial", title: "Mundial 2026", icon: Globe },
+  { href: "/mundial?tab=eliminatorias", label: "Eliminatorias", title: "Mundial 2026", icon: Network },
   { href: "/noticias", label: "Noticias", title: "Noticias", icon: Newspaper },
   { href: "/como-funciona", label: "Cómo funciona", title: "Cómo funciona", icon: HelpCircle },
 ];

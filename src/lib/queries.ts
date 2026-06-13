@@ -368,10 +368,18 @@ export async function getKnockoutMatches(): Promise<KnockoutRound[]> {
   cacheLife("minutes");
   cacheTag(TAGS.matches);
 
-  const rows = await prisma.match.findMany({
-    where: { stage: { in: [...KNOCKOUT_STAGE_ORDER] } },
-    orderBy: { kickoffAt: "asc" },
-  });
+  // Resiliente a un Supabase dormido (free tier): corre en cada carga de
+  // /mundial (pestaña Eliminatorias), así que un fallo de BD muestra el
+  // estado vacío de esa pestaña en vez de tumbar toda la página.
+  let rows: Awaited<ReturnType<typeof prisma.match.findMany>>;
+  try {
+    rows = await prisma.match.findMany({
+      where: { stage: { in: [...KNOCKOUT_STAGE_ORDER] } },
+      orderBy: { kickoffAt: "asc" },
+    });
+  } catch {
+    return [];
+  }
 
   const grouped = new Map<KnockoutStage, MatchBase[]>();
   for (const m of rows) {
