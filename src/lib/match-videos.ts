@@ -5,14 +5,17 @@ import { cacheLife, cacheTag } from "next/cache";
 // Canal @Replay (FIFA): sube PREVIAS antes de cada partido y RESÚMENES al
 // terminar. Se descubren sin API key por dos vías complementarias:
 //  1. Feed RSS público (rápido, ~15 vídeos más recientes) → cubre lo reciente.
-//  2. Búsqueda del canal (fallback) → encuentra una previa/resumen concreta
+//  2. Búsqueda InnerTube (fallback) → encuentra una previa/resumen concreta
 //     aunque ya haya salido de la ventana del RSS (el canal sube muchísimo).
 const CHANNEL_ID = "UCM2DAYhfMPkGi7o6erYXiHg";
-const CHANNEL_HANDLE = "@replay";
 const FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
 
-const UA =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
+// InnerTube: la API interna que usa la propia web de YouTube. Keyless (esta
+// clave del cliente WEB es una constante pública) y devuelve JSON, no HTML:
+// tolera peticiones de servidor (Vercel) mucho mejor que raspar las páginas,
+// que YouTube sirve con muros de bot/consentimiento a IPs de datacenter.
+const INNERTUBE_KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
+const INNERTUBE_URL = `https://www.youtube.com/youtubei/v1/search?key=${INNERTUBE_KEY}`;
 
 export type MatchVideoKind = "previa" | "resumen";
 
@@ -76,10 +79,27 @@ async function fetchReplayFeed(): Promise<ReplayVideo[]> {
   }
 }
 
+// Estructura mínima de la respuesta InnerTube que nos interesa.
+type VideoRenderer = {
+  videoId?: string;
+  title?: { runs?: { text?: string }[] };
+  ownerText?: {
+    runs?: { navigationEndpoint?: { browseEndpoint?: { browseId?: string } } }[];
+  };
+};
+
+/** Recorre el JSON recolectando todos los videoRenderer (a cualquier nivel). */
+function collectVideoRenderers(node: unknown, out: VideoRenderer[]): void {
+  if (!node || typeof node !== "object") return;
+  const obj = node as Record<string, unknown>;
+  if (obj.videoRenderer) out.push(obj.videoRenderer as VideoRenderer);
+  for (const key in obj) collectVideoRenderers(obj[key], out);
+}
+
 /**
- * Busca en el canal por texto y devuelve los vídeos (id + título) de los
- * resultados. Parsea el `ytInitialData` incrustado en la página de búsqueda
- * del canal (sin API key). Resiliente: si falla, devuelve [].
+ * Busca en YouTube por texto (InnerTube) y devuelve los vídeos del canal
+ * @Replay entre los resultados, filtrando por el browseId del canal para
+ * descartar vídeos de otros canales. Resiliente: si falla, devuelve [].
  */
 async function searchChannel(query: string): Promise<ReplayVideo[]> {
   "use cache";
@@ -87,28 +107,33 @@ async function searchChannel(query: string): Promise<ReplayVideo[]> {
   cacheTag("replay-videos");
 
   try {
-    const url = `https://www.youtube.com/${CHANNEL_HANDLE}/search?query=${encodeURIComponent(query)}`;
-    const res = await fetch(url, {
-      headers: {
-        "user-agent": UA,
-        "accept-language": "es-ES,es;q=0.9",
-        // Cookie de consentimiento: salta el muro que YouTube sirve a IPs de
-        // servidor (Vercel) y que devolvería un HTML sin resultados.
-        cookie: "SOCS=CAISNQgDEitib3FfaWRlbnRpdHlmcm9udGVuZHVpc2VydmVyXzIwMjQwMTA5LjA4X3AwGgJlbiACGgYIgMHbrAY; CONSENT=YES+",
-      },
+    const res = await fetch(INNERTUBE_URL, {
+      method: "POST",
+      headers: { "content-type": "application/json", "user-agent": "Mozilla/5.0" },
+      body: JSON.stringify({
+        context: {
+          client: { clientName: "WEB", clientVersion: "2.20240101.00.00", hl: "es", gl: "US" },
+        },
+        query,
+      }),
       signal: AbortSignal.timeout(6000),
     });
     if (!res.ok) return [];
-    const html = await res.text();
+    const json: unknown = await res.json();
+
+    const renderers: VideoRenderer[] = [];
+    collectVideoRenderers(json, renderers);
 
     const out: ReplayVideo[] = [];
     const seen = new Set<string>();
-    // Cada resultado de vídeo es un bloque "videoRenderer":{...} con su id y,
-    // más adelante, su título en title.runs[0].text.
-    for (const part of html.split('"videoRenderer":').slice(1)) {
-      const videoId = part.match(/^\{"videoId":"([A-Za-z0-9_-]{11})"/)?.[1];
-      const title = part.match(/"title":\{"runs":\[\{"text":"([^"]+)"/)?.[1];
-      if (videoId && title && !seen.has(videoId)) {
+    for (const v of renderers) {
+      const videoId = v.videoId;
+      const title = v.title?.runs?.[0]?.text;
+      const browseId =
+        v.ownerText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId;
+      // Solo vídeos del canal @Replay (no de otros canales que salgan en la
+      // búsqueda con los mismos equipos).
+      if (videoId && title && browseId === CHANNEL_ID && !seen.has(videoId)) {
         seen.add(videoId);
         out.push({ videoId, title });
       }
