@@ -79,69 +79,104 @@ async function fetchReplayFeed(): Promise<ReplayVideo[]> {
   }
 }
 
-// Estructura mínima de la respuesta InnerTube que nos interesa.
-type VideoRenderer = {
-  videoId?: string;
-  title?: { runs?: { text?: string }[] };
-  ownerText?: {
-    runs?: { navigationEndpoint?: { browseEndpoint?: { browseId?: string } } }[];
-  };
+// `params` de la pestaña "Vídeos" de un canal (constante de YouTube).
+const VIDEOS_TAB_PARAMS = "EgZ2aWRlb3PyBgQKAjoA";
+const INNERTUBE_CONTEXT = {
+  client: { clientName: "WEB", clientVersion: "2.20240101.00.00", hl: "es", gl: "US" },
 };
 
-/** Recorre el JSON recolectando todos los videoRenderer (a cualquier nivel). */
-function collectVideoRenderers(node: unknown, out: VideoRenderer[]): void {
-  if (!node || typeof node !== "object") return;
+/** Extrae token de continuación (paginación) de una respuesta browse. */
+function findContinuation(node: unknown): string | null {
+  if (!node || typeof node !== "object") return null;
   const obj = node as Record<string, unknown>;
-  if (obj.videoRenderer) out.push(obj.videoRenderer as VideoRenderer);
-  for (const key in obj) collectVideoRenderers(obj[key], out);
+  const cmd = obj.continuationCommand as { token?: string } | undefined;
+  if (cmd?.token) return cmd.token;
+  for (const key in obj) {
+    const t = findContinuation(obj[key]);
+    if (t) return t;
+  }
+  return null;
 }
 
 /**
- * Busca en YouTube por texto (InnerTube) y devuelve los vídeos del canal
- * @Replay entre los resultados, filtrando por el browseId del canal para
- * descartar vídeos de otros canales. Resiliente: si falla, devuelve [].
+ * Recolecta los vídeos de una respuesta browse del canal. YouTube usa el
+ * formato nuevo `lockupViewModel`: el id está en `contentId` y el título en
+ * `lockupMetadataViewModel.title.content`.
  */
-async function searchChannel(query: string): Promise<ReplayVideo[]> {
+function collectLockups(node: unknown, out: ReplayVideo[]): void {
+  if (!node || typeof node !== "object") return;
+  const obj = node as Record<string, unknown>;
+  const lv = obj.lockupViewModel as
+    | { contentId?: string; metadata?: unknown }
+    | undefined;
+  if (lv?.contentId) {
+    let title: string | null = null;
+    const findTitle = (x: unknown): void => {
+      if (title || !x || typeof x !== "object") return;
+      const o = x as Record<string, unknown>;
+      const meta = o.lockupMetadataViewModel as
+        | { title?: { content?: string } }
+        | undefined;
+      if (meta?.title?.content) {
+        title = meta.title.content;
+        return;
+      }
+      for (const k in o) findTitle(o[k]);
+    };
+    findTitle(lv);
+    if (title) out.push({ videoId: lv.contentId, title });
+  }
+  for (const key in obj) collectLockups(obj[key], out);
+}
+
+async function browse(body: Record<string, unknown>): Promise<unknown> {
+  const res = await fetch(INNERTUBE_URL, {
+    method: "POST",
+    headers: { "content-type": "application/json", "user-agent": "Mozilla/5.0" },
+    body: JSON.stringify({ context: INNERTUBE_CONTEXT, ...body }),
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!res.ok) throw new Error(`browse ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Vídeos recientes del canal @Replay vía la pestaña "Vídeos" de InnerTube
+ * (la API interna de YouTube). A diferencia de la búsqueda, esto es el orden
+ * cronológico real del canal — INDEPENDIENTE de la región del servidor (la
+ * búsqueda general ordena distinto desde las IPs de Vercel y dejaba fuera al
+ * canal). Pagina hasta `maxPages` (~30 vídeos por página). Resiliente: [].
+ */
+async function fetchChannelVideos(maxPages = 3): Promise<ReplayVideo[]> {
   "use cache";
   cacheLife("minutes");
   cacheTag("replay-videos");
 
+  const out: ReplayVideo[] = [];
+  const seen = new Set<string>();
   try {
-    const res = await fetch(INNERTUBE_URL, {
-      method: "POST",
-      headers: { "content-type": "application/json", "user-agent": "Mozilla/5.0" },
-      body: JSON.stringify({
-        context: {
-          client: { clientName: "WEB", clientVersion: "2.20240101.00.00", hl: "es", gl: "US" },
-        },
-        query,
-      }),
-      signal: AbortSignal.timeout(6000),
-    });
-    if (!res.ok) return [];
-    const json: unknown = await res.json();
-
-    const renderers: VideoRenderer[] = [];
-    collectVideoRenderers(json, renderers);
-
-    const out: ReplayVideo[] = [];
-    const seen = new Set<string>();
-    for (const v of renderers) {
-      const videoId = v.videoId;
-      const title = v.title?.runs?.[0]?.text;
-      const browseId =
-        v.ownerText?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId;
-      // Solo vídeos del canal @Replay (no de otros canales que salgan en la
-      // búsqueda con los mismos equipos).
-      if (videoId && title && browseId === CHANNEL_ID && !seen.has(videoId)) {
-        seen.add(videoId);
-        out.push({ videoId, title });
+    let token: string | null = null;
+    for (let page = 0; page < maxPages; page++) {
+      const json: unknown = await browse(
+        token
+          ? { continuation: token }
+          : { browseId: CHANNEL_ID, params: VIDEOS_TAB_PARAMS },
+      );
+      const vids: ReplayVideo[] = [];
+      collectLockups(json, vids);
+      for (const v of vids) {
+        if (!seen.has(v.videoId)) {
+          seen.add(v.videoId);
+          out.push(v);
+        }
       }
+      token = findContinuation(json);
+      if (!token) break;
     }
-    return out;
   } catch {
-    return [];
+    // best-effort: devuelve lo acumulado hasta el fallo.
   }
+  return out;
 }
 
 /**
@@ -164,9 +199,9 @@ export async function getMatchVideo(
   const fromFeed = feed.find((v) => matches(v, homeTeam, awayTeam, kind));
   if (fromFeed) return fromFeed.videoId;
 
-  // Fallback: búsqueda dirigida en el canal.
-  const keyword = kind === "previa" ? "PREVIA" : "Resumen";
-  const results = await searchChannel(`${keyword} ${homeTeam} ${awayTeam}`);
-  const fromSearch = results.find((v) => matches(v, homeTeam, awayTeam, kind));
-  return fromSearch?.videoId ?? null;
+  // Fallback: navegar la pestaña de vídeos del canal (más entradas que el RSS
+  // y, a diferencia de la búsqueda, fiable desde la región de Vercel).
+  const channel = await fetchChannelVideos();
+  const fromChannel = channel.find((v) => matches(v, homeTeam, awayTeam, kind));
+  return fromChannel?.videoId ?? null;
 }

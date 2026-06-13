@@ -12,11 +12,26 @@ const INNERTUBE_KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
 const norm = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/\s+/g, " ").trim();
 
-function collect(node: unknown, out: Record<string, unknown>[]): void {
+function collectLockups(node: unknown, out: { videoId: string; title: string }[]): void {
   if (!node || typeof node !== "object") return;
   const o = node as Record<string, unknown>;
-  if (o.videoRenderer) out.push(o.videoRenderer as Record<string, unknown>);
-  for (const k in o) collect(o[k], out);
+  const lv = o.lockupViewModel as { contentId?: string } | undefined;
+  if (lv?.contentId) {
+    let title: string | null = null;
+    const findTitle = (x: unknown): void => {
+      if (title || !x || typeof x !== "object") return;
+      const obj = x as Record<string, unknown>;
+      const meta = obj.lockupMetadataViewModel as { title?: { content?: string } } | undefined;
+      if (meta?.title?.content) {
+        title = meta.title.content;
+        return;
+      }
+      for (const k in obj) findTitle(obj[k]);
+    };
+    findTitle(lv);
+    if (title) out.push({ videoId: lv.contentId, title });
+  }
+  for (const k in o) collectLockups(o[k], out);
 }
 
 export async function GET(req: Request) {
@@ -57,45 +72,37 @@ export async function GET(req: Request) {
     result.rss = { error: String(e) };
   }
 
-  // 2. InnerTube
+  // 2. Browse de la pestaña "Vídeos" del canal (método de producción).
   try {
-    const r = await fetch(`https://www.youtube.com/youtubei/v1/search?key=${INNERTUBE_KEY}`, {
+    const r = await fetch(`https://www.youtube.com/youtubei/v1/browse?key=${INNERTUBE_KEY}`, {
       method: "POST",
       headers: { "content-type": "application/json", "user-agent": "Mozilla/5.0" },
       body: JSON.stringify({
         context: { client: { clientName: "WEB", clientVersion: "2.20240101.00.00", hl: "es", gl: "US" } },
-        query: `${keyword} ${home} ${away}`,
+        browseId: CHANNEL_ID,
+        params: "EgZ2aWRlb3PyBgQKAjoA",
       }),
       signal: AbortSignal.timeout(8000),
     });
     const text = await r.text();
-    let renderers: Record<string, unknown>[] = [];
+    const vids: { videoId: string; title: string }[] = [];
     let parseError: string | null = null;
     try {
-      collect(JSON.parse(text), renderers);
+      collectLockups(JSON.parse(text), vids);
     } catch (e) {
       parseError = String(e);
     }
-    const fromChannel = renderers.filter((v) => {
-      const owner = v.ownerText as { runs?: { navigationEndpoint?: { browseEndpoint?: { browseId?: string } } }[] } | undefined;
-      return owner?.runs?.[0]?.navigationEndpoint?.browseEndpoint?.browseId === CHANNEL_ID;
-    });
-    const channelTitles = fromChannel.map((v) => {
-      const t = v.title as { runs?: { text?: string }[] } | undefined;
-      return t?.runs?.[0]?.text ?? "";
-    });
-    result.innertube = {
+    result.channel = {
       status: r.status,
       bytes: text.length,
       parseError,
-      totalRenderers: renderers.length,
-      fromChannel: fromChannel.length,
-      channelTitles: channelTitles.slice(0, 5),
-      matched: channelTitles.some(matchesVid),
+      videos: vids.length,
+      sampleTitles: vids.slice(0, 5).map((v) => v.title),
+      matched: vids.some((v) => matchesVid(v.title)),
       bodyHead: text.slice(0, 200),
     };
   } catch (e) {
-    result.innertube = { error: String(e) };
+    result.channel = { error: String(e) };
   }
 
   return NextResponse.json(result, { status: 200 });
