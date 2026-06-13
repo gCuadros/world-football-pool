@@ -87,10 +87,14 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
 
       {showLive ? (
         <>
-          {/* Predicciones de la liga (reveladas al pitido) → alineaciones →
-              cronología → estadísticas → comunidad */}
+          {/* Predicciones de la liga → cómo predijo la comunidad (ambas van
+              juntas, son "lo predicho") → alineaciones → cronología →
+              estadísticas. */}
           <Suspense fallback={<SectionSkeleton />}>
             <LeaguePredictionsSection matchId={match.id} />
+          </Suspense>
+          <Suspense fallback={<SectionSkeleton />}>
+            <CommunitySection matchId={match.id} />
           </Suspense>
           <Suspense fallback={<SectionSkeleton />}>
             <LineupsSection externalId={match.externalId} />
@@ -100,9 +104,6 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
           </Suspense>
           <Suspense fallback={<SectionSkeleton />}>
             <StatsSection externalId={match.externalId} />
-          </Suspense>
-          <Suspense fallback={<SectionSkeleton />}>
-            <CommunitySection matchId={match.id} />
           </Suspense>
         </>
       ) : (
