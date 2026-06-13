@@ -3,16 +3,16 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-export type MundialTab = "grupos" | "eliminatorias" | "goleadores";
+export type MundialTab = "grupos" | "eliminatorias" | "estadisticas";
 
 const TABS: { id: MundialTab; label: string }[] = [
   { id: "grupos", label: "Grupos" },
   { id: "eliminatorias", label: "Eliminatorias" },
-  { id: "goleadores", label: "Goleadores" },
+  { id: "estadisticas", label: "Estadísticas" },
 ];
 
 /**
- * Tabs en la MISMA página: Grupos / Eliminatorias / Goleadores. Los tres
+ * Tabs en la MISMA página: Grupos / Eliminatorias / Estadísticas. Los tres
  * paneles llegan pre-renderizados del servidor (slots) y solo se alterna su
  * visibilidad — cambio instantáneo, sin navegar a otra ruta (antes los chips
  * llevaban a páginas sueltas sin botón atrás de las que no se podía volver).
@@ -24,12 +24,12 @@ export function MundialTabs({
   initialTab,
   grupos,
   eliminatorias,
-  goleadores,
+  estadisticas,
 }: {
   initialTab: MundialTab;
   grupos: React.ReactNode;
   eliminatorias: React.ReactNode;
-  goleadores: React.ReactNode;
+  estadisticas: React.ReactNode;
 }) {
   const [tab, setTab] = useState<MundialTab>(initialTab);
 
@@ -39,7 +39,7 @@ export function MundialTabs({
     window.history.replaceState(null, "", url);
   };
 
-  const panel = { grupos, eliminatorias, goleadores };
+  const panel = { grupos, eliminatorias, estadisticas };
 
   return (
     <>
