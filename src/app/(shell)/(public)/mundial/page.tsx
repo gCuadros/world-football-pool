@@ -1,7 +1,8 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { GlobeHemisphereWest, Shield, SoccerBall, Handshake, TrendUp } from "@phosphor-icons/react/dist/ssr";
+import { GlobeHemisphereWest, Shield, SoccerBall, Handshake, TrendUp, ShieldChevron, CrosshairSimple, Trophy } from "@phosphor-icons/react/dist/ssr";
+import type { Icon } from "@phosphor-icons/react";
 
 import { teamSlug } from "@/lib/utils";
 import { getWorldCupStandings, getWorldCupTopScorers } from "@/lib/queries";
@@ -259,43 +260,75 @@ async function TournamentStatsSection() {
       <div className="grid gap-3 sm:grid-cols-3">
         <TournamentStatCard
           title="Mejor ataque"
-          subtitle={`${bestAttack.goalsFor} goles anotados`}
+          metric={bestAttack.goalsFor}
+          unit="goles a favor"
           team={bestAttack}
+          icon={CrosshairSimple}
+          accent="emerald"
         />
         <TournamentStatCard
           title="Mejor defensa"
-          subtitle={`${bestDefense.goalsAgainst} goles encajados`}
+          metric={bestDefense.goalsAgainst}
+          unit="goles en contra"
           team={bestDefense}
+          icon={ShieldChevron}
+          accent="sky"
         />
         <TournamentStatCard
           title="Más puntos"
-          subtitle={`${mostPoints.points} puntos`}
+          metric={mostPoints.points}
+          unit="puntos"
           team={mostPoints}
+          icon={Trophy}
+          accent="amber"
         />
       </div>
     </section>
   );
 }
 
+const STAT_ACCENT = {
+  emerald: "text-emerald-500 bg-emerald-500/12",
+  sky: "text-sky-500 bg-sky-500/12",
+  amber: "text-amber-500 bg-amber-500/12",
+} as const;
+
 function TournamentStatCard({
   title,
-  subtitle,
+  metric,
+  unit,
   team,
+  icon: Icon,
+  accent,
 }: {
   title: string;
-  subtitle: string;
+  metric: number;
+  unit: string;
   team: { nameEs: string; logo: string | null; flag: string | null };
+  icon: Icon;
+  accent: keyof typeof STAT_ACCENT;
 }) {
   return (
     <Link
       href={`/equipo/${teamSlug(team.nameEs)}`}
-      className="bg-card border-border/60 hover:border-primary/40 flex items-center gap-3 rounded-2xl border p-4 shadow-sm transition-colors"
+      className="card-glass card-glass-hover group flex flex-col gap-3 rounded-2xl p-4"
     >
-      <TeamCrest crest={team.logo} flag={team.flag} name={team.nameEs} size={36} className="shrink-0" />
-      <div className="min-w-0">
-        <p className="text-muted-foreground font-mono text-3xs tracking-wide uppercase">{title}</p>
-        <p className="truncate font-bold">{team.nameEs}</p>
-        <p className="text-muted-foreground text-xs">{subtitle}</p>
+      {/* Cabecera: badge de icono coloreado + etiqueta de la métrica */}
+      <div className="flex items-center gap-2">
+        <span className={`flex size-8 shrink-0 items-center justify-center rounded-xl ${STAT_ACCENT[accent]}`}>
+          <Icon className="size-4.5" weight="duotone" />
+        </span>
+        <p className="text-muted-foreground font-mono text-3xs tracking-widest uppercase">{title}</p>
+      </div>
+      {/* Cifra grande: protagonista de la card, como un marcador */}
+      <div className="flex items-baseline gap-1.5">
+        <span className="font-mono text-4xl font-black tracking-tight tabular-nums leading-none">{metric}</span>
+        <span className="text-muted-foreground text-xs">{unit}</span>
+      </div>
+      {/* Equipo */}
+      <div className="mt-auto flex items-center gap-2">
+        <TeamCrest crest={team.logo} flag={team.flag} name={team.nameEs} size={22} className="shrink-0" />
+        <span className="group-hover:text-primary truncate text-sm font-semibold transition-colors">{team.nameEs}</span>
       </div>
     </Link>
   );
