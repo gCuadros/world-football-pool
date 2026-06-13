@@ -19,7 +19,12 @@ import {
 } from "@/lib/push-client";
 import { Button } from "@/components/ui/button";
 
-export function PushToggle() {
+// Email del responsable: el botón de prueba es una herramienta de
+// diagnóstico, no una función de producto — solo se muestra para él.
+const DIAGNOSTICS_EMAIL = "gonzalo.cuadros@gmail.com";
+
+export function PushToggle({ email }: { email?: string }) {
+  const canTest = email === DIAGNOSTICS_EMAIL;
   const [state, setState] = useState<
     "loading" | "unsupported" | "ios-install" | "default" | "granted" | "denied"
   >("loading");
@@ -115,10 +120,12 @@ export function PushToggle() {
   if (state === "granted") {
     return (
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" onClick={sendTest} disabled={pending}>
-          {pending ? <Loader2 className="size-4 animate-spin" /> : <Bell className="size-4" />}
-          Enviar prueba
-        </Button>
+        {canTest && (
+          <Button variant="outline" onClick={sendTest} disabled={pending}>
+            {pending ? <Loader2 className="size-4 animate-spin" /> : <Bell className="size-4" />}
+            Enviar prueba
+          </Button>
+        )}
         <Button variant="ghost" onClick={disable} disabled={pending}>
           <BellOff className="size-4" />
           Desactivar en este dispositivo
