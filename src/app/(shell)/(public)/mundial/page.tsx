@@ -5,41 +5,87 @@ import { GlobeHemisphereWest, Shield, SoccerBall, Handshake, TrendUp, ShieldChev
 import type { Icon } from "@phosphor-icons/react";
 
 import { teamSlug } from "@/lib/utils";
-import { getWorldCupStandings, getWorldCupTopScorers } from "@/lib/queries";
+import { getWorldCupStandings, getWorldCupTopScorers, getKnockoutMatches } from "@/lib/queries";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TeamCrest } from "@/components/matches/team-crest";
-import { MundialNav } from "@/components/mundial/mundial-nav";
+import { MundialTabs, type MundialTab } from "@/components/mundial/mundial-tabs";
+import { KnockoutBracket, BracketSkeleton } from "@/components/mundial/knockout-bracket";
 
-export const metadata = { title: "Clasificación · Mundial 2026" };
+export const metadata = { title: "Mundial 2026" };
 
-export default function MundialPage() {
+export default function MundialPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       <div className="flex items-center gap-2">
         <GlobeHemisphereWest className="text-primary size-5 shrink-0" weight="duotone" />
-        <h1 className="text-xl font-bold">Clasificación</h1>
-        <span className="text-muted-foreground text-sm">Mundial 2026</span>
+        <h1 className="text-xl font-bold">Mundial</h1>
+        <span className="text-muted-foreground text-sm">2026</span>
       </div>
 
-      <MundialNav />
-
+      {/* searchParams (?tab=) se lee dentro de Suspense: con cacheComponents
+          leerlo en el cuerpo de la página bloquearía toda la ruta. */}
       <Suspense fallback={<GroupsSkeleton />}>
-        <StandingsSection />
-      </Suspense>
-
-      <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
-        <TopScorersSection />
-      </Suspense>
-
-      <Suspense fallback={<Skeleton className="h-40 rounded-xl" />}>
-        <TopAssistersSection />
-      </Suspense>
-
-      <Suspense fallback={<Skeleton className="h-40 rounded-xl" />}>
-        <TournamentStatsSection />
+        <MundialTabsLoader searchParams={searchParams} />
       </Suspense>
     </div>
   );
+}
+
+async function MundialTabsLoader({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+  const initialTab: MundialTab =
+    tab === "eliminatorias" || tab === "goleadores" ? tab : "grupos";
+
+  return (
+    <MundialTabs
+      initialTab={initialTab}
+      grupos={
+          <Suspense fallback={<GroupsSkeleton />}>
+            <StandingsSection />
+          </Suspense>
+        }
+        eliminatorias={
+          <Suspense fallback={<BracketSkeleton />}>
+            <EliminatoriasSection />
+          </Suspense>
+        }
+        goleadores={
+          <div className="space-y-6">
+            <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
+              <TopScorersSection />
+            </Suspense>
+            <Suspense fallback={<Skeleton className="h-40 rounded-xl" />}>
+              <TopAssistersSection />
+            </Suspense>
+            <Suspense fallback={<Skeleton className="h-40 rounded-xl" />}>
+              <TournamentStatsSection />
+            </Suspense>
+          </div>
+        }
+    />
+  );
+}
+
+async function EliminatoriasSection() {
+  const rounds = await getKnockoutMatches();
+
+  if (rounds.length === 0) {
+    return (
+      <div className="border-border text-muted-foreground rounded-xl border border-dashed p-12 text-center text-sm">
+        El cuadro se publicará cuando termine la fase de grupos.
+      </div>
+    );
+  }
+
+  return <KnockoutBracket rounds={rounds} />;
 }
 
 async function StandingsSection() {
