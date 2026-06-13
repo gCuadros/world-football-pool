@@ -89,7 +89,13 @@ async function searchChannel(query: string): Promise<ReplayVideo[]> {
   try {
     const url = `https://www.youtube.com/${CHANNEL_HANDLE}/search?query=${encodeURIComponent(query)}`;
     const res = await fetch(url, {
-      headers: { "user-agent": UA, "accept-language": "es-ES,es;q=0.9" },
+      headers: {
+        "user-agent": UA,
+        "accept-language": "es-ES,es;q=0.9",
+        // Cookie de consentimiento: salta el muro que YouTube sirve a IPs de
+        // servidor (Vercel) y que devolvería un HTML sin resultados.
+        cookie: "SOCS=CAISNQgDEitib3FfaWRlbnRpdHlmcm9udGVuZHVpc2VydmVyXzIwMjQwMTA5LjA4X3AwGgJlbiACGgYIgMHbrAY; CONSENT=YES+",
+      },
       signal: AbortSignal.timeout(6000),
     });
     if (!res.ok) return [];
