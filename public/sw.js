@@ -12,7 +12,7 @@
 // ⚠️ Sube VERSION en cada cambio de este archivo: dispara el flujo de
 // actualización (toast "Nueva versión disponible" en sw-register).
 
-const VERSION = "quiniela-v2";
+const VERSION = "quiniela-v3";
 const STATIC_CACHE = `${VERSION}-static`;
 const IMAGE_CACHE = `${VERSION}-images`;
 
@@ -139,6 +139,55 @@ self.addEventListener("push", (event) => {
 
   event.waitUntil(self.registration.showNotification(title, options));
 });
+
+// El navegador (sobre todo iOS) rota o invalida la suscripción push cada
+// cierto tiempo. Sin reaccionar a este evento, la suscripción del servidor
+// queda muerta y los push dejan de llegar hasta que el usuario reabre la PWA.
+// Aquí se re-suscribe y se actualiza el servidor automáticamente.
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(resubscribe(event));
+});
+
+function base64ToUint8Array(base64) {
+  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+  const normalized = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(normalized);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
+async function resubscribe(event) {
+  try {
+    // Reusar la clave de la suscripción anterior si está disponible; si no,
+    // pedirla al servidor (el SW no ve las variables NEXT_PUBLIC_*).
+    let appServerKey = event.oldSubscription?.options?.applicationServerKey;
+    if (!appServerKey) {
+      const res = await fetch("/api/push/public-key");
+      const { key } = await res.json();
+      if (!key) return;
+      appServerKey = base64ToUint8Array(key);
+    }
+
+    const sub = await self.registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: appServerKey,
+    });
+
+    const json = sub.toJSON();
+    await fetch("/api/push/subscribe", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        endpoint: sub.endpoint,
+        p256dh: json.keys && json.keys.p256dh,
+        auth: json.keys && json.keys.auth,
+      }),
+    });
+  } catch {
+    // best-effort: sin sesión o sin permiso no se puede re-suscribir aquí.
+  }
+}
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();

@@ -86,7 +86,9 @@ export function NotificationBell({
         )}
       </SheetTrigger>
       <SheetContent side="right" className="w-[360px] max-w-[90vw] p-0">
-        <div className="border-border flex items-center justify-between border-b p-4">
+        {/* pr-12: deja sitio a la X de cerrar del Sheet (absolute top-3 right-3),
+            que si no se solapa con "Marcar todas". */}
+        <div className="border-border flex items-center justify-between border-b p-4 pr-12">
           <SheetTitle className="text-base font-bold">Notificaciones</SheetTitle>
           {count > 0 && (
             <button

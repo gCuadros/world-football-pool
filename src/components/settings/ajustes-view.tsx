@@ -403,7 +403,7 @@ export function AjustesView({
               </p>
             </div>
 
-            <PushToggle />
+            <PushToggle email={email} />
 
             {/* Tipos de aviso */}
             <div className="border-border space-y-3 border-t pt-4">

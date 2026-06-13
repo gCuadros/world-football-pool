@@ -42,7 +42,7 @@ async function MundialTabsLoader({
 }) {
   const { tab } = await searchParams;
   const initialTab: MundialTab =
-    tab === "eliminatorias" || tab === "goleadores" ? tab : "grupos";
+    tab === "eliminatorias" || tab === "estadisticas" ? tab : "grupos";
 
   return (
     <MundialTabs
@@ -57,7 +57,7 @@ async function MundialTabsLoader({
             <EliminatoriasSection />
           </Suspense>
         }
-        goleadores={
+        estadisticas={
           <div className="space-y-6">
             <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
               <TopScorersSection />
