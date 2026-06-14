@@ -77,12 +77,16 @@ async function fetchReplayFeed(): Promise<ReplayVideo[]> {
 }
 
 /**
- * Busca dentro del canal con la YouTube Data API (search.list con channelId).
- * Oficial y fiable desde Vercel. Sin clave configurada → []. Resiliente: si
- * la petición falla (cuota, red), también []. Una búsqueda = 100 unidades de
- * cuota; con la caché de abajo, de sobra para un torneo.
+ * Últimas subidas del canal vía la Data API (playlistItems sobre la playlist
+ * de "subidas" del canal: el id es el del canal con UC→UU). A diferencia de
+ * search.list, esto NO es una búsqueda con ranking por región — es la lista
+ * literal de subidas, así que devuelve lo mismo desde la IP de Vercel que
+ * desde cualquier sitio (search.list ordenaba distinto por región y daba 0).
+ * Además cuesta 1 unidad de cuota en vez de 100. Resiliente: si falla, [].
  */
-async function searchChannelDataApi(query: string): Promise<ReplayVideo[]> {
+const UPLOADS_PLAYLIST = `UU${CHANNEL_ID.slice(2)}`;
+
+async function fetchChannelUploads(): Promise<ReplayVideo[]> {
   "use cache";
   cacheLife("minutes");
   cacheTag("replay-videos");
@@ -94,16 +98,16 @@ async function searchChannelDataApi(query: string): Promise<ReplayVideo[]> {
 
   try {
     const url =
-      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video` +
-      `&channelId=${CHANNEL_ID}&maxResults=10&q=${encodeURIComponent(query)}&key=${key}`;
+      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet` +
+      `&playlistId=${UPLOADS_PLAYLIST}&maxResults=50&key=${key}`;
     const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
     if (!res.ok) return [];
     const json = (await res.json()) as {
-      items?: { id?: { videoId?: string }; snippet?: { title?: string } }[];
+      items?: { snippet?: { title?: string; resourceId?: { videoId?: string } } }[];
     };
     return (json.items ?? [])
       .map((it) => {
-        const videoId = it.id?.videoId;
+        const videoId = it.snippet?.resourceId?.videoId;
         const title = it.snippet?.title;
         return videoId && title ? { videoId, title } : null;
       })
@@ -137,8 +141,7 @@ export async function getMatchVideo(
   // comprobación de la clave va AQUÍ, fuera del bloque cacheado, para no
   // cachear un [] cuando la clave aún no está puesta.
   if (!process.env.YOUTUBE_API_KEY) return null;
-  const keyword = kind === "previa" ? "PREVIA" : "Resumen";
-  const results = await searchChannelDataApi(`${keyword} ${homeTeam} ${awayTeam}`);
-  const fromApi = results.find((v) => matches(v, homeTeam, awayTeam, kind));
+  const uploads = await fetchChannelUploads();
+  const fromApi = uploads.find((v) => matches(v, homeTeam, awayTeam, kind));
   return fromApi?.videoId ?? null;
 }
