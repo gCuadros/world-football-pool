@@ -3,27 +3,22 @@
 import { useState } from "react";
 import { PlayCircle } from "@phosphor-icons/react";
 
-import type { MatchVideoKind } from "@/lib/match-videos";
-
-const META: Record<MatchVideoKind, { label: string; icon: string }> = {
-  previa: { label: "Previa del partido", icon: "🎬" },
-  resumen: { label: "Resumen del partido", icon: "📺" },
-};
-
 /**
- * Vídeo oficial de FIFA (previa/resumen) embebido. Facade: muestra solo la
- * miniatura de YouTube y carga el iframe pesado al pulsar Play — la página de
- * partido no paga el coste del reproductor salvo que el usuario lo quiera.
+ * Vídeo oficial de FIFA embebido (previa, resumen o entrevista). Facade:
+ * muestra solo la miniatura de YouTube y carga el iframe pesado al pulsar
+ * Play — la página de partido no paga el coste del reproductor salvo que el
+ * usuario lo quiera. `label`/`icon` los decide quien lo renderiza.
  */
 export function MatchVideo({
   videoId,
-  kind,
+  label,
+  icon,
 }: {
   videoId: string;
-  kind: MatchVideoKind;
+  label: string;
+  icon: string;
 }) {
   const [playing, setPlaying] = useState(false);
-  const { label, icon } = META[kind];
 
   return (
     <section className="card-glass overflow-hidden rounded-2xl">

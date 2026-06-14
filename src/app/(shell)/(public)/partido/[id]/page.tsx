@@ -19,7 +19,7 @@ import {
 } from "@/components/matches/detail/sections";
 import { LeaguePredictionsSection } from "@/components/matches/detail/league-predictions";
 import { MatchVideo } from "@/components/matches/detail/match-video";
-import { getMatchVideo, type MatchVideoKind } from "@/lib/match-videos";
+import { getMatchVideo, getMatchInterview, type MatchVideoKind } from "@/lib/match-videos";
 
 const DATE_FMT = new Intl.DateTimeFormat("es-ES", {
   weekday: "long",
@@ -73,17 +73,22 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
 
       <MatchHeader match={match} />
 
-      {/* Resumen del partido (canal @Replay) entre el marcador y las
-          predicciones, en cuanto lo suben tras el pitido final. */}
+      {/* Vídeos oficiales de FIFA (entre el marcador y las predicciones):
+          resumen al terminar, previa antes del pitido, y la entrevista
+          (post si está, si no la pre). */}
       {match.status === "FINISHED" && (
         <Suspense fallback={null}>
-          <MatchVideoSection
-            homeTeam={match.homeTeam}
-            awayTeam={match.awayTeam}
-            kind="resumen"
-          />
+          <MatchVideoSection homeTeam={match.homeTeam} awayTeam={match.awayTeam} kind="resumen" />
         </Suspense>
       )}
+      {match.status === "UPCOMING" && (
+        <Suspense fallback={null}>
+          <MatchVideoSection homeTeam={match.homeTeam} awayTeam={match.awayTeam} kind="previa" />
+        </Suspense>
+      )}
+      <Suspense fallback={null}>
+        <InterviewSection homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
+      </Suspense>
 
       {showLive ? (
         <>
@@ -107,24 +112,19 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
           </Suspense>
         </>
       ) : (
-        <>
-          {/* Previa del partido (canal @Replay) antes del pitido inicial. */}
-          <Suspense fallback={null}>
-            <MatchVideoSection
-              homeTeam={match.homeTeam}
-              awayTeam={match.awayTeam}
-              kind="previa"
-            />
-          </Suspense>
-          <div className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center text-sm">
-            El partido aún no ha comenzado. Aquí verás las alineaciones, la
-            cronología y las estadísticas cuando arranque.
-          </div>
-        </>
+        <div className="border-border text-muted-foreground rounded-2xl border border-dashed p-8 text-center text-sm">
+          El partido aún no ha comenzado. Aquí verás las alineaciones, la
+          cronología y las estadísticas cuando arranque.
+        </div>
       )}
     </div>
   );
 }
+
+const VIDEO_META: Record<MatchVideoKind, { label: string; icon: string }> = {
+  previa: { label: "Previa del partido", icon: "🎬" },
+  resumen: { label: "Resumen del partido", icon: "📺" },
+};
 
 async function MatchVideoSection({
   homeTeam,
@@ -137,7 +137,21 @@ async function MatchVideoSection({
 }) {
   const videoId = await getMatchVideo(homeTeam, awayTeam, kind);
   if (!videoId) return null; // aún no lo han subido → no se muestra nada
-  return <MatchVideo videoId={videoId} kind={kind} />;
+  return <MatchVideo videoId={videoId} {...VIDEO_META[kind]} />;
+}
+
+async function InterviewSection({
+  homeTeam,
+  awayTeam,
+}: {
+  homeTeam: string;
+  awayTeam: string;
+}) {
+  const interview = await getMatchInterview(homeTeam, awayTeam);
+  if (!interview) return null;
+  const label =
+    interview.when === "post" ? "Entrevista postpartido" : "Entrevista previa";
+  return <MatchVideo videoId={interview.videoId} label={label} icon="🎙️" />;
 }
 
 function MatchHeader({ match }: { match: MatchBase }) {

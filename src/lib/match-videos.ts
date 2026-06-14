@@ -109,3 +109,41 @@ export async function getMatchVideo(
   const video = videos.find((v) => matchesGame(v, homeTeam, awayTeam));
   return video?.videoId ?? null;
 }
+
+export type InterviewWhen = "pre" | "post";
+
+// Playlists de entrevistas/rueda de prensa de FIFA.
+const INTERVIEW_PLAYLIST: Record<InterviewWhen, string> = {
+  pre: "PLRtffQSBKqO0", // "Pre-Match Press Conference" — "{A} On Playing {B} | …"
+  post: "PLCEPRjj5z5yk", // "Post-Match Player Interviews" — "Post-Match Interviews: {A} {g}-{g} {B}"
+};
+
+/** ¿El título empieza por (algún alias de) este equipo? */
+function startsWithTeam(title: string, team: string): boolean {
+  const t = normalize(title);
+  return teamAliases(team).some((a) => t.startsWith(a));
+}
+
+/**
+ * Entrevista del partido: la POSTpartido en cuanto está disponible (manda en
+ * cuanto FIFA la sube, tras el pitido final); hasta entonces, la PREpartido
+ * (rueda de prensa, suele subirse el día antes). Devuelve el id + cuál es, o
+ * null si todavía no hay ninguna. De las dos ruedas pre (una por equipo) se
+ * prefiere la del local.
+ */
+export async function getMatchInterview(
+  homeTeam: string,
+  awayTeam: string,
+): Promise<{ videoId: string; when: InterviewWhen } | null> {
+  if (!process.env.YOUTUBE_API_KEY) return null;
+
+  const post = await fetchPlaylist(INTERVIEW_PLAYLIST.post);
+  const postVideo = post.find((v) => matchesGame(v, homeTeam, awayTeam));
+  if (postVideo) return { videoId: postVideo.videoId, when: "post" };
+
+  const pre = await fetchPlaylist(INTERVIEW_PLAYLIST.pre);
+  const preVideos = pre.filter((v) => matchesGame(v, homeTeam, awayTeam));
+  const preferred =
+    preVideos.find((v) => startsWithTeam(v.title, homeTeam)) ?? preVideos[0];
+  return preferred ? { videoId: preferred.videoId, when: "pre" } : null;
+}
