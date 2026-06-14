@@ -3,36 +3,13 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
 // Diagnóstico (solo responsable): ejecuta cada paso del descubrimiento de
-// vídeos con fetches DIRECTOS (sin caché) para ver qué devuelve YouTube desde
-// el entorno de producción. GET /api/diag/match-video?home=España&away=Arabia%20Saudí&kind=previa
+// vídeos con fetches DIRECTOS (sin caché) para ver qué pasa desde producción.
+// GET /api/diag/match-video?home=España&away=Arabia%20Saudí&kind=previa
 const DIAGNOSTICS_EMAIL = "gonzalo.cuadros@gmail.com";
 const CHANNEL_ID = "UCM2DAYhfMPkGi7o6erYXiHg";
-const INNERTUBE_KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
 
 const norm = (s: string) =>
   s.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/\s+/g, " ").trim();
-
-function collectLockups(node: unknown, out: { videoId: string; title: string }[]): void {
-  if (!node || typeof node !== "object") return;
-  const o = node as Record<string, unknown>;
-  const lv = o.lockupViewModel as { contentId?: string } | undefined;
-  if (lv?.contentId) {
-    let title: string | null = null;
-    const findTitle = (x: unknown): void => {
-      if (title || !x || typeof x !== "object") return;
-      const obj = x as Record<string, unknown>;
-      const meta = obj.lockupMetadataViewModel as { title?: { content?: string } } | undefined;
-      if (meta?.title?.content) {
-        title = meta.title.content;
-        return;
-      }
-      for (const k in obj) findTitle(obj[k]);
-    };
-    findTitle(lv);
-    if (title) out.push({ videoId: lv.contentId, title });
-  }
-  for (const k in o) collectLockups(o[k], out);
-}
 
 export async function GET(req: Request) {
   const session = await auth();
@@ -50,21 +27,19 @@ export async function GET(req: Request) {
 
   const result: Record<string, unknown> = { home, away, kind };
 
-  // 1. RSS
+  // 1. RSS (gratis)
   try {
     const r = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`, {
       headers: { "user-agent": "QuinielaMundial2026/1.0" },
       signal: AbortSignal.timeout(6000),
     });
     const xml = await r.text();
-    const entries = xml.match(/<entry>[\s\S]*?<\/entry>/gi) ?? [];
-    const titles = entries
+    const titles = (xml.match(/<entry>[\s\S]*?<\/entry>/gi) ?? [])
       .map((b) => b.match(/<title>([^<]*)<\/title>/i)?.[1] ?? "")
       .filter(Boolean);
     result.rss = {
       status: r.status,
-      bytes: xml.length,
-      entries: entries.length,
+      entries: titles.length,
       matched: titles.some(matchesVid),
       sampleTitles: titles.slice(0, 3),
     };
@@ -72,37 +47,32 @@ export async function GET(req: Request) {
     result.rss = { error: String(e) };
   }
 
-  // 2. Browse de la pestaña "Vídeos" del canal (método de producción).
-  try {
-    const r = await fetch(`https://www.youtube.com/youtubei/v1/browse?key=${INNERTUBE_KEY}`, {
-      method: "POST",
-      headers: { "content-type": "application/json", "user-agent": "Mozilla/5.0" },
-      body: JSON.stringify({
-        context: { client: { clientName: "WEB", clientVersion: "2.20240101.00.00", hl: "es", gl: "US" } },
-        browseId: CHANNEL_ID,
-        params: "EgZ2aWRlb3PyBgQKAjoA",
-      }),
-      signal: AbortSignal.timeout(8000),
-    });
-    const text = await r.text();
-    const vids: { videoId: string; title: string }[] = [];
-    let parseError: string | null = null;
+  // 2. YouTube Data API (oficial, fiable desde Vercel)
+  const key = process.env.YOUTUBE_API_KEY;
+  if (!key) {
+    result.dataApi = { skipped: "YOUTUBE_API_KEY no configurada" };
+  } else {
     try {
-      collectLockups(JSON.parse(text), vids);
+      const q = `${keyword === "PREVIA" ? "PREVIA" : "Resumen"} ${home} ${away}`;
+      const apiUrl =
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video` +
+        `&channelId=${CHANNEL_ID}&maxResults=10&q=${encodeURIComponent(q)}&key=${key}`;
+      const r = await fetch(apiUrl, { signal: AbortSignal.timeout(8000) });
+      const json = (await r.json()) as {
+        items?: { id?: { videoId?: string }; snippet?: { title?: string } }[];
+        error?: { message?: string };
+      };
+      const titles = (json.items ?? []).map((it) => it.snippet?.title ?? "").filter(Boolean);
+      result.dataApi = {
+        status: r.status,
+        apiError: json.error?.message ?? null,
+        items: json.items?.length ?? 0,
+        sampleTitles: titles.slice(0, 5),
+        matched: titles.some(matchesVid),
+      };
     } catch (e) {
-      parseError = String(e);
+      result.dataApi = { error: String(e) };
     }
-    result.channel = {
-      status: r.status,
-      bytes: text.length,
-      parseError,
-      videos: vids.length,
-      sampleTitles: vids.slice(0, 5).map((v) => v.title),
-      matched: vids.some((v) => matchesVid(v.title)),
-      bodyHead: text.slice(0, 200),
-    };
-  } catch (e) {
-    result.channel = { error: String(e) };
   }
 
   return NextResponse.json(result, { status: 200 });

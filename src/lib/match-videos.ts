@@ -3,19 +3,16 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 
 // Canal @Replay (FIFA): sube PREVIAS antes de cada partido y RESÚMENES al
-// terminar. Se descubren sin API key por dos vías complementarias:
-//  1. Feed RSS público (rápido, ~15 vídeos más recientes) → cubre lo reciente.
-//  2. Búsqueda InnerTube (fallback) → encuentra una previa/resumen concreta
-//     aunque ya haya salido de la ventana del RSS (el canal sube muchísimo).
+// terminar. Se descubren por dos vías complementarias:
+//  1. Feed RSS público (gratis, sin clave, ~15 vídeos más recientes) → cubre
+//     lo reciente (la mayoría de resúmenes y previas del día) sin gastar cuota.
+//  2. YouTube Data API (fallback con clave) → encuentra una previa/resumen
+//     concreta aunque ya haya salido de la ventana del RSS. Es la única vía
+//     fiable desde las IPs de servidor de Vercel: YouTube sirve una respuesta
+//     vacía anti-bot a su API interna (InnerTube) desde datacenters, pero la
+//     Data API oficial funciona desde cualquier sitio.
 const CHANNEL_ID = "UCM2DAYhfMPkGi7o6erYXiHg";
 const FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
-
-// InnerTube: la API interna que usa la propia web de YouTube. Keyless (esta
-// clave del cliente WEB es una constante pública) y devuelve JSON, no HTML:
-// tolera peticiones de servidor (Vercel) mucho mejor que raspar las páginas,
-// que YouTube sirve con muros de bot/consentimiento a IPs de datacenter.
-const INNERTUBE_KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
-const INNERTUBE_URL = `https://www.youtube.com/youtubei/v1/search?key=${INNERTUBE_KEY}`;
 
 export type MatchVideoKind = "previa" | "resumen";
 
@@ -79,104 +76,39 @@ async function fetchReplayFeed(): Promise<ReplayVideo[]> {
   }
 }
 
-// `params` de la pestaña "Vídeos" de un canal (constante de YouTube).
-const VIDEOS_TAB_PARAMS = "EgZ2aWRlb3PyBgQKAjoA";
-const INNERTUBE_CONTEXT = {
-  client: { clientName: "WEB", clientVersion: "2.20240101.00.00", hl: "es", gl: "US" },
-};
-
-/** Extrae token de continuación (paginación) de una respuesta browse. */
-function findContinuation(node: unknown): string | null {
-  if (!node || typeof node !== "object") return null;
-  const obj = node as Record<string, unknown>;
-  const cmd = obj.continuationCommand as { token?: string } | undefined;
-  if (cmd?.token) return cmd.token;
-  for (const key in obj) {
-    const t = findContinuation(obj[key]);
-    if (t) return t;
-  }
-  return null;
-}
-
 /**
- * Recolecta los vídeos de una respuesta browse del canal. YouTube usa el
- * formato nuevo `lockupViewModel`: el id está en `contentId` y el título en
- * `lockupMetadataViewModel.title.content`.
+ * Busca dentro del canal con la YouTube Data API (search.list con channelId).
+ * Oficial y fiable desde Vercel. Sin clave configurada → []. Resiliente: si
+ * la petición falla (cuota, red), también []. Una búsqueda = 100 unidades de
+ * cuota; con la caché de abajo, de sobra para un torneo.
  */
-function collectLockups(node: unknown, out: ReplayVideo[]): void {
-  if (!node || typeof node !== "object") return;
-  const obj = node as Record<string, unknown>;
-  const lv = obj.lockupViewModel as
-    | { contentId?: string; metadata?: unknown }
-    | undefined;
-  if (lv?.contentId) {
-    let title: string | null = null;
-    const findTitle = (x: unknown): void => {
-      if (title || !x || typeof x !== "object") return;
-      const o = x as Record<string, unknown>;
-      const meta = o.lockupMetadataViewModel as
-        | { title?: { content?: string } }
-        | undefined;
-      if (meta?.title?.content) {
-        title = meta.title.content;
-        return;
-      }
-      for (const k in o) findTitle(o[k]);
-    };
-    findTitle(lv);
-    if (title) out.push({ videoId: lv.contentId, title });
-  }
-  for (const key in obj) collectLockups(obj[key], out);
-}
-
-async function browse(body: Record<string, unknown>): Promise<unknown> {
-  const res = await fetch(INNERTUBE_URL, {
-    method: "POST",
-    headers: { "content-type": "application/json", "user-agent": "Mozilla/5.0" },
-    body: JSON.stringify({ context: INNERTUBE_CONTEXT, ...body }),
-    signal: AbortSignal.timeout(8000),
-  });
-  if (!res.ok) throw new Error(`browse ${res.status}`);
-  return res.json();
-}
-
-/**
- * Vídeos recientes del canal @Replay vía la pestaña "Vídeos" de InnerTube
- * (la API interna de YouTube). A diferencia de la búsqueda, esto es el orden
- * cronológico real del canal — INDEPENDIENTE de la región del servidor (la
- * búsqueda general ordena distinto desde las IPs de Vercel y dejaba fuera al
- * canal). Pagina hasta `maxPages` (~30 vídeos por página). Resiliente: [].
- */
-async function fetchChannelVideos(maxPages = 3): Promise<ReplayVideo[]> {
+async function searchChannelDataApi(query: string): Promise<ReplayVideo[]> {
   "use cache";
   cacheLife("minutes");
   cacheTag("replay-videos");
 
-  const out: ReplayVideo[] = [];
-  const seen = new Set<string>();
+  const key = process.env.YOUTUBE_API_KEY;
+  if (!key) return [];
+
   try {
-    let token: string | null = null;
-    for (let page = 0; page < maxPages; page++) {
-      const json: unknown = await browse(
-        token
-          ? { continuation: token }
-          : { browseId: CHANNEL_ID, params: VIDEOS_TAB_PARAMS },
-      );
-      const vids: ReplayVideo[] = [];
-      collectLockups(json, vids);
-      for (const v of vids) {
-        if (!seen.has(v.videoId)) {
-          seen.add(v.videoId);
-          out.push(v);
-        }
-      }
-      token = findContinuation(json);
-      if (!token) break;
-    }
+    const url =
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video` +
+      `&channelId=${CHANNEL_ID}&maxResults=10&q=${encodeURIComponent(query)}&key=${key}`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+    if (!res.ok) return [];
+    const json = (await res.json()) as {
+      items?: { id?: { videoId?: string }; snippet?: { title?: string } }[];
+    };
+    return (json.items ?? [])
+      .map((it) => {
+        const videoId = it.id?.videoId;
+        const title = it.snippet?.title;
+        return videoId && title ? { videoId, title } : null;
+      })
+      .filter((v): v is ReplayVideo => v !== null);
   } catch {
-    // best-effort: devuelve lo acumulado hasta el fallo.
+    return [];
   }
-  return out;
 }
 
 /**
@@ -185,8 +117,8 @@ async function fetchChannelVideos(maxPages = 3): Promise<ReplayVideo[]> {
  * Insensible al orden local/visitante. Devuelve el id de YouTube o null si
  * todavía no está disponible.
  *
- * Estrategia: primero el RSS (rápido); si el vídeo ya salió de esa ventana,
- * se busca en el canal. Títulos del canal:
+ * Estrategia: primero el RSS (gratis); si el vídeo ya salió de esa ventana,
+ * la Data API. Títulos del canal:
  *  - Resumen: "México 2 – 0 Sudáfrica | Resumen Copa Mundial de la FIFA 2026"
  *  - Previa:  "PREVIA GHANA - PANAMÁ | MUNDIAL 2026"
  */
@@ -199,9 +131,9 @@ export async function getMatchVideo(
   const fromFeed = feed.find((v) => matches(v, homeTeam, awayTeam, kind));
   if (fromFeed) return fromFeed.videoId;
 
-  // Fallback: navegar la pestaña de vídeos del canal (más entradas que el RSS
-  // y, a diferencia de la búsqueda, fiable desde la región de Vercel).
-  const channel = await fetchChannelVideos();
-  const fromChannel = channel.find((v) => matches(v, homeTeam, awayTeam, kind));
-  return fromChannel?.videoId ?? null;
+  // Fallback con la Data API (solo si el RSS no lo tenía → ahorra cuota).
+  const keyword = kind === "previa" ? "PREVIA" : "Resumen";
+  const results = await searchChannelDataApi(`${keyword} ${homeTeam} ${awayTeam}`);
+  const fromApi = results.find((v) => matches(v, homeTeam, awayTeam, kind));
+  return fromApi?.videoId ?? null;
 }
