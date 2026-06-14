@@ -87,8 +87,10 @@ async function searchChannelDataApi(query: string): Promise<ReplayVideo[]> {
   cacheLife("minutes");
   cacheTag("replay-videos");
 
-  const key = process.env.YOUTUBE_API_KEY;
-  if (!key) return [];
+  // La clave existe por contrato (getMatchVideo lo comprueba ANTES de llamar,
+  // fuera de la caché: así un deploy sin clave nunca cachea un [] que luego se
+  // sirviera obsoleto al añadirla).
+  const key = process.env.YOUTUBE_API_KEY!;
 
   try {
     const url =
@@ -131,7 +133,10 @@ export async function getMatchVideo(
   const fromFeed = feed.find((v) => matches(v, homeTeam, awayTeam, kind));
   if (fromFeed) return fromFeed.videoId;
 
-  // Fallback con la Data API (solo si el RSS no lo tenía → ahorra cuota).
+  // Fallback con la Data API (solo si el RSS no lo tenía → ahorra cuota). La
+  // comprobación de la clave va AQUÍ, fuera del bloque cacheado, para no
+  // cachear un [] cuando la clave aún no está puesta.
+  if (!process.env.YOUTUBE_API_KEY) return null;
   const keyword = kind === "previa" ? "PREVIA" : "Resumen";
   const results = await searchChannelDataApi(`${keyword} ${homeTeam} ${awayTeam}`);
   const fromApi = results.find((v) => matches(v, homeTeam, awayTeam, kind));
