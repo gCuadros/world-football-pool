@@ -57,6 +57,12 @@ const TEAMS: Record<string, TeamInfo> = {
   Uzbekistan: { name: "Uzbekistán", flag: "🇺🇿" },
 };
 
+// Inverso de TEAMS: nombre ES → nombre EN (la clave). Para emparejar con
+// fuentes en inglés, p. ej. los títulos de los vídeos del canal de FIFA.
+export const ENGLISH_NAME: Record<string, string> = Object.fromEntries(
+  Object.entries(TEAMS).map(([en, info]) => [info.name, en]),
+);
+
 // Sedes (ground de openfootball → estadio + ciudad en español).
 const STADIUMS: Record<string, { stadium: string; city: string }> = {
   Atlanta: { stadium: "Mercedes-Benz Stadium", city: "Atlanta" },
