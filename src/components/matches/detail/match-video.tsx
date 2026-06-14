@@ -3,27 +3,22 @@
 import { useState } from "react";
 import { PlayCircle } from "@phosphor-icons/react";
 
-import type { MatchVideoKind } from "@/lib/match-videos";
-
-const META: Record<MatchVideoKind, { label: string; icon: string }> = {
-  previa: { label: "Previa del partido", icon: "🎬" },
-  resumen: { label: "Resumen del partido", icon: "📺" },
-};
-
 /**
- * Vídeo del canal @Replay (previa/resumen) embebido. Facade: muestra solo la
- * miniatura de YouTube y carga el iframe pesado al pulsar Play — la página de
- * partido no paga el coste del reproductor salvo que el usuario lo quiera.
+ * Vídeo oficial de FIFA embebido (previa, resumen o entrevista). Facade:
+ * muestra solo la miniatura de YouTube y carga el iframe pesado al pulsar
+ * Play — la página de partido no paga el coste del reproductor salvo que el
+ * usuario lo quiera. `label`/`icon` los decide quien lo renderiza.
  */
 export function MatchVideo({
   videoId,
-  kind,
+  label,
+  icon,
 }: {
   videoId: string;
-  kind: MatchVideoKind;
+  label: string;
+  icon: string;
 }) {
   const [playing, setPlaying] = useState(false);
-  const { label, icon } = META[kind];
 
   return (
     <section className="card-glass overflow-hidden rounded-2xl">
@@ -31,7 +26,7 @@ export function MatchVideo({
         <span>{icon}</span>
         <h2 className="text-base font-bold">{label}</h2>
         <span className="text-muted-foreground ml-auto font-mono text-2xs tracking-wide uppercase">
-          @Replay
+          FIFA
         </span>
       </div>
 
@@ -39,7 +34,9 @@ export function MatchVideo({
         {playing ? (
           <iframe
             className="absolute inset-0 size-full"
-            src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
+            // hl=es: pide la pista de audio en español en los vídeos con
+            // multi-audio de FIFA (la previa trae inglés por defecto).
+            src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&hl=es&cc_lang_pref=es`}
             title={label}
             loading="lazy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
