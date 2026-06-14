@@ -27,27 +27,9 @@ export async function GET(req: Request) {
 
   const result: Record<string, unknown> = { home, away, kind };
 
-  // 1. RSS (gratis)
-  try {
-    const r = await fetch(`https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`, {
-      headers: { "user-agent": "QuinielaMundial2026/1.0" },
-      signal: AbortSignal.timeout(6000),
-    });
-    const xml = await r.text();
-    const titles = (xml.match(/<entry>[\s\S]*?<\/entry>/gi) ?? [])
-      .map((b) => b.match(/<title>([^<]*)<\/title>/i)?.[1] ?? "")
-      .filter(Boolean);
-    result.rss = {
-      status: r.status,
-      entries: titles.length,
-      matched: titles.some(matchesVid),
-      sampleTitles: titles.slice(0, 3),
-    };
-  } catch (e) {
-    result.rss = { error: String(e) };
-  }
-
-  // 2. YouTube Data API (oficial, fiable desde Vercel)
+  // Data API (playlistItems sobre la playlist de subidas del canal): la misma
+  // vía que usa producción, pero con fetch directo (sin caché) para ver el
+  // estado real en el momento.
   const key = process.env.YOUTUBE_API_KEY;
   if (!key) {
     result.dataApi = { skipped: "YOUTUBE_API_KEY no configurada" };
