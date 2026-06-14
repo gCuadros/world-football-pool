@@ -53,13 +53,13 @@ export async function GET(req: Request) {
     result.dataApi = { skipped: "YOUTUBE_API_KEY no configurada" };
   } else {
     try {
-      const q = `${keyword === "PREVIA" ? "PREVIA" : "Resumen"} ${home} ${away}`;
+      const uploads = `UU${CHANNEL_ID.slice(2)}`;
       const apiUrl =
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video` +
-        `&channelId=${CHANNEL_ID}&maxResults=10&q=${encodeURIComponent(q)}&key=${key}`;
+        `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet` +
+        `&playlistId=${uploads}&maxResults=50&key=${key}`;
       const r = await fetch(apiUrl, { signal: AbortSignal.timeout(8000) });
       const json = (await r.json()) as {
-        items?: { id?: { videoId?: string }; snippet?: { title?: string } }[];
+        items?: { snippet?: { title?: string } }[];
         error?: { message?: string };
       };
       const titles = (json.items ?? []).map((it) => it.snippet?.title ?? "").filter(Boolean);
@@ -67,8 +67,8 @@ export async function GET(req: Request) {
         status: r.status,
         apiError: json.error?.message ?? null,
         items: json.items?.length ?? 0,
-        sampleTitles: titles.slice(0, 5),
         matched: titles.some(matchesVid),
+        matchedTitle: titles.find(matchesVid) ?? null,
       };
     } catch (e) {
       result.dataApi = { error: String(e) };
