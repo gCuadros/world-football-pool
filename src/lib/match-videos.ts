@@ -40,6 +40,7 @@ const FIFA_ALIASES: Record<string, string[]> = {
   "Bosnia & Herzegovina": ["Bosnia and Herzegovina"],
   Turkey: ["Türkiye"],
   USA: ["United States"],
+  "Cape Verde": ["Cabo Verde"], // FIFA usa el nombre local, no el inglés
 };
 
 /** Formas (normalizadas) en inglés con que FIFA puede nombrar al equipo. */
