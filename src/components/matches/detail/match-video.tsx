@@ -1,13 +1,11 @@
-"use client";
-
-import { useState } from "react";
-import { PlayCircle } from "@phosphor-icons/react";
+import { PlayCircle, YoutubeLogo } from "@phosphor-icons/react/dist/ssr";
 
 /**
- * Vídeo oficial de FIFA embebido (previa, resumen o entrevista). Facade:
- * muestra solo la miniatura de YouTube y carga el iframe pesado al pulsar
- * Play — la página de partido no paga el coste del reproductor salvo que el
- * usuario lo quiera. `label`/`icon` los decide quien lo renderiza.
+ * Tarjeta de vídeo oficial de FIFA (previa, resumen o entrevista). Abre el
+ * vídeo en YouTube al pulsar, NO lo incrusta: FIFA bloquea el embedding de su
+ * contenido en sitios de terceros (restricción de sindicación de Content ID),
+ * así que un iframe muestra "vídeo no disponible". Abrir en YouTube además
+ * deja elegir la pista de audio en español. Solo se carga la miniatura.
  */
 export function MatchVideo({
   videoId,
@@ -18,8 +16,6 @@ export function MatchVideo({
   label: string;
   icon: string;
 }) {
-  const [playing, setPlaying] = useState(false);
-
   return (
     <section className="card-glass overflow-hidden rounded-2xl">
       <div className="flex items-center gap-2 p-4 pb-3">
@@ -30,42 +26,33 @@ export function MatchVideo({
         </span>
       </div>
 
-      <div className="relative aspect-video w-full bg-black">
-        {playing ? (
-          <iframe
-            className="absolute inset-0 size-full"
-            // hl=es: pide la pista de audio en español en los vídeos con
-            // multi-audio de FIFA (la previa trae inglés por defecto).
-            src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&hl=es&cc_lang_pref=es`}
-            title={label}
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
+      <a
+        href={`https://www.youtube.com/watch?v=${videoId}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Ver ${label.toLowerCase()} en YouTube`}
+        className="group relative block aspect-video w-full bg-black"
+      >
+        {/* Miniatura de YouTube (sin next/image: dominio externo, sin optimizar). */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
+          alt={label}
+          className="size-full object-cover"
+          loading="lazy"
+        />
+        <span className="absolute inset-0 grid place-items-center bg-black/30 transition-colors group-hover:bg-black/15">
+          <PlayCircle
+            weight="fill"
+            className="size-16 text-white/90 drop-shadow-lg transition-transform group-hover:scale-110"
           />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setPlaying(true)}
-            aria-label={`Reproducir ${label.toLowerCase()}`}
-            className="group absolute inset-0 size-full"
-          >
-            {/* Miniatura de YouTube (sin next/image: dominio externo, sin optimizar). */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={`https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`}
-              alt={label}
-              className="size-full object-cover"
-              loading="lazy"
-            />
-            <span className="absolute inset-0 grid place-items-center bg-black/30 transition-colors group-hover:bg-black/15">
-              <PlayCircle
-                weight="fill"
-                className="size-16 text-white/90 drop-shadow-lg transition-transform group-hover:scale-110"
-              />
-            </span>
-          </button>
-        )}
-      </div>
+        </span>
+        {/* Pista de que abre YouTube (no se reproduce dentro). */}
+        <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-md bg-black/60 px-1.5 py-0.5 text-2xs font-medium text-white">
+          <YoutubeLogo weight="fill" className="size-3.5 text-red-500" />
+          YouTube
+        </span>
+      </a>
     </section>
   );
 }
