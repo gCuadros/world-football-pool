@@ -5,7 +5,7 @@ import { formatLiveMinute } from "@/lib/format";
 import { BackButton } from "@/components/ui/back-button";
 import { AutoRefresh } from "@/components/matches/auto-refresh";
 
-import { getMatchesBase, type MatchBase } from "@/lib/queries";
+import { getMatchesBase, getLiveMatchScore, type MatchBase } from "@/lib/queries";
 import { STAGE_LABELS } from "@/lib/labels";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { TeamLink } from "@/components/matches/team-link";
@@ -58,8 +58,16 @@ export default function PartidoPage({
 async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const matches = await getMatchesBase();
-  const match = matches.find((m) => m.id === id);
+  let match = matches.find((m) => m.id === id);
   if (!match) notFound();
+
+  // Si está en juego, el marcador del calendario (cacheado) puede ir atrasado:
+  // se superpone el marcador en vivo leído directo de la BD, así cada refresh
+  // muestra el gol al instante sin esperar a la revalidación del cron.
+  if (match.status === "LIVE") {
+    const live = await getLiveMatchScore(id);
+    if (live) match = { ...match, ...live };
+  }
 
   const showLive = match.status !== "UPCOMING";
 

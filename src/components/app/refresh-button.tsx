@@ -7,11 +7,12 @@ import { ArrowsClockwise } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { haptics } from "@/lib/haptics";
+import { refreshMatchesCache } from "@/components/app/refresh-action";
 
 /**
- * Refresca los datos del servidor de la ruta actual (`router.refresh()`) con un
- * spinner mientras está en curso. Pensado para el topbar en móvil, como gesto
- * de actualización tipo "pull to refresh" de una PWA.
+ * Botón de actualizar del topbar (gesto tipo "pull to refresh" de una PWA).
+ * Invalida la caché de partidos y luego refresca: `router.refresh()` solo NO
+ * rompe el `use cache`, así que sin esto no traía marcadores en vivo nuevos.
  */
 export function RefreshButton({ className }: { className?: string }) {
   const router = useRouter();
@@ -25,7 +26,10 @@ export function RefreshButton({ className }: { className?: string }) {
       disabled={pending}
       onClick={() => {
         haptics.tap();
-        start(() => router.refresh());
+        start(async () => {
+          await refreshMatchesCache();
+          router.refresh();
+        });
       }}
       className={className}
     >

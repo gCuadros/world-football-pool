@@ -64,6 +64,29 @@ function cleanGroup(g: string | null): string | null {
 }
 
 /**
+ * Marcador/estado/minuto de UN partido, SIN caché: el calendario general
+ * (getMatchesBase) cachea "minutes" y, entre revalidaciones del cron, podía
+ * quedarse atrás con un gol recién marcado. Para un partido en juego se lee
+ * directo, así cada refresh (manual o AutoRefresh) trae lo último de la BD.
+ * Resiliente: si la BD falla, null (se mantiene el dato cacheado).
+ */
+export async function getLiveMatchScore(matchId: string): Promise<{
+  homeScore: number | null;
+  awayScore: number | null;
+  status: MatchStatus;
+  liveMinute: number | null;
+} | null> {
+  try {
+    return await prisma.match.findUnique({
+      where: { id: matchId },
+      select: { homeScore: true, awayScore: true, status: true, liveMinute: true },
+    });
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Calendario completo (compartido entre todos los usuarios) — CACHEADO (`use cache`).
  * Invalida con tag `matches` cuando se actualiza el calendario o resultados.
  */
