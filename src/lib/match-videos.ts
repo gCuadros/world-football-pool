@@ -2,18 +2,17 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 
-import { ENGLISH_NAME } from "@/lib/wc-data";
-
-// Vídeos oficiales del canal de FIFA (@fifa) para el Mundial 2026. FIFA tiene
-// playlists DEDICADAS de previas y de highlights, así que leemos esas dos
-// directamente (vía Data API, playlistItems): solo traen partidos, sin ruido,
-// y no hace falta filtrar por palabra clave. Region-independiente y 1 unidad
-// de cuota por playlist (cacheada y compartida por toda la app).
+// Vídeos del partido, por tipo y fuente (los dos en español y, sobre todo,
+// EMBEBIBLES dentro de la app — FIFA bloquea el embedding de su contenido):
+//  - Resumen: canal oficial de DAZN España ("X vs Y (g-g) | Resumen y goles").
+//  - Previa:  canal @Replay ("PREVIA X - Y | MUNDIAL 2026"); DAZN no sube previas.
+// Se leen las playlists de "subidas" de cada canal (id del canal con UC→UU)
+// vía la Data API: 1 unidad de cuota, region-independiente, 50 vídeos.
 export type MatchVideoKind = "previa" | "resumen";
 
 const PLAYLIST: Record<MatchVideoKind, string> = {
-  previa: "PLOKG1WmvypGc", // "Match Previews | FIFA World Cup 2026™"
-  resumen: "PLBRLtDhTHh5o", // "Match Highlights | FIFA World Cup 2026™"
+  previa: "UUM2DAYhfMPkGi7o6erYXiHg", // @Replay
+  resumen: "UUK-mxP4hLap1t3dp4bPbSBg", // DAZN España
 };
 
 type YtVideo = {
@@ -31,43 +30,33 @@ function normalize(s: string): string {
     .trim();
 }
 
-// Nombres que FIFA escribe distinto al nombre EN de wc-data. Solo los que
-// difieren; el resto (Spain, Mexico, Japan…) coinciden tal cual.
-const FIFA_ALIASES: Record<string, string[]> = {
-  "Ivory Coast": ["Cote d'Ivoire"],
-  "South Korea": ["Korea Republic"],
-  "Czech Republic": ["Czechia"],
-  "Bosnia & Herzegovina": ["Bosnia and Herzegovina"],
-  Turkey: ["Türkiye"],
-  USA: ["United States"],
-  "Cape Verde": ["Cabo Verde"], // FIFA usa el nombre local, no el inglés
-};
-
-/** Formas (normalizadas) en inglés con que FIFA puede nombrar al equipo. */
-function teamAliases(spanishName: string): string[] {
-  const en = ENGLISH_NAME[spanishName] ?? spanishName;
-  return [en, ...(FIFA_ALIASES[en] ?? [])].map(normalize);
-}
-
-/** ¿El título nombra a AMBOS equipos? (la playlist ya filtra el tipo). */
-function matchesGame(video: YtVideo, homeTeam: string, awayTeam: string): boolean {
+/** ¿Es este el vídeo del partido? Ambos equipos + palabra clave en el título. */
+function matchesGame(
+  video: YtVideo,
+  homeTeam: string,
+  awayTeam: string,
+  kind: MatchVideoKind,
+): boolean {
   const t = normalize(video.title);
+  const keyword = kind === "previa" ? "PREVIA" : "RESUMEN";
   return (
-    teamAliases(homeTeam).some((a) => t.includes(a)) &&
-    teamAliases(awayTeam).some((a) => t.includes(a))
+    t.includes(keyword) &&
+    t.includes(normalize(homeTeam)) &&
+    t.includes(normalize(awayTeam))
   );
 }
 
 /**
- * Vídeos de una playlist (Data API). Argumento = id de playlist, así que la
- * caché tiene una entrada por playlist (previas/highlights), compartida por
- * todos los partidos. Resiliente: cualquier fallo devuelve []. La clave existe
- * por contrato (getMatchVideo la comprueba ANTES, fuera de la caché).
+ * Vídeos de una playlist (Data API, playlistItems). Argumento = id de
+ * playlist, así que la caché tiene una entrada por playlist (previa/resumen),
+ * compartida por todos los partidos: 1 llamada por ventana de caché. Resiliente:
+ * cualquier fallo devuelve []. La clave existe por contrato (getMatchVideo la
+ * comprueba ANTES, fuera de la caché, para no cachear un [] sin clave).
  */
 async function fetchPlaylist(playlistId: string): Promise<YtVideo[]> {
   "use cache";
   cacheLife("minutes");
-  cacheTag("fifa-videos");
+  cacheTag("match-videos");
 
   try {
     const url =
@@ -91,11 +80,9 @@ async function fetchPlaylist(playlistId: string): Promise<YtVideo[]> {
 }
 
 /**
- * Id de YouTube de la previa o el resumen oficial del partido, o null si FIFA
- * todavía no lo ha subido. Empareja por los DOS nombres de equipo en el título
- * (FIFA los escribe en inglés), insensible al orden local/visitante. Formatos:
- *  - Previa:    "Match Preview: Mexico vs South Africa | FIFA World Cup 2026™"
- *  - Highlights:"Highlights | USA 4-1 Paraguay | FIFA World Cup 2026™"
+ * Id de YouTube de la previa o el resumen del partido, o null si todavía no
+ * está subido. Empareja por los DOS nombres de equipo (en español, como los
+ * dos canales) + la palabra clave, insensible al orden local/visitante.
  */
 export async function getMatchVideo(
   homeTeam: string,
@@ -107,44 +94,6 @@ export async function getMatchVideo(
   if (!process.env.YOUTUBE_API_KEY) return null;
 
   const videos = await fetchPlaylist(PLAYLIST[kind]);
-  const video = videos.find((v) => matchesGame(v, homeTeam, awayTeam));
+  const video = videos.find((v) => matchesGame(v, homeTeam, awayTeam, kind));
   return video?.videoId ?? null;
-}
-
-export type InterviewWhen = "pre" | "post";
-
-// Playlists de entrevistas/rueda de prensa de FIFA.
-const INTERVIEW_PLAYLIST: Record<InterviewWhen, string> = {
-  pre: "PLRtffQSBKqO0", // "Pre-Match Press Conference" — "{A} On Playing {B} | …"
-  post: "PLCEPRjj5z5yk", // "Post-Match Player Interviews" — "Post-Match Interviews: {A} {g}-{g} {B}"
-};
-
-/** ¿El título empieza por (algún alias de) este equipo? */
-function startsWithTeam(title: string, team: string): boolean {
-  const t = normalize(title);
-  return teamAliases(team).some((a) => t.startsWith(a));
-}
-
-/**
- * Entrevista del partido: la POSTpartido en cuanto está disponible (manda en
- * cuanto FIFA la sube, tras el pitido final); hasta entonces, la PREpartido
- * (rueda de prensa, suele subirse el día antes). Devuelve el id + cuál es, o
- * null si todavía no hay ninguna. De las dos ruedas pre (una por equipo) se
- * prefiere la del local.
- */
-export async function getMatchInterview(
-  homeTeam: string,
-  awayTeam: string,
-): Promise<{ videoId: string; when: InterviewWhen } | null> {
-  if (!process.env.YOUTUBE_API_KEY) return null;
-
-  const post = await fetchPlaylist(INTERVIEW_PLAYLIST.post);
-  const postVideo = post.find((v) => matchesGame(v, homeTeam, awayTeam));
-  if (postVideo) return { videoId: postVideo.videoId, when: "post" };
-
-  const pre = await fetchPlaylist(INTERVIEW_PLAYLIST.pre);
-  const preVideos = pre.filter((v) => matchesGame(v, homeTeam, awayTeam));
-  const preferred =
-    preVideos.find((v) => startsWithTeam(v.title, homeTeam)) ?? preVideos[0];
-  return preferred ? { videoId: preferred.videoId, when: "pre" } : null;
 }

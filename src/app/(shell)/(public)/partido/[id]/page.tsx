@@ -19,7 +19,7 @@ import {
 } from "@/components/matches/detail/sections";
 import { LeaguePredictionsSection } from "@/components/matches/detail/league-predictions";
 import { MatchVideo } from "@/components/matches/detail/match-video";
-import { getMatchVideo, getMatchInterview, type MatchVideoKind } from "@/lib/match-videos";
+import { getMatchVideo, type MatchVideoKind } from "@/lib/match-videos";
 
 const DATE_FMT = new Intl.DateTimeFormat("es-ES", {
   weekday: "long",
@@ -73,9 +73,9 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
 
       <MatchHeader match={match} />
 
-      {/* Vídeos oficiales de FIFA (entre el marcador y las predicciones):
-          resumen al terminar, previa antes del pitido, y la entrevista
-          (post si está, si no la pre). */}
+      {/* Vídeo (entre el marcador y las predicciones): resumen al terminar,
+          previa antes del pitido. Del canal @Replay, que sí permite embeber
+          (FIFA bloquea el embedding de su contenido). */}
       {match.status === "FINISHED" && (
         <Suspense fallback={null}>
           <MatchVideoSection homeTeam={match.homeTeam} awayTeam={match.awayTeam} kind="resumen" />
@@ -86,9 +86,6 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
           <MatchVideoSection homeTeam={match.homeTeam} awayTeam={match.awayTeam} kind="previa" />
         </Suspense>
       )}
-      <Suspense fallback={null}>
-        <InterviewSection homeTeam={match.homeTeam} awayTeam={match.awayTeam} />
-      </Suspense>
 
       {showLive ? (
         <>
@@ -138,20 +135,6 @@ async function MatchVideoSection({
   const videoId = await getMatchVideo(homeTeam, awayTeam, kind);
   if (!videoId) return null; // aún no lo han subido → no se muestra nada
   return <MatchVideo videoId={videoId} {...VIDEO_META[kind]} />;
-}
-
-async function InterviewSection({
-  homeTeam,
-  awayTeam,
-}: {
-  homeTeam: string;
-  awayTeam: string;
-}) {
-  const interview = await getMatchInterview(homeTeam, awayTeam);
-  if (!interview) return null;
-  const label =
-    interview.when === "post" ? "Entrevista postpartido" : "Entrevista previa";
-  return <MatchVideo videoId={interview.videoId} label={label} icon="🎙️" />;
 }
 
 function MatchHeader({ match }: { match: MatchBase }) {
