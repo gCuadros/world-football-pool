@@ -175,6 +175,7 @@ export const apiFootballProvider: FootballProvider = {
 export type MatchEvent = {
   minute: number | null;
   team: string;
+  playerId: number | null;
   player: string | null;
   type: string; // Goal, Card, subst…
   detail: string; // Normal Goal, Yellow Card…
@@ -183,7 +184,7 @@ export type MatchEvent = {
 type AfEvent = {
   time: { elapsed: number | null; extra: number | null };
   team: { name: string };
-  player: { name: string | null };
+  player: { id: number | null; name: string | null };
   type: string;
   detail: string;
 };
@@ -451,6 +452,7 @@ export async function getApiFootballEvents(
         ? e.time.elapsed + (e.time.extra ?? 0)
         : null,
     team: teamInfo(e.team.name).name,
+    playerId: e.player?.id ?? null,
     player: e.player?.name ?? null,
     type: e.type,
     detail: e.detail,

@@ -5,6 +5,7 @@ import { BackButton } from "@/components/ui/back-button";
 import { Reveal } from "@/components/ui/reveal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TeamCrest } from "@/components/matches/team-crest";
+import { TeamLink } from "@/components/matches/team-link";
 import { getPlayer } from "@/lib/queries";
 
 export async function generateMetadata({
@@ -65,15 +66,30 @@ async function JugadorContent({
           <div className="min-w-0">
             <h1 className="truncate text-xl font-bold">{player.name}</h1>
             <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
-              <TeamCrest
-                crest={player.teamLogo}
-                flag={player.teamFlag}
-                name={player.teamName}
-                size={16}
-                className="shrink-0"
-              />
-              <span className="truncate">{player.teamName}</span>
-              {player.position && <span>· {player.position}</span>}
+              {player.teamName !== "—" ? (
+                <TeamLink name={player.teamName} className="flex min-w-0 items-center gap-1.5">
+                  <TeamCrest
+                    crest={player.teamLogo}
+                    flag={player.teamFlag}
+                    name={player.teamName}
+                    size={16}
+                    className="shrink-0"
+                  />
+                  <span className="truncate">{player.teamName}</span>
+                </TeamLink>
+              ) : (
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <TeamCrest
+                    crest={player.teamLogo}
+                    flag={player.teamFlag}
+                    name={player.teamName}
+                    size={16}
+                    className="shrink-0"
+                  />
+                  <span className="truncate">{player.teamName}</span>
+                </span>
+              )}
+              {player.position && <span className="shrink-0">· {player.position}</span>}
             </div>
             {player.age != null && (
               <p className="text-muted-foreground mt-0.5 text-xs">
