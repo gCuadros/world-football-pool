@@ -29,6 +29,11 @@ export type PushPayload = {
   title: string;
   body: string;
   link?: string;
+  /** Agrupa/REEMPLAZA notificaciones con el mismo tag (una por partido en
+   *  directo, que se va actualizando con cada gol en vez de apilarse). */
+  tag?: string;
+  /** Con tag, vuelve a avisar (sonido/banner) al reemplazar. true para goles. */
+  renotify?: boolean;
 };
 
 /**

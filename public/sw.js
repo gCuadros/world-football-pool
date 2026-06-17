@@ -12,7 +12,7 @@
 // ⚠️ Sube VERSION en cada cambio de este archivo: dispara el flujo de
 // actualización (toast "Nueva versión disponible" en sw-register).
 
-const VERSION = "quiniela-v3";
+const VERSION = "quiniela-v4";
 const STATIC_CACHE = `${VERSION}-static`;
 const IMAGE_CACHE = `${VERSION}-images`;
 
@@ -134,6 +134,12 @@ self.addEventListener("push", (event) => {
     body: data.body || "",
     icon: "/icon-192.png",
     badge: "/icon-192.png",
+    // tag: una notificación por partido que se REEMPLAZA con cada gol (en vez
+    // de apilarse), así la pantalla de bloqueo muestra el marcador en vivo.
+    // renotify: vuelve a avisar al reemplazar (goles); sin él, actualización
+    // silenciosa.
+    tag: data.tag || undefined,
+    renotify: data.renotify || false,
     data: { link: data.link || "/" },
   };
 
