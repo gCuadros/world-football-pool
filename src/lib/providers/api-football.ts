@@ -409,6 +409,41 @@ export async function getApiFootballPlayer(
   };
 }
 
+// ── Plantilla convocada ───────────────────────────────────────────────────
+export type SquadPlayer = {
+  id: number;
+  name: string;
+  number: number | null;
+  position: string | null; // ya en español
+  photo: string | null;
+  age: number | null;
+};
+
+type AfSquad = {
+  players: {
+    id: number;
+    name: string;
+    age: number | null;
+    number: number | null;
+    position: string | null;
+    photo: string | null;
+  }[];
+}[];
+
+/** Plantilla convocada de una selección para el torneo (por id de equipo). */
+export async function getApiFootballSquad(teamId: number): Promise<SquadPlayer[]> {
+  const resp = await apiGet<AfSquad>(`/players/squads?team=${teamId}`);
+  const players = resp[0]?.players ?? [];
+  return players.map((p) => ({
+    id: p.id,
+    name: p.name,
+    number: p.number,
+    position: p.position ? (POSITION_ES[p.position] ?? p.position) : null,
+    photo: p.photo,
+    age: p.age,
+  }));
+}
+
 // ── Partidos en vivo (1 sola llamada, para detectar goles) ────────────────
 export type LiveFixture = {
   externalId: string;

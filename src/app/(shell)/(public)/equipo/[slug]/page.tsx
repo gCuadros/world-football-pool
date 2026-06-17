@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { Shield, Goal, Swords, TrendingUp, Star, Table2 } from "lucide-react";
 
 import { BackButton } from "@/components/ui/back-button";
@@ -13,7 +14,7 @@ import { TeamLink } from "@/components/matches/team-link";
 import { MatchCard } from "@/components/matches/match-card";
 import { GroupTable } from "@/components/mundial/group-table";
 import { RivalHistory } from "@/components/equipo/rival-history";
-import { LastLineup } from "@/components/equipo/last-lineup";
+import { TeamSquad } from "@/components/equipo/team-squad";
 import { ClickCard } from "@/components/ui/click-card";
 import { CountUp } from "@/components/ui/count-up";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -66,8 +67,6 @@ async function EquipoContent({
       ? featured.awayTeam
       : featured.homeTeam
     : null;
-  // Último partido jugado con cobertura de la API (para el once inicial).
-  const lastCovered = [...played].reverse().find((m) => m.externalId);
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -207,10 +206,11 @@ async function EquipoContent({
           </h2>
           <div className="card-glass overflow-hidden rounded-2xl">
             {data.topScorers.map((s, i) => (
-              <div
-                key={s.playerName}
+              <Link
+                key={s.playerId}
+                href={`/jugador/${s.playerId}`}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3",
+                  "hover:bg-muted/30 flex items-center gap-3 px-4 py-3 transition-colors",
                   i < data.topScorers.length - 1 && "border-b border-border/60",
                 )}
               >
@@ -239,16 +239,16 @@ async function EquipoContent({
                     {s.goals} <span className="text-muted-foreground font-normal text-xs">gol{s.goals !== 1 ? "es" : ""}</span>
                   </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
       )}
 
-      {/* Último once inicial (API externa → stream) */}
-      {lastCovered?.externalId && (
+      {/* Plantilla convocada al Mundial (API externa → stream) */}
+      {data.standing && (
         <Suspense fallback={<Skeleton className="h-48 rounded-2xl" />}>
-          <LastLineup externalId={lastCovered.externalId} teamName={data.name} />
+          <TeamSquad teamId={data.standing.teamId} />
         </Suspense>
       )}
 
