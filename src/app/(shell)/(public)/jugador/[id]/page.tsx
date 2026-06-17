@@ -50,6 +50,8 @@ async function JugadorContent({
       player.duelsWon +
       player.tackles >
     0;
+  const isKeeper = player.position === "Portero";
+  const hasKeeping = isKeeper || player.saves + player.conceded > 0;
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
@@ -143,6 +145,19 @@ async function JugadorContent({
             <Stat label="Regates" value={player.dribblesSuccess} />
             <Stat label="Duelos ganados" value={player.duelsWon} />
             <Stat label="Entradas" value={player.tackles} />
+          </div>
+        </section>
+      )}
+
+      {/* Portería: solo porteros (o quien tenga datos de parada). */}
+      {hasKeeping && (
+        <section className="card-glass rounded-2xl p-5">
+          <h2 className="mb-4 flex items-center gap-2 font-mono text-base font-bold">
+            <span>🧤</span> Portería
+          </h2>
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+            <Stat label="Paradas" value={player.saves} highlight />
+            <Stat label="Goles encajados" value={player.conceded} />
           </div>
         </section>
       )}

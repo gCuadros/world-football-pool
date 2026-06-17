@@ -338,6 +338,9 @@ export type PlayerProfile = {
   dribblesSuccess: number;
   duelsWon: number;
   tackles: number;
+  // Portería (porteros).
+  saves: number;
+  conceded: number;
 };
 
 // La API da la posición en inglés (completa en /players, abreviada en lineups).
@@ -356,7 +359,7 @@ type AfPlayerStat = {
   team: { name: string; logo: string | null };
   games: { appearences: number | null; minutes: number | null; position: string | null; rating: string | null };
   shots?: { total: number | null; on: number | null };
-  goals: { total: number | null; assists: number | null };
+  goals: { total: number | null; assists: number | null; conceded: number | null; saves: number | null };
   passes?: { total: number | null; key: number | null };
   tackles?: { total: number | null; interceptions: number | null };
   duels?: { total: number | null; won: number | null };
@@ -424,6 +427,8 @@ export async function getApiFootballPlayer(
     dribblesSuccess: sum((s) => s.dribbles?.success),
     duelsWon: sum((s) => s.duels?.won),
     tackles: sum((s) => s.tackles?.total),
+    saves: sum((s) => s.goals?.saves),
+    conceded: sum((s) => s.goals?.conceded),
   };
 }
 
