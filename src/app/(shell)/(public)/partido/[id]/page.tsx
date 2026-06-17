@@ -16,7 +16,8 @@ import {
   TimelineSection,
   StatsSection,
   CommunitySection,
-  ForecastSection,
+  OddsSection,
+  AiForecastSection,
 } from "@/components/matches/detail/sections";
 import { LeaguePredictionsSection } from "@/components/matches/detail/league-predictions";
 import { MatchVideo } from "@/components/matches/detail/match-video";
@@ -96,10 +97,14 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
         </Suspense>
       )}
 
-      {/* Pronóstico (modelo + casas): datos externos, se muestran siempre,
-          también antes del pitido (es cuando más valen). */}
+      {/* Pronósticos externos (apuestas + IA): se muestran siempre, también
+          antes del pitido (es cuando más valen). La de tu liga va aparte, en
+          el bloque live, porque se revela con el pitido inicial. */}
       <Suspense fallback={<SectionSkeleton />}>
-        <ForecastSection
+        <OddsSection externalId={match.externalId} />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton />}>
+        <AiForecastSection
           externalId={match.externalId}
           homeTeam={match.homeTeam}
           awayTeam={match.awayTeam}

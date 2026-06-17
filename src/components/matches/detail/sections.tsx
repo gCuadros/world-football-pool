@@ -164,19 +164,65 @@ export async function CommunitySection({ matchId }: { matchId: string }) {
   );
 }
 
-// ── Pronóstico (modelo + casas de apuestas) ───────────────────────────────
-// Datos externos (API-Football): probabilidad 1X2 del modelo y cuotas de una
-// casa. Se muestra siempre (incluso antes del pitido), a diferencia de las
-// predicciones de la liga, que se revelan al arrancar el partido.
+// Cabecera local/visitante con banderas, reutilizada por las barras 1X2.
+function TeamsRow({
+  homeTeam,
+  awayTeam,
+  homeFlag,
+  awayFlag,
+}: {
+  homeTeam: string;
+  awayTeam: string;
+  homeFlag: string | null;
+  awayFlag: string | null;
+}) {
+  return (
+    <div className="mb-1.5 flex items-center justify-between text-xs font-semibold">
+      <span className="flex min-w-0 items-center gap-1.5">
+        <TeamCrest crest={null} flag={homeFlag} name={homeTeam} size={16} className="shrink-0" />
+        <span className="truncate">{homeTeam}</span>
+      </span>
+      <span className="flex min-w-0 items-center justify-end gap-1.5">
+        <span className="truncate text-right">{awayTeam}</span>
+        <TeamCrest crest={null} flag={awayFlag} name={awayTeam} size={16} className="shrink-0" />
+      </span>
+    </div>
+  );
+}
+
+// Barra 1X2 (local / empate / visitante) a partir de tres porcentajes.
+function ProbBar({ home, draw, away }: { home: number; draw: number; away: number }) {
+  const total = home + draw + away || 1;
+  return (
+    <>
+      <div className="mb-1.5 flex h-2.5 gap-0.5 overflow-hidden rounded-full">
+        <div className="bg-primary h-full rounded-l-full" style={{ width: `${(home / total) * 100}%` }} />
+        <div className="bg-muted-foreground/40 h-full" style={{ width: `${(draw / total) * 100}%` }} />
+        <div className="bg-chart-2 h-full rounded-r-full" style={{ width: `${(away / total) * 100}%` }} />
+      </div>
+      <div className="text-muted-foreground flex justify-between font-mono text-2xs">
+        <span><span className="text-foreground font-bold">{home}%</span> local</span>
+        <span><span className="text-foreground font-bold">{draw}%</span> empate</span>
+        <span><span className="text-foreground font-bold">{away}%</span> visitante</span>
+      </div>
+    </>
+  );
+}
+
+// ── Las apuestas (casas) ──────────────────────────────────────────────────
+// Cuotas 1X2 de una casa + probabilidad implícita (1/cuota normalizada, sin el
+// margen de la casa). Dato externo: se muestra siempre, también antes del pitido.
 function OddCell({
   label,
   sub,
   odd,
+  implied,
   best,
 }: {
   label: string;
   sub: string;
   odd: number | null;
+  implied: number | null;
   best: number | null;
 }) {
   const isFav = odd != null && odd === best;
@@ -194,11 +240,43 @@ function OddCell({
       >
         {odd != null ? odd.toFixed(2) : "—"}
       </span>
+      {implied != null && (
+        <span className="text-muted-foreground font-mono text-3xs">{implied}%</span>
+      )}
     </div>
   );
 }
 
-export async function ForecastSection({
+export async function OddsSection({ externalId }: { externalId: string | null }) {
+  if (!externalId) return null;
+  const odds = await getMatchOdds(externalId);
+  if (!odds) return null;
+
+  const vals = [odds.home, odds.draw, odds.away];
+  const present = vals.filter((o): o is number => o != null);
+  const bestOdd = present.length > 0 ? Math.min(...present) : null;
+
+  // Probabilidad implícita: 1/cuota normalizada para quitar el margen de la casa.
+  const raw = vals.map((o) => (o ? 1 / o : 0));
+  const sum = raw.reduce((a, b) => a + b, 0) || 1;
+  const implied = raw.map((r) => Math.round((r / sum) * 100));
+
+  return (
+    <SectionCard title="Las apuestas" icon="💰">
+      <div className="grid grid-cols-3 gap-2">
+        <OddCell label="1" sub="Local" odd={odds.home} implied={odds.home ? implied[0] : null} best={bestOdd} />
+        <OddCell label="X" sub="Empate" odd={odds.draw} implied={odds.draw ? implied[1] : null} best={bestOdd} />
+        <OddCell label="2" sub="Visitante" odd={odds.away} implied={odds.away ? implied[2] : null} best={bestOdd} />
+      </div>
+      <p className="text-muted-foreground mt-3 text-2xs">
+        Cuotas de {odds.bookmaker} · % = probabilidad implícita
+      </p>
+    </SectionCard>
+  );
+}
+
+// ── El pronóstico de la IA (modelo de API-Football) ───────────────────────
+export async function AiForecastSection({
   externalId,
   homeTeam,
   awayTeam,
@@ -212,60 +290,15 @@ export async function ForecastSection({
   awayFlag: string | null;
 }) {
   if (!externalId) return null;
-  const [prediction, odds] = await Promise.all([
-    getMatchPrediction(externalId),
-    getMatchOdds(externalId),
-  ]);
-  if (!prediction && !odds) return null;
-
+  const prediction = await getMatchPrediction(externalId);
   const pct = prediction?.percent;
-  const total = pct ? pct.home + pct.draw + pct.away : 0;
-  const hasBar = pct != null && total > 0;
-
-  // Favorito según las casas = cuota decimal más baja.
-  const oddVals = odds
-    ? [odds.home, odds.draw, odds.away].filter((o): o is number => o != null)
-    : [];
-  const bestOdd = oddVals.length > 0 ? Math.min(...oddVals) : null;
+  if (!pct || pct.home + pct.draw + pct.away === 0) return null;
 
   return (
-    <SectionCard title="Pronóstico" icon="🔮">
-      {hasBar && (
-        <>
-          <div className="mb-1.5 flex items-center justify-between text-xs font-semibold">
-            <span className="flex min-w-0 items-center gap-1.5">
-              <TeamCrest crest={null} flag={homeFlag} name={homeTeam} size={16} className="shrink-0" />
-              <span className="truncate">{homeTeam}</span>
-            </span>
-            <span className="flex min-w-0 items-center justify-end gap-1.5">
-              <span className="truncate text-right">{awayTeam}</span>
-              <TeamCrest crest={null} flag={awayFlag} name={awayTeam} size={16} className="shrink-0" />
-            </span>
-          </div>
-          <div className="mb-1.5 flex h-2.5 gap-0.5 overflow-hidden rounded-full">
-            <div className="bg-primary h-full rounded-l-full" style={{ width: `${(pct!.home / total) * 100}%` }} />
-            <div className="bg-muted-foreground/40 h-full" style={{ width: `${(pct!.draw / total) * 100}%` }} />
-            <div className="bg-chart-2 h-full rounded-r-full" style={{ width: `${(pct!.away / total) * 100}%` }} />
-          </div>
-          <div className="text-muted-foreground flex justify-between font-mono text-2xs">
-            <span><span className="text-foreground font-bold">{pct!.home}%</span> local</span>
-            <span><span className="text-foreground font-bold">{pct!.draw}%</span> empate</span>
-            <span><span className="text-foreground font-bold">{pct!.away}%</span> visitante</span>
-          </div>
-        </>
-      )}
-
-      {odds && (
-        <div className={`grid grid-cols-3 gap-2 ${hasBar ? "mt-4" : ""}`}>
-          <OddCell label="1" sub="Local" odd={odds.home} best={bestOdd} />
-          <OddCell label="X" sub="Empate" odd={odds.draw} best={bestOdd} />
-          <OddCell label="2" sub="Visitante" odd={odds.away} best={bestOdd} />
-        </div>
-      )}
-
-      <p className="text-muted-foreground mt-3 text-2xs">
-        Pronóstico y cuotas vía API-Football{odds ? ` · ${odds.bookmaker}` : ""}
-      </p>
+    <SectionCard title="El pronóstico de la IA" icon="🤖">
+      <TeamsRow homeTeam={homeTeam} awayTeam={awayTeam} homeFlag={homeFlag} awayFlag={awayFlag} />
+      <ProbBar home={pct.home} draw={pct.draw} away={pct.away} />
+      <p className="text-muted-foreground mt-3 text-2xs">Modelo de API-Football</p>
     </SectionCard>
   );
 }
