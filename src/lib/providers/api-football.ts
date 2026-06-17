@@ -331,6 +331,13 @@ export type PlayerProfile = {
   yellow: number;
   red: number;
   rating: number | null;
+  // Rendimiento (acumulado del torneo).
+  shotsTotal: number;
+  shotsOn: number;
+  keyPasses: number;
+  dribblesSuccess: number;
+  duelsWon: number;
+  tackles: number;
 };
 
 // La API da la posición en inglés (completa en /players, abreviada en lineups).
@@ -348,7 +355,12 @@ const POSITION_ES: Record<string, string> = {
 type AfPlayerStat = {
   team: { name: string; logo: string | null };
   games: { appearences: number | null; minutes: number | null; position: string | null; rating: string | null };
+  shots?: { total: number | null; on: number | null };
   goals: { total: number | null; assists: number | null };
+  passes?: { total: number | null; key: number | null };
+  tackles?: { total: number | null; interceptions: number | null };
+  duels?: { total: number | null; won: number | null };
+  dribbles?: { attempts: number | null; success: number | null };
   cards: { yellow: number | null; red: number | null };
 };
 type AfPlayerResp = {
@@ -406,6 +418,12 @@ export async function getApiFootballPlayer(
     yellow: sum((s) => s.cards?.yellow),
     red: sum((s) => s.cards?.red),
     rating: rating ? Math.round(rating * 10) / 10 : null,
+    shotsTotal: sum((s) => s.shots?.total),
+    shotsOn: sum((s) => s.shots?.on),
+    keyPasses: sum((s) => s.passes?.key),
+    dribblesSuccess: sum((s) => s.dribbles?.success),
+    duelsWon: sum((s) => s.duels?.won),
+    tackles: sum((s) => s.tackles?.total),
   };
 }
 

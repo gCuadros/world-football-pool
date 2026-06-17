@@ -42,6 +42,15 @@ async function JugadorContent({
   const player = await getPlayer(playerId);
   if (!player) notFound();
 
+  const hasPerformance =
+    player.shotsTotal +
+      player.shotsOn +
+      player.keyPasses +
+      player.dribblesSuccess +
+      player.duelsWon +
+      player.tackles >
+    0;
+
   return (
     <div className="mx-auto max-w-2xl space-y-5">
       <BackButton />
@@ -120,6 +129,23 @@ async function JugadorContent({
           Datos vía API-Football
         </p>
       </section>
+
+      {/* Rendimiento: se oculta si no hay datos de juego (p. ej. porteros). */}
+      {hasPerformance && (
+        <section className="card-glass rounded-2xl p-5">
+          <h2 className="mb-4 flex items-center gap-2 font-mono text-base font-bold">
+            <span>⚡</span> Rendimiento
+          </h2>
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+            <Stat label="Tiros a puerta" value={player.shotsOn} />
+            <Stat label="Tiros totales" value={player.shotsTotal} />
+            <Stat label="Pases clave" value={player.keyPasses} />
+            <Stat label="Regates" value={player.dribblesSuccess} />
+            <Stat label="Duelos ganados" value={player.duelsWon} />
+            <Stat label="Entradas" value={player.tackles} />
+          </div>
+        </section>
+      )}
     </div>
   );
 }
