@@ -9,11 +9,13 @@ import { TAGS } from "@/lib/cache-tags";
 import {
   getApiFootballEvents,
   getApiFootballPrediction,
+  getApiFootballOdds,
   getApiFootballLineups,
   getApiFootballStatistics,
   getApiFootballH2H,
   type MatchEvent,
   type MatchPrediction,
+  type MatchOdds,
   type TeamLineup,
   type TeamStats,
   type H2HMatch,
@@ -321,6 +323,22 @@ export async function getMatchPrediction(
   if (!process.env.API_FOOTBALL_KEY) return null;
   try {
     return await getApiFootballPrediction(externalId);
+  } catch {
+    return null;
+  }
+}
+
+/** Cuotas 1X2 de un partido — CACHEADO (datos pre-partido, casi estáticos). */
+export async function getMatchOdds(
+  externalId: string,
+): Promise<MatchOdds | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAGS.matches, `detail-${externalId}`);
+
+  if (!process.env.API_FOOTBALL_KEY) return null;
+  try {
+    return await getApiFootballOdds(externalId);
   } catch {
     return null;
   }

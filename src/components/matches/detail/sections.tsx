@@ -3,6 +3,8 @@ import {
   getMatchStatistics,
   getMatchEvents,
   getCommunityDistribution,
+  getMatchPrediction,
+  getMatchOdds,
 } from "@/lib/queries";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { PitchLineup } from "@/components/matches/detail/pitch-lineup";
@@ -158,6 +160,112 @@ export async function CommunitySection({ matchId }: { matchId: string }) {
           ))}
         </div>
       )}
+    </SectionCard>
+  );
+}
+
+// ── Pronóstico (modelo + casas de apuestas) ───────────────────────────────
+// Datos externos (API-Football): probabilidad 1X2 del modelo y cuotas de una
+// casa. Se muestra siempre (incluso antes del pitido), a diferencia de las
+// predicciones de la liga, que se revelan al arrancar el partido.
+function OddCell({
+  label,
+  sub,
+  odd,
+  best,
+}: {
+  label: string;
+  sub: string;
+  odd: number | null;
+  best: number | null;
+}) {
+  const isFav = odd != null && odd === best;
+  return (
+    <div
+      className={`flex flex-col items-center rounded-xl border py-2 ${
+        isFav ? "border-primary bg-primary/10" : "border-border bg-muted/40"
+      }`}
+    >
+      <span className="text-muted-foreground font-mono text-2xs">
+        {label} · {sub}
+      </span>
+      <span
+        className={`font-mono text-base font-bold tabular-nums ${isFav ? "text-primary" : ""}`}
+      >
+        {odd != null ? odd.toFixed(2) : "—"}
+      </span>
+    </div>
+  );
+}
+
+export async function ForecastSection({
+  externalId,
+  homeTeam,
+  awayTeam,
+  homeFlag,
+  awayFlag,
+}: {
+  externalId: string | null;
+  homeTeam: string;
+  awayTeam: string;
+  homeFlag: string | null;
+  awayFlag: string | null;
+}) {
+  if (!externalId) return null;
+  const [prediction, odds] = await Promise.all([
+    getMatchPrediction(externalId),
+    getMatchOdds(externalId),
+  ]);
+  if (!prediction && !odds) return null;
+
+  const pct = prediction?.percent;
+  const total = pct ? pct.home + pct.draw + pct.away : 0;
+  const hasBar = pct != null && total > 0;
+
+  // Favorito según las casas = cuota decimal más baja.
+  const oddVals = odds
+    ? [odds.home, odds.draw, odds.away].filter((o): o is number => o != null)
+    : [];
+  const bestOdd = oddVals.length > 0 ? Math.min(...oddVals) : null;
+
+  return (
+    <SectionCard title="Pronóstico" icon="🔮">
+      {hasBar && (
+        <>
+          <div className="mb-1.5 flex items-center justify-between text-xs font-semibold">
+            <span className="flex min-w-0 items-center gap-1.5">
+              <TeamCrest crest={null} flag={homeFlag} name={homeTeam} size={16} className="shrink-0" />
+              <span className="truncate">{homeTeam}</span>
+            </span>
+            <span className="flex min-w-0 items-center justify-end gap-1.5">
+              <span className="truncate text-right">{awayTeam}</span>
+              <TeamCrest crest={null} flag={awayFlag} name={awayTeam} size={16} className="shrink-0" />
+            </span>
+          </div>
+          <div className="mb-1.5 flex h-2.5 gap-0.5 overflow-hidden rounded-full">
+            <div className="bg-primary h-full rounded-l-full" style={{ width: `${(pct!.home / total) * 100}%` }} />
+            <div className="bg-muted-foreground/40 h-full" style={{ width: `${(pct!.draw / total) * 100}%` }} />
+            <div className="bg-chart-2 h-full rounded-r-full" style={{ width: `${(pct!.away / total) * 100}%` }} />
+          </div>
+          <div className="text-muted-foreground flex justify-between font-mono text-2xs">
+            <span><span className="text-foreground font-bold">{pct!.home}%</span> local</span>
+            <span><span className="text-foreground font-bold">{pct!.draw}%</span> empate</span>
+            <span><span className="text-foreground font-bold">{pct!.away}%</span> visitante</span>
+          </div>
+        </>
+      )}
+
+      {odds && (
+        <div className={`grid grid-cols-3 gap-2 ${hasBar ? "mt-4" : ""}`}>
+          <OddCell label="1" sub="Local" odd={odds.home} best={bestOdd} />
+          <OddCell label="X" sub="Empate" odd={odds.draw} best={bestOdd} />
+          <OddCell label="2" sub="Visitante" odd={odds.away} best={bestOdd} />
+        </div>
+      )}
+
+      <p className="text-muted-foreground mt-3 text-2xs">
+        Pronóstico y cuotas vía API-Football{odds ? ` · ${odds.bookmaker}` : ""}
+      </p>
     </SectionCard>
   );
 }

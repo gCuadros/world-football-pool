@@ -404,6 +404,42 @@ export async function getApiFootballPrediction(
   };
 }
 
+// ── Cuotas (1X2) ──────────────────────────────────────────────────────────
+export type MatchOdds = {
+  bookmaker: string;
+  home: number | null;
+  draw: number | null;
+  away: number | null;
+};
+
+type AfOdds = {
+  bookmakers: {
+    name: string;
+    bets: { name: string; values: { value: string; odd: string }[] }[];
+  }[];
+}[];
+
+/** Cuotas 1X2 ("Match Winner") del primer bookmaker que las ofrezca. */
+export async function getApiFootballOdds(
+  externalId: string,
+): Promise<MatchOdds | null> {
+  const resp = await apiGet<AfOdds>(`/odds?fixture=${externalId}`);
+  const num = (s: string | undefined): number | null =>
+    s ? Number(s) || null : null;
+  for (const row of resp) {
+    for (const bk of row.bookmakers ?? []) {
+      const bet = bk.bets?.find((b) => b.name === "Match Winner");
+      if (!bet) continue;
+      const odd = (v: string) => num(bet.values.find((x) => x.value === v)?.odd);
+      const home = odd("Home");
+      const draw = odd("Draw");
+      const away = odd("Away");
+      if (home || draw || away) return { bookmaker: bk.name, home, draw, away };
+    }
+  }
+  return null;
+}
+
 // ── Alineaciones ──────────────────────────────────────────────────────────
 export type LineupPlayer = {
   name: string;

@@ -16,6 +16,7 @@ import {
   TimelineSection,
   StatsSection,
   CommunitySection,
+  ForecastSection,
 } from "@/components/matches/detail/sections";
 import { LeaguePredictionsSection } from "@/components/matches/detail/league-predictions";
 import { MatchVideo } from "@/components/matches/detail/match-video";
@@ -94,6 +95,18 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
           <MatchVideoSection homeTeam={match.homeTeam} awayTeam={match.awayTeam} kind="previa" />
         </Suspense>
       )}
+
+      {/* Pronóstico (modelo + casas): datos externos, se muestran siempre,
+          también antes del pitido (es cuando más valen). */}
+      <Suspense fallback={<SectionSkeleton />}>
+        <ForecastSection
+          externalId={match.externalId}
+          homeTeam={match.homeTeam}
+          awayTeam={match.awayTeam}
+          homeFlag={match.homeFlag}
+          awayFlag={match.awayFlag}
+        />
+      </Suspense>
 
       {showLive ? (
         <>
