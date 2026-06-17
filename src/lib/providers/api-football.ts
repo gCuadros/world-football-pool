@@ -332,6 +332,18 @@ export type PlayerProfile = {
   rating: number | null;
 };
 
+// La API da la posición en inglés (completa en /players, abreviada en lineups).
+const POSITION_ES: Record<string, string> = {
+  Goalkeeper: "Portero",
+  Defender: "Defensa",
+  Midfielder: "Centrocampista",
+  Attacker: "Delantero",
+  G: "Portero",
+  D: "Defensa",
+  M: "Centrocampista",
+  F: "Delantero",
+};
+
 type AfPlayerStat = {
   team: { name: string; logo: string | null };
   games: { appearences: number | null; minutes: number | null; position: string | null; rating: string | null };
@@ -380,7 +392,9 @@ export async function getApiFootballPlayer(
     photo: row.player.photo,
     age: row.player.age,
     nationality: row.player.nationality,
-    position: primary?.games?.position ?? null,
+    position: primary?.games?.position
+      ? (POSITION_ES[primary.games.position] ?? primary.games.position)
+      : null,
     teamName: info.name || primary?.team?.name || "—",
     teamLogo: primary?.team?.logo ?? null,
     teamFlag: info.flag,

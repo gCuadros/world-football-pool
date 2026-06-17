@@ -75,14 +75,11 @@ async function JugadorContent({
               <span className="truncate">{player.teamName}</span>
               {player.position && <span>· {player.position}</span>}
             </div>
-            <p className="text-muted-foreground mt-0.5 text-xs">
-              {[
-                player.age != null ? `${player.age} años` : null,
-                player.nationality,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
+            {player.age != null && (
+              <p className="text-muted-foreground mt-0.5 text-xs">
+                {player.age} años
+              </p>
+            )}
           </div>
         </div>
       </div>
