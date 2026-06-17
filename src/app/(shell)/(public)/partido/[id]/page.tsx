@@ -5,7 +5,7 @@ import { formatLiveMinute } from "@/lib/format";
 import { BackButton } from "@/components/ui/back-button";
 import { AutoRefresh } from "@/components/matches/auto-refresh";
 
-import { getMatchesBase, type MatchBase } from "@/lib/queries";
+import { getMatchesBase, getLiveMatchScore, type MatchBase } from "@/lib/queries";
 import { STAGE_LABELS } from "@/lib/labels";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { TeamLink } from "@/components/matches/team-link";
@@ -16,6 +16,8 @@ import {
   TimelineSection,
   StatsSection,
   CommunitySection,
+  OddsSection,
+  AiForecastSection,
 } from "@/components/matches/detail/sections";
 import { LeaguePredictionsSection } from "@/components/matches/detail/league-predictions";
 import { MatchVideo } from "@/components/matches/detail/match-video";
@@ -58,8 +60,16 @@ export default function PartidoPage({
 async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const matches = await getMatchesBase();
-  const match = matches.find((m) => m.id === id);
+  let match = matches.find((m) => m.id === id);
   if (!match) notFound();
+
+  // Si está en juego, el marcador del calendario (cacheado) puede ir atrasado:
+  // se superpone el marcador en vivo leído directo de la BD, así cada refresh
+  // muestra el gol al instante sin esperar a la revalidación del cron.
+  if (match.status === "LIVE") {
+    const live = await getLiveMatchScore(id);
+    if (live) match = { ...match, ...live };
+  }
 
   const showLive = match.status !== "UPCOMING";
 
@@ -86,6 +96,22 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
           <MatchVideoSection homeTeam={match.homeTeam} awayTeam={match.awayTeam} kind="previa" />
         </Suspense>
       )}
+
+      {/* Pronósticos externos (apuestas + IA): se muestran siempre, también
+          antes del pitido (es cuando más valen). La de tu liga va aparte, en
+          el bloque live, porque se revela con el pitido inicial. */}
+      <Suspense fallback={<SectionSkeleton />}>
+        <OddsSection externalId={match.externalId} />
+      </Suspense>
+      <Suspense fallback={<SectionSkeleton />}>
+        <AiForecastSection
+          externalId={match.externalId}
+          homeTeam={match.homeTeam}
+          awayTeam={match.awayTeam}
+          homeFlag={match.homeFlag}
+          awayFlag={match.awayFlag}
+        />
+      </Suspense>
 
       {showLive ? (
         <>

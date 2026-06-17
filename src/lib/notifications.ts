@@ -16,6 +16,10 @@ export type NotificationInput = {
   leagueId?: string;
   /** Equipos del partido (para el filtro "solo equipos seguidos"). */
   teams?: string[];
+  /** Tag de push: una notificación por partido que se reemplaza al actualizar. */
+  pushTag?: string;
+  /** Re-avisa al reemplazar (goles sí, cambios menores no). */
+  renotify?: boolean;
 };
 
 function notifsTag(userId: string): string {
@@ -145,6 +149,8 @@ export async function createNotifications(
         title: i.title,
         body: i.body,
         link: i.link,
+        tag: i.pushTag,
+        renotify: i.renotify,
       }),
     ),
   );

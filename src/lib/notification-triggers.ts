@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createNotifications } from "@/lib/notifications";
 import { getLeagueLeaderboard } from "@/lib/leaderboard";
 import { getLiveFixtures } from "@/lib/providers/api-football";
+import { sendPushToUser } from "@/lib/web-push";
 
 function ordinal(n: number): string {
   return `${n}.º`;
@@ -77,6 +78,33 @@ export async function notifyMatchResult(matchId: string): Promise<void> {
     });
 
   await createNotifications(inputs);
+
+  // Pitido final: cierra en la pantalla de bloqueo la misma tarjeta del
+  // marcador en vivo (mismo tag `match-<id>` que el arranque y los goles), una
+  // sola vez por usuario. Va aparte del MATCH_RESULT por liga (puntos): este es
+  // solo el "🏁 Final" que reemplaza el último "⚽ ¡Gol!". Idempotente porque se
+  // dirige a los usuarios recién notificados (`inputs`); si no hay nuevos, no
+  // se reenvía.
+  const ftRecipients = [...new Set(inputs.map((p) => p.userId))];
+  if (ftRecipients.length > 0) {
+    const winner =
+      match.homeScore > match.awayScore
+        ? match.homeTeam
+        : match.awayScore > match.homeScore
+          ? match.awayTeam
+          : null;
+    await Promise.all(
+      ftRecipients.map((userId) =>
+        sendPushToUser(userId, {
+          title: `🏁 Final · ${scoreline}`,
+          body: winner ? `Gana ${winner}` : "Empate",
+          link: "/resultados",
+          tag: `match-${matchId}`,
+          renotify: true,
+        }),
+      ),
+    );
+  }
 }
 
 /**
@@ -116,23 +144,43 @@ export async function pollLiveGoals(): Promise<{ goals: number; live: number }> 
       },
     });
 
-    if (scored > 0 && m.status !== "UPCOMING") {
-      goals += scored;
+    // Mismo tag por partido: el arranque y cada gol llegan como UNA sola
+    // notificación que se va reemplazando en la pantalla de bloqueo (marcador
+    // en vivo), en lugar de apilarse una por gol.
+    const matchTag = `match-${m.id}`;
+    const kickedOff = m.status === "UPCOMING"; // estaba por jugarse, ya rueda
+    const scoredGoal = scored > 0 && !kickedOff;
+
+    if (kickedOff || scoredGoal) {
+      if (scoredGoal) goals += scored;
       const predictors = await prisma.prediction.findMany({
         where: { matchId: m.id },
         select: { userId: true },
         distinct: ["userId"],
       });
       const scoreline = `${m.homeTeam} ${f.homeScore}-${f.awayScore} ${m.awayTeam}`;
+      const event = kickedOff
+        ? {
+            type: "MATCH_STARTING" as const,
+            title: `🟢 Empieza ${m.homeTeam} – ${m.awayTeam}`,
+            body: "¡Rueda el balón!",
+          }
+        : {
+            type: "LIVE_GOAL" as const,
+            title: `⚽ ¡Gol! ${scoreline}`,
+            body: f.minute ? `Minuto ${f.minute}'` : "En directo",
+          };
       await createNotifications(
         predictors.map((p) => ({
           userId: p.userId,
-          type: "LIVE_GOAL" as const,
-          title: `⚽ ¡Gol! ${scoreline}`,
-          body: f.minute ? `Minuto ${f.minute}'` : "En directo",
+          type: event.type,
+          title: event.title,
+          body: event.body,
           link: "/resultados",
           matchId: m.id,
           teams: [m.homeTeam, m.awayTeam],
+          pushTag: matchTag,
+          renotify: true,
         })),
       );
     }
