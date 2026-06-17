@@ -207,7 +207,7 @@ async function TopScorersSection() {
                     ) : (
                       <div className="bg-muted size-6 shrink-0 rounded-full" />
                     )}
-                    <span className="min-w-0 truncate font-medium">{s.playerName}</span>
+                    <Link href={`/jugador/${s.playerId}`} className="min-w-0 truncate font-medium hover:underline">{s.playerName}</Link>
                     <TeamCrest crest={s.teamLogo} flag={s.teamFlag} name={s.teamName} size={14} className="shrink-0 sm:hidden" />
                   </div>
                 </td>
@@ -266,7 +266,7 @@ async function TopAssistersSection() {
                     ) : (
                       <div className="bg-muted size-6 shrink-0 rounded-full" />
                     )}
-                    <span className="min-w-0 truncate font-medium">{s.playerName}</span>
+                    <Link href={`/jugador/${s.playerId}`} className="min-w-0 truncate font-medium hover:underline">{s.playerName}</Link>
                     <TeamCrest crest={s.teamLogo} flag={s.teamFlag} name={s.teamName} size={14} className="shrink-0 sm:hidden" />
                   </div>
                 </td>

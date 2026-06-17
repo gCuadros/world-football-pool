@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 import { Segmented } from "@/components/ui/segmented";
@@ -38,7 +39,7 @@ function lastName(name: string): string {
 }
 
 function PlayerChip({ player }: { player: LineupPlayer }) {
-  return (
+  const chip = (
     <div className="flex flex-col items-center gap-0.5">
       {/* Sin backdrop-blur: 22 chips con blur penalizan la GPU en iOS y a
           8px sobre el césped uniforme el efecto es invisible. */}
@@ -49,6 +50,13 @@ function PlayerChip({ player }: { player: LineupPlayer }) {
         {lastName(player.name)}
       </span>
     </div>
+  );
+  return player.id ? (
+    <Link href={`/jugador/${player.id}`} className="transition-opacity active:opacity-70">
+      {chip}
+    </Link>
+  ) : (
+    chip
   );
 }
 
@@ -153,7 +161,16 @@ function ListView({ lineups }: { lineups: TeamLineup[] }) {
                 <span className="text-muted-foreground w-6 shrink-0 text-right font-mono text-xs">
                   {p.number ?? ""}
                 </span>
-                <span className="min-w-0 flex-1 truncate">{p.name}</span>
+                {p.id ? (
+                  <Link
+                    href={`/jugador/${p.id}`}
+                    className="min-w-0 flex-1 truncate hover:underline"
+                  >
+                    {p.name}
+                  </Link>
+                ) : (
+                  <span className="min-w-0 flex-1 truncate">{p.name}</span>
+                )}
                 {p.pos && (
                   <span className="text-muted-foreground shrink-0 font-mono text-3xs">
                     {p.pos}
