@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { createNotifications } from "@/lib/notifications";
 import { getLeagueLeaderboard } from "@/lib/leaderboard";
 import { getLiveFixtures } from "@/lib/providers/api-football";
+import { sendPushToUser } from "@/lib/web-push";
 
 function ordinal(n: number): string {
   return `${n}.º`;
@@ -77,6 +78,33 @@ export async function notifyMatchResult(matchId: string): Promise<void> {
     });
 
   await createNotifications(inputs);
+
+  // Pitido final: cierra en la pantalla de bloqueo la misma tarjeta del
+  // marcador en vivo (mismo tag `match-<id>` que el arranque y los goles), una
+  // sola vez por usuario. Va aparte del MATCH_RESULT por liga (puntos): este es
+  // solo el "🏁 Final" que reemplaza el último "⚽ ¡Gol!". Idempotente porque se
+  // dirige a los usuarios recién notificados (`inputs`); si no hay nuevos, no
+  // se reenvía.
+  const ftRecipients = [...new Set(inputs.map((p) => p.userId))];
+  if (ftRecipients.length > 0) {
+    const winner =
+      match.homeScore > match.awayScore
+        ? match.homeTeam
+        : match.awayScore > match.homeScore
+          ? match.awayTeam
+          : null;
+    await Promise.all(
+      ftRecipients.map((userId) =>
+        sendPushToUser(userId, {
+          title: `🏁 Final · ${scoreline}`,
+          body: winner ? `Gana ${winner}` : "Empate",
+          link: "/resultados",
+          tag: `match-${matchId}`,
+          renotify: true,
+        }),
+      ),
+    );
+  }
 }
 
 /**
