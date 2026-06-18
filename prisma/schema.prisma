@@ -94,6 +94,10 @@ model Match {
   awayCrest   String?
   externalId  String?      @unique
   homeCrest   String?
+  // Físicas oficiales FIFA (EFI) del partido: PlayerPhysical[]. Lo refresca el
+  // cron/trigger al finalizar (no hay endpoint FIFA en vivo). Null → fallback
+  // al snapshot estático.
+  physical    Json?
   predictions Prediction[]
 
   @@index([kickoffAt])

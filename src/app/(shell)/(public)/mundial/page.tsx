@@ -59,6 +59,19 @@ async function MundialTabsLoader({
         }
         estadisticas={
           <div className="space-y-6">
+            <Link
+              href="/fisico"
+              className="card-glass card-glass-hover flex items-center gap-3 rounded-2xl px-4 py-3"
+            >
+              <span className="text-xl" aria-hidden="true">🏃</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold">Rendimiento físico</span>
+                <span className="text-muted-foreground block text-xs">
+                  Distancia, velocidad punta y sprints del Mundial
+                </span>
+              </span>
+              <span className="text-muted-foreground shrink-0" aria-hidden="true">→</span>
+            </Link>
             <Suspense fallback={<Skeleton className="h-64 rounded-xl" />}>
               <TopScorersSection />
             </Suspense>

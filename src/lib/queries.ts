@@ -6,6 +6,10 @@ import { prisma } from "@/lib/prisma";
 import { isPredictionLocked, MULTIPLIERS, scorePrediction } from "@/lib/scoring";
 import { teamSlug } from "@/lib/utils";
 import { TAGS } from "@/lib/cache-tags";
+import type {
+  PlayerPhysical,
+  PlayerPhysicalAgg,
+} from "@/lib/providers/fifa-physical";
 import {
   getApiFootballEvents,
   getApiFootballPrediction,
@@ -330,6 +334,77 @@ export async function getMatchPrediction(
   } catch {
     return null;
   }
+}
+
+/**
+ * Calendario oficial de la FIFA (asistencia, árbitro, estadio) — CACHEADO.
+ * Una sola llamada compartida; cada partido busca por su `matchNo`.
+ */
+export async function getFifaCalendar(): Promise<
+  Record<string, import("@/lib/providers/fifa").FifaMatchInfo>
+> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAGS.matches, "fifa");
+
+  try {
+    const { getFifaWorldCupMatches } = await import("@/lib/providers/fifa");
+    return await getFifaWorldCupMatches();
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Físicas FIFA de un partido — CACHEADO. Lee de BD (`Match.physical`, que
+ * refresca el cron/trigger); si está vacío, cae al snapshot estático.
+ */
+export async function getMatchPhysical(
+  matchNo: number,
+): Promise<PlayerPhysical[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAGS.matches, `physical-${matchNo}`);
+
+  try {
+    const m = await prisma.match.findUnique({
+      where: { matchNo },
+      select: { physical: true },
+    });
+    const db = (m?.physical as unknown as PlayerPhysical[] | null) ?? null;
+    if (db && db.length > 0) return db;
+  } catch {
+    // BD no disponible → fallback.
+  }
+  const { getMatchPhysicalSnapshot } = await import("@/lib/providers/fifa-physical");
+  const cal = await getFifaCalendar();
+  const idMatch = cal[String(matchNo)]?.idMatch;
+  return idMatch ? getMatchPhysicalSnapshot(idMatch) : [];
+}
+
+/**
+ * Acumulado físico del torneo por jugador — CACHEADO. BD si hay datos, si no
+ * el snapshot estático.
+ */
+export async function getTournamentPhysical(): Promise<PlayerPhysicalAgg[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAGS.matches, "physical-all");
+
+  const { aggregatePhysical, getAllPhysicalSnapshot } = await import(
+    "@/lib/providers/fifa-physical"
+  );
+  let records: PlayerPhysical[] = [];
+  try {
+    const rows = await prisma.match.findMany({ select: { physical: true } });
+    records = rows.flatMap(
+      (r) => (r.physical as unknown as PlayerPhysical[] | null) ?? [],
+    );
+  } catch {
+    // BD no disponible → fallback.
+  }
+  if (records.length === 0) records = getAllPhysicalSnapshot();
+  return aggregatePhysical(records);
 }
 
 /** Plantilla convocada de una selección — CACHEADA (apenas cambia en el torneo). */

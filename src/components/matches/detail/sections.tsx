@@ -7,6 +7,8 @@ import {
   getCommunityDistribution,
   getMatchPrediction,
   getMatchOdds,
+  getFifaCalendar,
+  getMatchPhysical,
 } from "@/lib/queries";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { PitchLineup } from "@/components/matches/detail/pitch-lineup";
@@ -214,6 +216,152 @@ function ProbBar({ home, draw, away }: { home: number; draw: number; away: numbe
         <span><span className="text-foreground font-bold">{away}%</span> visitante</span>
       </div>
     </>
+  );
+}
+
+// ── Datos oficiales FIFA (asistencia, árbitro) ────────────────────────────
+// Une el partido de la BD con el calendario oficial por matchNo === MatchNumber.
+// Sólo partidos del Mundial (los amistosos, matchNo 9000+, no están en la FIFA).
+export async function MatchOfficialInfo({ matchNo }: { matchNo: number }) {
+  const cal = await getFifaCalendar();
+  const info = cal[String(matchNo)];
+  if (!info || (info.attendance == null && !info.referee)) return null;
+
+  return (
+    <SectionCard title="Datos del partido" icon="📋">
+      <dl className="divide-border/60 divide-y">
+        {info.attendance != null && (
+          <div className="flex items-center justify-between py-2 text-sm first:pt-0">
+            <dt className="text-muted-foreground">Asistencia</dt>
+            <dd className="font-mono font-bold tabular-nums">
+              {info.attendance.toLocaleString("es-ES")}
+              <span className="text-muted-foreground ml-1 font-sans text-xs font-normal">
+                espectadores
+              </span>
+            </dd>
+          </div>
+        )}
+        {info.referee && (
+          <div className="flex items-center justify-between gap-3 py-2 text-sm last:pb-0">
+            <dt className="text-muted-foreground shrink-0">Árbitro</dt>
+            <dd className="min-w-0 truncate text-right font-medium">
+              {info.referee}
+              {info.refereeCountry && (
+                <span className="text-muted-foreground ml-1.5 font-mono text-2xs">
+                  {info.refereeCountry}
+                </span>
+              )}
+            </dd>
+          </div>
+        )}
+      </dl>
+      <p className="text-muted-foreground mt-3 text-2xs">Datos oficiales FIFA</p>
+    </SectionCard>
+  );
+}
+
+// ── Rendimiento físico (FIFA EFI, instantánea) ────────────────────────────
+function PhysLeader({
+  label,
+  icon,
+  name,
+  value,
+}: {
+  label: string;
+  icon: string;
+  name: string;
+  value: string;
+}) {
+  return (
+    <div className="bg-muted/40 flex flex-col items-center rounded-xl px-2 py-3 text-center">
+      <span className="text-muted-foreground font-mono text-2xs">
+        <span aria-hidden="true">{icon}</span> {label}
+      </span>
+      <span className="mt-1 font-mono text-base font-bold tabular-nums">{value}</span>
+      <span className="text-muted-foreground mt-0.5 max-w-full truncate text-2xs">{name}</span>
+    </div>
+  );
+}
+
+export async function MatchPhysical({ matchNo }: { matchNo: number }) {
+  const players = await getMatchPhysical(matchNo);
+  if (players.length === 0) return null;
+
+  const max = <K extends keyof (typeof players)[number]>(key: K) =>
+    players
+      .filter((p) => p[key] != null)
+      .sort((a, b) => (b[key] as number) - (a[key] as number))[0];
+
+  const topDist = max("dist");
+  const topSpeed = max("topSpeed");
+  const topSprints = max("sprints");
+
+  // Distancia total por equipo (km).
+  const byTeam = new Map<string, number>();
+  for (const p of players) {
+    if (!p.team) continue;
+    byTeam.set(p.team, (byTeam.get(p.team) ?? 0) + p.dist);
+  }
+  const teams = [...byTeam.entries()];
+
+  return (
+    <SectionCard title="Rendimiento físico" icon="🏃">
+      <div className="grid grid-cols-3 gap-2">
+        {topDist && (
+          <PhysLeader
+            label="Más distancia"
+            icon="🏃"
+            name={topDist.name}
+            value={`${(topDist.dist / 1000).toFixed(1)} km`}
+          />
+        )}
+        {topSpeed?.topSpeed != null && (
+          <PhysLeader
+            label="Más rápido"
+            icon="⚡"
+            name={topSpeed.name}
+            value={`${topSpeed.topSpeed.toFixed(1)}`}
+          />
+        )}
+        {topSprints?.sprints != null && (
+          <PhysLeader
+            label="Más sprints"
+            icon="💨"
+            name={topSprints.name}
+            value={`${topSprints.sprints}`}
+          />
+        )}
+      </div>
+
+      {teams.length === 2 && (
+        <div className="mt-4 space-y-1.5">
+          <p className="text-muted-foreground font-mono text-2xs tracking-wide uppercase">
+            Distancia por equipo
+          </p>
+          {teams.map(([team, dist]) => {
+            const total = teams[0][1] + teams[1][1] || 1;
+            return (
+              <div key={team} className="flex items-center gap-2 text-xs">
+                <span className="w-9 shrink-0 font-mono font-bold">{team}</span>
+                <div className="bg-muted h-2 flex-1 overflow-hidden rounded-full">
+                  <div
+                    className="bg-primary h-full rounded-full"
+                    style={{ width: `${(dist / total) * 100}%` }}
+                  />
+                </div>
+                <span className="text-muted-foreground w-14 shrink-0 text-right font-mono tabular-nums">
+                  {(dist / 1000).toFixed(1)} km
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <p className="text-muted-foreground mt-3 text-2xs">
+        Velocidad punta en km/h · datos físicos oficiales FIFA
+      </p>
+    </SectionCard>
   );
 }
 

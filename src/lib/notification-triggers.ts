@@ -105,6 +105,16 @@ export async function notifyMatchResult(matchId: string): Promise<void> {
       ),
     );
   }
+
+  // Físicas oficiales FIFA: al finalizar, refresca en BD este partido desde la
+  // fuente (best-effort; si aún no están publicadas, el cron de respaldo las
+  // recoge luego). No bloquea ni rompe el resultado si falla.
+  try {
+    const { refreshPhysical } = await import("@/lib/fifa-physical-sync");
+    await refreshPhysical(match.matchNo);
+  } catch {
+    // La fuente puede no tener aún las físicas del partido recién acabado.
+  }
 }
 
 /**

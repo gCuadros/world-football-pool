@@ -18,6 +18,8 @@ import {
   CommunitySection,
   OddsSection,
   AiForecastSection,
+  MatchOfficialInfo,
+  MatchPhysical,
 } from "@/components/matches/detail/sections";
 import { LeaguePredictionsSection } from "@/components/matches/detail/league-predictions";
 import { MatchVideo } from "@/components/matches/detail/match-video";
@@ -83,6 +85,11 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
 
       <MatchHeader match={match} />
 
+      {/* Datos oficiales FIFA (asistencia, árbitro) — unidos por matchNo. */}
+      <Suspense fallback={null}>
+        <MatchOfficialInfo matchNo={match.matchNo} />
+      </Suspense>
+
       {/* Vídeo (entre el marcador y las predicciones): resumen al terminar,
           previa antes del pitido. Del canal @Replay, que sí permite embeber
           (FIFA bloquea el embedding de su contenido). */}
@@ -132,6 +139,10 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
           </Suspense>
           <Suspense fallback={<SectionSkeleton />}>
             <StatsSection externalId={match.externalId} />
+          </Suspense>
+          {/* Rendimiento físico oficial FIFA (instantánea, unida por matchNo). */}
+          <Suspense fallback={null}>
+            <MatchPhysical matchNo={match.matchNo} />
           </Suspense>
         </>
       ) : (
