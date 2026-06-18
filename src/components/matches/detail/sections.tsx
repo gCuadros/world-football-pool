@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   getMatchLineups,
   getMatchStatistics,
@@ -66,7 +68,13 @@ export async function TimelineSection({ externalId }: { externalId: string | nul
               {e.minute != null ? `${e.minute}'` : "—"}
             </span>
             <span>{eventIcon(e.type, e.detail)}</span>
-            <span className="min-w-0 flex-1 truncate">{e.player ?? e.detail}</span>
+            {e.playerId && e.player ? (
+              <Link href={`/jugador/${e.playerId}`} className="min-w-0 flex-1 truncate hover:underline">
+                {e.player}
+              </Link>
+            ) : (
+              <span className="min-w-0 flex-1 truncate">{e.player ?? e.detail}</span>
+            )}
             <span className="text-muted-foreground shrink-0 truncate text-xs">
               {e.team}
             </span>

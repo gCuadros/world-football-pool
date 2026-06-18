@@ -13,12 +13,16 @@ import {
   getApiFootballLineups,
   getApiFootballStatistics,
   getApiFootballH2H,
+  getApiFootballPlayer,
+  getApiFootballSquad,
   type MatchEvent,
   type MatchPrediction,
   type MatchOdds,
   type TeamLineup,
   type TeamStats,
   type H2HMatch,
+  type PlayerProfile,
+  type SquadPlayer,
 } from "@/lib/providers/api-football";
 import type { Stage, MatchStatus } from "@prisma/client";
 
@@ -323,6 +327,36 @@ export async function getMatchPrediction(
   if (!process.env.API_FOOTBALL_KEY) return null;
   try {
     return await getApiFootballPrediction(externalId);
+  } catch {
+    return null;
+  }
+}
+
+/** Plantilla convocada de una selección — CACHEADA (apenas cambia en el torneo). */
+export async function getSquad(teamId: number): Promise<SquadPlayer[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAGS.matches, `squad-${teamId}`);
+
+  if (!process.env.API_FOOTBALL_KEY) return [];
+  try {
+    return await getApiFootballSquad(teamId);
+  } catch {
+    return [];
+  }
+}
+
+/** Ficha de un jugador con sus stats del torneo — CACHEADA. */
+export async function getPlayer(
+  playerId: number,
+): Promise<PlayerProfile | null> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAGS.matches, `player-${playerId}`);
+
+  if (!process.env.API_FOOTBALL_KEY) return null;
+  try {
+    return await getApiFootballPlayer(playerId);
   } catch {
     return null;
   }

@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { Shield, Goal, Swords, TrendingUp, Star, Table2 } from "lucide-react";
 
 import { BackButton } from "@/components/ui/back-button";
@@ -11,9 +12,10 @@ import { formatRelativeDay, formatTime } from "@/lib/format";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { TeamLink } from "@/components/matches/team-link";
 import { MatchCard } from "@/components/matches/match-card";
+import { MatchScorers } from "@/components/matches/match-scorers";
 import { GroupTable } from "@/components/mundial/group-table";
 import { RivalHistory } from "@/components/equipo/rival-history";
-import { LastLineup } from "@/components/equipo/last-lineup";
+import { TeamSquad } from "@/components/equipo/team-squad";
 import { ClickCard } from "@/components/ui/click-card";
 import { CountUp } from "@/components/ui/count-up";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -66,8 +68,6 @@ async function EquipoContent({
       ? featured.awayTeam
       : featured.homeTeam
     : null;
-  // Último partido jugado con cobertura de la API (para el once inicial).
-  const lastCovered = [...played].reverse().find((m) => m.externalId);
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
@@ -207,10 +207,11 @@ async function EquipoContent({
           </h2>
           <div className="card-glass overflow-hidden rounded-2xl">
             {data.topScorers.map((s, i) => (
-              <div
-                key={s.playerName}
+              <Link
+                key={s.playerId}
+                href={`/jugador/${s.playerId}`}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3",
+                  "hover:bg-muted/30 flex items-center gap-3 px-4 py-3 transition-colors",
                   i < data.topScorers.length - 1 && "border-b border-border/60",
                 )}
               >
@@ -239,16 +240,16 @@ async function EquipoContent({
                     {s.goals} <span className="text-muted-foreground font-normal text-xs">gol{s.goals !== 1 ? "es" : ""}</span>
                   </span>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>
       )}
 
-      {/* Último once inicial (API externa → stream) */}
-      {lastCovered?.externalId && (
+      {/* Plantilla convocada al Mundial (API externa → stream) */}
+      {data.standing && (
         <Suspense fallback={<Skeleton className="h-48 rounded-2xl" />}>
-          <LastLineup externalId={lastCovered.externalId} teamName={data.name} />
+          <TeamSquad teamId={data.standing.teamId} />
         </Suspense>
       )}
 
@@ -301,6 +302,7 @@ function TeamMatchRow({
 }: {
   match: {
     id: string;
+    externalId: string | null;
     homeTeam: string;
     awayTeam: string;
     homeFlag: string | null;
@@ -342,43 +344,52 @@ function TeamMatchRow({
     <ClickCard
       href={`/partido/${match.id}`}
       ariaLabel={`${match.homeTeam} contra ${match.awayTeam}`}
-      className="card-glass card-glass-hover flex items-center gap-3 rounded-2xl px-4 py-3"
+      className="card-glass card-glass-hover flex flex-col gap-2 rounded-2xl px-4 py-3"
     >
-      <TeamLink name={opponent} className="flex min-w-0 flex-1 items-center gap-3">
-        <TeamCrest crest={oppCrest} flag={oppFlag} name={opponent} size={28} className="shrink-0" />
-        <span className="min-w-0">
-          <span className="block truncate text-sm font-medium">
-            {isHome ? "vs" : "@"} {opponent}
-          </span>
-          <span className="text-muted-foreground block font-mono text-xs">
-            {stageLabel} · {match.stadium}
-          </span>
-        </span>
-      </TeamLink>
-
-      {isFinished && hasScore ? (
-        <div className="flex items-center gap-2 text-right">
-          <span className="font-mono text-sm font-bold">
-            {isHome ? match.homeScore : match.awayScore}–{isHome ? match.awayScore : match.homeScore}
-          </span>
-          {result && (
-            <span
-              className={cn(
-                "flex size-5 items-center justify-center rounded font-mono text-2xs font-bold",
-                result === "W" && "bg-success/20 text-success",
-                result === "D" && "bg-warning/20 text-warning",
-                result === "L" && "bg-live/20 text-live",
-              )}
-            >
-              {result === "W" ? "G" : result === "L" ? "P" : "E"}
+      <div className="flex items-center gap-3">
+        <TeamLink name={opponent} className="flex min-w-0 flex-1 items-center gap-3">
+          <TeamCrest crest={oppCrest} flag={oppFlag} name={opponent} size={28} className="shrink-0" />
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-medium">
+              {isHome ? "vs" : "@"} {opponent}
             </span>
-          )}
-        </div>
-      ) : now ? (
-        <span className="text-muted-foreground font-mono text-xs shrink-0">
-          {formatRelativeDay(match.kickoffAt, now)} · {formatTime(match.kickoffAt)}
-        </span>
-      ) : null}
+            <span className="text-muted-foreground block font-mono text-xs">
+              {stageLabel} · {match.stadium}
+            </span>
+          </span>
+        </TeamLink>
+
+        {isFinished && hasScore ? (
+          <div className="flex items-center gap-2 text-right">
+            <span className="font-mono text-sm font-bold">
+              {isHome ? match.homeScore : match.awayScore}–{isHome ? match.awayScore : match.homeScore}
+            </span>
+            {result && (
+              <span
+                className={cn(
+                  "flex size-5 items-center justify-center rounded font-mono text-2xs font-bold",
+                  result === "W" && "bg-success/20 text-success",
+                  result === "D" && "bg-warning/20 text-warning",
+                  result === "L" && "bg-live/20 text-live",
+                )}
+              >
+                {result === "W" ? "G" : result === "L" ? "P" : "E"}
+              </span>
+            )}
+          </div>
+        ) : now ? (
+          <span className="text-muted-foreground font-mono text-xs shrink-0">
+            {formatRelativeDay(match.kickoffAt, now)} · {formatTime(match.kickoffAt)}
+          </span>
+        ) : null}
+      </div>
+
+      {/* Goleadores (de la cronología, cacheados) — solo partidos jugados */}
+      {isFinished && hasScore && match.externalId && (
+        <Suspense fallback={null}>
+          <MatchScorers externalId={match.externalId} />
+        </Suspense>
+      )}
     </ClickCard>
   );
 }

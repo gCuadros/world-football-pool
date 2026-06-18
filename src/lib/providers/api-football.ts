@@ -175,6 +175,7 @@ export const apiFootballProvider: FootballProvider = {
 export type MatchEvent = {
   minute: number | null;
   team: string;
+  playerId: number | null;
   player: string | null;
   type: string; // Goal, Card, subst…
   detail: string; // Normal Goal, Yellow Card…
@@ -183,7 +184,7 @@ export type MatchEvent = {
 type AfEvent = {
   time: { elapsed: number | null; extra: number | null };
   team: { name: string };
-  player: { name: string | null };
+  player: { id: number | null; name: string | null };
   type: string;
   detail: string;
 };
@@ -270,6 +271,7 @@ export async function getApiFootballStandings(): Promise<GroupStanding[]> {
 // ── Top Scorers ───────────────────────────────────────────────────────────
 export type TopScorer = {
   rank: number;
+  playerId: number;
   playerName: string;
   teamName: string;
   teamLogo: string | null;
@@ -298,6 +300,7 @@ export async function getApiFootballTopScorers(): Promise<TopScorer[]> {
     const info = teamInfo(stat?.team?.name ?? "");
     return {
       rank: i + 1,
+      playerId: row.player.id,
       playerName: row.player.name,
       teamName: info.name,
       teamLogo: stat?.team?.logo ?? null,
@@ -308,6 +311,160 @@ export async function getApiFootballTopScorers(): Promise<TopScorer[]> {
       played: stat?.games?.appearences ?? 0,
     };
   });
+}
+
+// ── Ficha de jugador ──────────────────────────────────────────────────────
+export type PlayerProfile = {
+  id: number;
+  name: string;
+  photo: string | null;
+  age: number | null;
+  nationality: string | null;
+  position: string | null;
+  teamName: string;
+  teamLogo: string | null;
+  teamFlag: string | null;
+  appearances: number;
+  minutes: number;
+  goals: number;
+  assists: number;
+  yellow: number;
+  red: number;
+  rating: number | null;
+  // Rendimiento (acumulado del torneo).
+  shotsTotal: number;
+  shotsOn: number;
+  keyPasses: number;
+  dribblesSuccess: number;
+  duelsWon: number;
+  tackles: number;
+  // Portería (porteros).
+  saves: number;
+  conceded: number;
+};
+
+// La API da la posición en inglés (completa en /players, abreviada en lineups).
+const POSITION_ES: Record<string, string> = {
+  Goalkeeper: "Portero",
+  Defender: "Defensa",
+  Midfielder: "Centrocampista",
+  Attacker: "Delantero",
+  G: "Portero",
+  D: "Defensa",
+  M: "Centrocampista",
+  F: "Delantero",
+};
+
+type AfPlayerStat = {
+  team: { name: string; logo: string | null };
+  games: { appearences: number | null; minutes: number | null; position: string | null; rating: string | null };
+  shots?: { total: number | null; on: number | null };
+  goals: { total: number | null; assists: number | null; conceded: number | null; saves: number | null };
+  passes?: { total: number | null; key: number | null };
+  tackles?: { total: number | null; interceptions: number | null };
+  duels?: { total: number | null; won: number | null };
+  dribbles?: { attempts: number | null; success: number | null };
+  cards: { yellow: number | null; red: number | null };
+};
+type AfPlayerResp = {
+  player: {
+    id: number;
+    name: string;
+    age: number | null;
+    nationality: string | null;
+    photo: string | null;
+  };
+  statistics: AfPlayerStat[];
+}[];
+
+/** Ficha de un jugador con sus stats en el torneo (league=Mundial, season). */
+export async function getApiFootballPlayer(
+  playerId: number,
+): Promise<PlayerProfile | null> {
+  const resp = await apiGet<AfPlayerResp>(
+    `/players?id=${playerId}&league=${LEAGUE}&season=${SEASON}`,
+  );
+  const row = resp[0];
+  if (!row) return null;
+
+  // La API puede devolver varias líneas de stats; se suman los acumulables.
+  const stats = row.statistics ?? [];
+  const sum = (pick: (s: AfPlayerStat) => number | null | undefined) =>
+    stats.reduce((acc, s) => acc + (pick(s) ?? 0), 0);
+  const primary = stats[0];
+  const info = teamInfo(primary?.team?.name ?? "");
+
+  // Valoración: media de las líneas que la traen.
+  const ratings = stats
+    .map((s) => Number(s.games?.rating))
+    .filter((n) => !Number.isNaN(n) && n > 0);
+  const rating = ratings.length
+    ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+    : null;
+
+  return {
+    id: row.player.id,
+    name: row.player.name,
+    photo: row.player.photo,
+    age: row.player.age,
+    nationality: row.player.nationality,
+    position: primary?.games?.position
+      ? (POSITION_ES[primary.games.position] ?? primary.games.position)
+      : null,
+    teamName: info.name || primary?.team?.name || "—",
+    teamLogo: primary?.team?.logo ?? null,
+    teamFlag: info.flag,
+    appearances: sum((s) => s.games?.appearences),
+    minutes: sum((s) => s.games?.minutes),
+    goals: sum((s) => s.goals?.total),
+    assists: sum((s) => s.goals?.assists),
+    yellow: sum((s) => s.cards?.yellow),
+    red: sum((s) => s.cards?.red),
+    rating: rating ? Math.round(rating * 10) / 10 : null,
+    shotsTotal: sum((s) => s.shots?.total),
+    shotsOn: sum((s) => s.shots?.on),
+    keyPasses: sum((s) => s.passes?.key),
+    dribblesSuccess: sum((s) => s.dribbles?.success),
+    duelsWon: sum((s) => s.duels?.won),
+    tackles: sum((s) => s.tackles?.total),
+    saves: sum((s) => s.goals?.saves),
+    conceded: sum((s) => s.goals?.conceded),
+  };
+}
+
+// ── Plantilla convocada ───────────────────────────────────────────────────
+export type SquadPlayer = {
+  id: number;
+  name: string;
+  number: number | null;
+  position: string | null; // ya en español
+  photo: string | null;
+  age: number | null;
+};
+
+type AfSquad = {
+  players: {
+    id: number;
+    name: string;
+    age: number | null;
+    number: number | null;
+    position: string | null;
+    photo: string | null;
+  }[];
+}[];
+
+/** Plantilla convocada de una selección para el torneo (por id de equipo). */
+export async function getApiFootballSquad(teamId: number): Promise<SquadPlayer[]> {
+  const resp = await apiGet<AfSquad>(`/players/squads?team=${teamId}`);
+  const players = resp[0]?.players ?? [];
+  return players.map((p) => ({
+    id: p.id,
+    name: p.name,
+    number: p.number,
+    position: p.position ? (POSITION_ES[p.position] ?? p.position) : null,
+    photo: p.photo,
+    age: p.age,
+  }));
 }
 
 // ── Partidos en vivo (1 sola llamada, para detectar goles) ────────────────
@@ -353,6 +510,7 @@ export async function getApiFootballEvents(
         ? e.time.elapsed + (e.time.extra ?? 0)
         : null,
     team: teamInfo(e.team.name).name,
+    playerId: e.player?.id ?? null,
     player: e.player?.name ?? null,
     type: e.type,
     detail: e.detail,
@@ -442,6 +600,7 @@ export async function getApiFootballOdds(
 
 // ── Alineaciones ──────────────────────────────────────────────────────────
 export type LineupPlayer = {
+  id: number | null;
   name: string;
   number: number | null;
   pos: string | null;
@@ -458,7 +617,7 @@ export type TeamLineup = {
 };
 
 type AfLineupPlayer = {
-  player: { name: string | null; number: number | null; pos: string | null; grid: string | null };
+  player: { id: number | null; name: string | null; number: number | null; pos: string | null; grid: string | null };
 };
 type AfLineup = {
   team: { name: string; logo: string | null };
@@ -473,6 +632,7 @@ export async function getApiFootballLineups(
 ): Promise<TeamLineup[]> {
   const resp = await apiGet<AfLineup[]>(`/fixtures/lineups?fixture=${externalId}`);
   const mapPlayer = (p: AfLineupPlayer): LineupPlayer => ({
+    id: p.player.id ?? null,
     name: p.player.name ?? "—",
     number: p.player.number,
     pos: p.player.pos,
