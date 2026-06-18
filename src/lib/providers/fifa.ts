@@ -8,6 +8,7 @@ const FIFA_BASE = "https://api.fifa.com/api/v3";
 const FIFA_SEASON = process.env.FIFA_SEASON ?? "285023"; // Copa Mundial 2026
 
 export type FifaMatchInfo = {
+  idMatch: string | null; // IdMatch FIFA (para unir con las stats físicas)
   attendance: number | null;
   referee: string | null;
   refereeCountry: string | null; // código (BRA, NED…)
@@ -25,6 +26,7 @@ function loc(arr: FifaLocalized | undefined | null): string | null {
 
 type FifaMatch = {
   MatchNumber: number | null;
+  IdMatch: string | null;
   Attendance: string | null;
   Stadium?: { Name?: FifaLocalized; CityName?: FifaLocalized } | null;
   Officials?: {
@@ -56,6 +58,7 @@ export async function getFifaWorldCupMatches(): Promise<
     if (m.MatchNumber == null) continue;
     const ref = (m.Officials ?? []).find((o) => o.OfficialType === 1); // árbitro
     out[String(m.MatchNumber)] = {
+      idMatch: m.IdMatch ?? null,
       attendance: m.Attendance ? Number(m.Attendance) || null : null,
       referee: loc(ref?.Name),
       refereeCountry: ref?.IdCountry ?? null,

@@ -19,6 +19,7 @@ import {
   OddsSection,
   AiForecastSection,
   MatchOfficialInfo,
+  MatchPhysical,
 } from "@/components/matches/detail/sections";
 import { LeaguePredictionsSection } from "@/components/matches/detail/league-predictions";
 import { MatchVideo } from "@/components/matches/detail/match-video";
@@ -138,6 +139,10 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
           </Suspense>
           <Suspense fallback={<SectionSkeleton />}>
             <StatsSection externalId={match.externalId} />
+          </Suspense>
+          {/* Rendimiento físico oficial FIFA (instantánea, unida por matchNo). */}
+          <Suspense fallback={null}>
+            <MatchPhysical matchNo={match.matchNo} />
           </Suspense>
         </>
       ) : (
