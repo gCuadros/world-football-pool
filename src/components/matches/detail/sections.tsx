@@ -8,10 +8,10 @@ import {
   getMatchPrediction,
   getMatchOdds,
   getFifaCalendar,
+  getMatchPhysical,
 } from "@/lib/queries";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { PitchLineup } from "@/components/matches/detail/pitch-lineup";
-import { getMatchPhysical } from "@/lib/providers/fifa-physical";
 
 // Tarjeta contenedora de sección con título.
 function SectionCard({
@@ -284,11 +284,7 @@ function PhysLeader({
 }
 
 export async function MatchPhysical({ matchNo }: { matchNo: number }) {
-  const cal = await getFifaCalendar();
-  const idMatch = cal[String(matchNo)]?.idMatch;
-  if (!idMatch) return null;
-
-  const players = getMatchPhysical(idMatch);
+  const players = await getMatchPhysical(matchNo);
   if (players.length === 0) return null;
 
   const max = <K extends keyof (typeof players)[number]>(key: K) =>

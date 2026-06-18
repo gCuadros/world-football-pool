@@ -1,13 +1,13 @@
 import { BackButton } from "@/components/ui/back-button";
-import { getTournamentPhysical } from "@/lib/providers/fifa-physical";
+import { getTournamentPhysical } from "@/lib/queries";
 import { PhysicalLeaderboards } from "@/components/fisico/physical-leaderboards";
 
 export const metadata = {
   title: "Rendimiento físico · Mundial 2026",
 };
 
-export default function FisicoPage() {
-  const players = getTournamentPhysical();
+export default async function FisicoPage() {
+  const players = await getTournamentPhysical();
   const teams = [...new Set(players.map((p) => p.team).filter((t): t is string => !!t))].sort();
 
   return (

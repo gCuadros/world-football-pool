@@ -44,31 +44,54 @@ export function PhysicalLeaderboards({
   teams: string[];
 }) {
   const [team, setTeam] = useState<string>("");
+  const [pos, setPos] = useState<string>("");
 
   const filtered = useMemo(
-    () => (team ? players.filter((p) => p.team === team) : players),
-    [players, team],
+    () =>
+      players.filter(
+        (p) => (!team || p.team === team) && (!pos || p.pos === pos),
+      ),
+    [players, team, pos],
   );
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-2">
-        <label htmlFor="team" className="text-muted-foreground text-sm">
-          Equipo
-        </label>
-        <select
-          id="team"
-          value={team}
-          onChange={(e) => setTeam(e.target.value)}
-          className="border-border bg-background rounded-lg border px-3 py-1.5 text-sm"
-        >
-          <option value="">Todos</option>
-          {teams.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <label htmlFor="team" className="text-muted-foreground text-sm">
+            Equipo
+          </label>
+          <select
+            id="team"
+            value={team}
+            onChange={(e) => setTeam(e.target.value)}
+            className="border-border bg-background rounded-lg border px-3 py-1.5 text-sm"
+          >
+            <option value="">Todos</option>
+            {teams.map((t) => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <label htmlFor="pos" className="text-muted-foreground text-sm">
+            Posición
+          </label>
+          <select
+            id="pos"
+            value={pos}
+            onChange={(e) => setPos(e.target.value)}
+            className="border-border bg-background rounded-lg border px-3 py-1.5 text-sm"
+          >
+            <option value="">Todas</option>
+            <option value="Portero">Portero</option>
+            <option value="Defensa">Defensa</option>
+            <option value="Centrocampista">Centrocampista</option>
+            <option value="Delantero">Delantero</option>
+          </select>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
