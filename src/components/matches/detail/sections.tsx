@@ -7,6 +7,7 @@ import {
   getCommunityDistribution,
   getMatchPrediction,
   getMatchOdds,
+  getFifaCalendar,
 } from "@/lib/queries";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { PitchLineup } from "@/components/matches/detail/pitch-lineup";
@@ -214,6 +215,47 @@ function ProbBar({ home, draw, away }: { home: number; draw: number; away: numbe
         <span><span className="text-foreground font-bold">{away}%</span> visitante</span>
       </div>
     </>
+  );
+}
+
+// ── Datos oficiales FIFA (asistencia, árbitro) ────────────────────────────
+// Une el partido de la BD con el calendario oficial por matchNo === MatchNumber.
+// Sólo partidos del Mundial (los amistosos, matchNo 9000+, no están en la FIFA).
+export async function MatchOfficialInfo({ matchNo }: { matchNo: number }) {
+  const cal = await getFifaCalendar();
+  const info = cal[String(matchNo)];
+  if (!info || (info.attendance == null && !info.referee)) return null;
+
+  return (
+    <SectionCard title="Datos del partido" icon="📋">
+      <dl className="divide-border/60 divide-y">
+        {info.attendance != null && (
+          <div className="flex items-center justify-between py-2 text-sm first:pt-0">
+            <dt className="text-muted-foreground">Asistencia</dt>
+            <dd className="font-mono font-bold tabular-nums">
+              {info.attendance.toLocaleString("es-ES")}
+              <span className="text-muted-foreground ml-1 font-sans text-xs font-normal">
+                espectadores
+              </span>
+            </dd>
+          </div>
+        )}
+        {info.referee && (
+          <div className="flex items-center justify-between gap-3 py-2 text-sm last:pb-0">
+            <dt className="text-muted-foreground shrink-0">Árbitro</dt>
+            <dd className="min-w-0 truncate text-right font-medium">
+              {info.referee}
+              {info.refereeCountry && (
+                <span className="text-muted-foreground ml-1.5 font-mono text-2xs">
+                  {info.refereeCountry}
+                </span>
+              )}
+            </dd>
+          </div>
+        )}
+      </dl>
+      <p className="text-muted-foreground mt-3 text-2xs">Datos oficiales FIFA</p>
+    </SectionCard>
   );
 }
 

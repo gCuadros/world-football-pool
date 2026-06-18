@@ -18,6 +18,7 @@ import {
   CommunitySection,
   OddsSection,
   AiForecastSection,
+  MatchOfficialInfo,
 } from "@/components/matches/detail/sections";
 import { LeaguePredictionsSection } from "@/components/matches/detail/league-predictions";
 import { MatchVideo } from "@/components/matches/detail/match-video";
@@ -82,6 +83,11 @@ async function PartidoContent({ params }: { params: Promise<{ id: string }> }) {
       <BackButton />
 
       <MatchHeader match={match} />
+
+      {/* Datos oficiales FIFA (asistencia, árbitro) — unidos por matchNo. */}
+      <Suspense fallback={null}>
+        <MatchOfficialInfo matchNo={match.matchNo} />
+      </Suspense>
 
       {/* Vídeo (entre el marcador y las predicciones): resumen al terminar,
           previa antes del pitido. Del canal @Replay, que sí permite embeber

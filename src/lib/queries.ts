@@ -332,6 +332,25 @@ export async function getMatchPrediction(
   }
 }
 
+/**
+ * Calendario oficial de la FIFA (asistencia, árbitro, estadio) — CACHEADO.
+ * Una sola llamada compartida; cada partido busca por su `matchNo`.
+ */
+export async function getFifaCalendar(): Promise<
+  Record<string, import("@/lib/providers/fifa").FifaMatchInfo>
+> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag(TAGS.matches, "fifa");
+
+  try {
+    const { getFifaWorldCupMatches } = await import("@/lib/providers/fifa");
+    return await getFifaWorldCupMatches();
+  } catch {
+    return {};
+  }
+}
+
 /** Plantilla convocada de una selección — CACHEADA (apenas cambia en el torneo). */
 export async function getSquad(teamId: number): Promise<SquadPlayer[]> {
   "use cache";
