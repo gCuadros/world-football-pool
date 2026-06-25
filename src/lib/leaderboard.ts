@@ -27,7 +27,8 @@ export type LeaderboardRow = {
   initials: string;
   avatar: string | null;
   points: number;
-  /** Puntos provisionales de partidos EN JUEGO (incluidos en `points`). */
+  /** Puntos provisionales de partidos EN JUEGO. NO van en `points` (que es el
+   *  consolidado, == perfil); la UI los muestra aparte como "+N en directo". */
   livePoints: number;
   accuracy: number;
   predictionsCount: number;
@@ -142,7 +143,11 @@ export async function getLeagueLeaderboard(
       name: user.name ?? user.email,
       initials: initials(user.name, user.email),
       avatar: user.avatar ?? null,
-      points: totalPoints + livePoints,
+      // `points` = SOLO consolidado (== perfil). Los provisionales en directo se
+      // exponen aparte (`livePoints`) y la UI los pinta como "+N en directo", sin
+      // inflar el total ni el ranking. Antes iban sumados aquí y la clasificación
+      // no cuadraba con el perfil (y el badge "+N" los contaba dos veces).
+      points: totalPoints,
       livePoints,
       accuracy,
       predictionsCount,
