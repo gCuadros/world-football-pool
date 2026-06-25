@@ -9,8 +9,23 @@ export type ImportResult = {
   finishedUpdated: number;
 };
 
-function buildData(f: ProviderFixture) {
-  const liveMinute = f.status === "LIVE" ? f.liveMinute : null;
+/**
+ * Un partido NO puede estar FINISHED (ni LIVE) antes de su kickoff. Si el
+ * proveedor lo manda así —glitch puntual de la API, que ha llegado a devolver
+ * "FT 0-0" antes de la hora— lo tratamos como UPCOMING. Sin esto, un final
+ * fantasma marcaba el partido terminado, puntuaba un 0-0 inexistente y mandaba
+ * el "sin puntos" antes de que el balón echara a rodar.
+ */
+function guardedStatus(
+  f: ProviderFixture,
+  now: number,
+): ProviderFixture["status"] {
+  if (f.status !== "UPCOMING" && f.kickoffAt.getTime() > now) return "UPCOMING";
+  return f.status;
+}
+
+function buildData(f: ProviderFixture, status: ProviderFixture["status"]) {
+  const liveMinute = status === "LIVE" ? f.liveMinute : null;
   return {
     matchNo: f.matchNo,
     externalId: f.externalId,
@@ -27,7 +42,7 @@ function buildData(f: ProviderFixture) {
     city: f.city,
     homeScore: f.homeScore,
     awayScore: f.awayScore,
-    status: f.status,
+    status,
     liveMinute,
     ...(f.advanced !== undefined ? { advanced: f.advanced } : {}),
   };
@@ -56,14 +71,21 @@ export async function importFixtures(
     byMatchNo.set(m.matchNo, m.status);
   }
 
+  const now = Date.now();
+  // Partidos que revierten de FINISHED a no-finalizado (final fantasma): hay que
+  // limpiar los puntos que se les escribieron con el marcador inexistente.
+  const reverted: number[] = [];
+
   for (const f of fixtures) {
     const prevStatus = f.externalId
       ? byExternal.get(f.externalId)
       : byMatchNo.get(f.matchNo);
+    const status = guardedStatus(f, now);
     if (prevStatus === undefined) created++;
-    if (f.status === "FINISHED" && prevStatus !== "FINISHED") finishedUpdated++;
+    if (status === "FINISHED" && prevStatus !== "FINISHED") finishedUpdated++;
+    if (prevStatus === "FINISHED" && status !== "FINISHED") reverted.push(f.matchNo);
 
-    const data = buildData(f);
+    const data = buildData(f, status);
     if (f.externalId) {
       await prisma.match.upsert({
         where: { externalId: f.externalId },
@@ -77,6 +99,13 @@ export async function importFixtures(
         update: data,
       });
     }
+  }
+
+  if (reverted.length > 0) {
+    await prisma.prediction.updateMany({
+      where: { match: { matchNo: { in: reverted } } },
+      data: { points: null, exact: false },
+    });
   }
 
   return { imported: fixtures.length, created, finishedUpdated };
