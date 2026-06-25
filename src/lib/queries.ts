@@ -652,8 +652,11 @@ export async function getPublicPredictions(
     }
   }
 
+  // OJO: NO truncar aquí. El perfil calcula sus totales (puntos, precisión,
+  // exactos) sumando este array; si se corta a N, el total del perfil queda por
+  // debajo del real y no cuadra con la clasificación. La lista visible se
+  // recorta en el cliente (profile-view), no aquí.
   const predictions: PublicPrediction[] = [...byMatch.values()]
-    .slice(0, 40)
     .map((p) => ({
       matchId: p.matchId,
       homeTeam: p.match.homeTeam,
