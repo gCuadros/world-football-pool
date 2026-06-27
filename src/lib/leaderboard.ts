@@ -47,20 +47,20 @@ export type LeagueVM = {
 };
 
 /**
- * Clasificación de una liga calculada en tiempo real desde predicciones.
- * Cacheada por liga — se invalida cuando un partido de esa liga se puntúa.
+ * Base CONSOLIDADA de la clasificación (solo partidos terminados) — CACHEADA.
+ * Es estable e idéntica al perfil. La capa en directo se añade aparte, fresca,
+ * en getLeagueLeaderboard (así no se queda "pegada" en la caché cuando un
+ * partido en juego termina).
  */
-export async function getLeagueLeaderboard(
+async function getConsolidatedLeaderboard(
   leagueId: string,
   currentUserId: string,
 ): Promise<LeaderboardRow[]> {
   "use cache";
   cacheLife("minutes");
-  // TAGS.matches: el cron de goles revalida ese tag en cada gol — la
-  // clasificación en directo se refresca al instante con cada tanto.
   cacheTag(leagueTag(leagueId), TAGS.users, TAGS.matches);
 
-  const [members, finishedMatches, liveMatches, predictions] = await Promise.all([
+  const [members, finishedMatches, predictions] = await Promise.all([
     prisma.miniLeagueMember.findMany({
       where: { miniLeagueId: leagueId },
       include: { user: { select: { id: true, name: true, email: true, avatar: true } } },
@@ -69,10 +69,6 @@ export async function getLeagueLeaderboard(
       where: { status: "FINISHED" },
       orderBy: { kickoffAt: "asc" },
       select: { id: true, stage: true },
-    }),
-    prisma.match.findMany({
-      where: { status: "LIVE" },
-      select: { id: true, homeScore: true, awayScore: true, stage: true, advanced: true },
     }),
     prisma.prediction.findMany({
       where: { leagueId },
@@ -107,20 +103,6 @@ export async function getLeagueLeaderboard(
     const accuracy =
       maxPossible > 0 ? Math.round((totalPoints / maxPossible) * 1000) / 10 : 0;
 
-    // Clasificación en directo: puntos provisionales con el marcador actual
-    // de los partidos en juego (se consolidan o ajustan al pitido final).
-    const liveById = new Map(liveMatches.map((m) => [m.id, m]));
-    let livePoints = 0;
-    for (const p of userPreds) {
-      const lm = liveById.get(p.matchId);
-      if (!lm) continue;
-      const breakdown = scorePrediction(
-        { homeScore: p.homeScore, awayScore: p.awayScore, advancePick: p.advancePick },
-        { homeScore: lm.homeScore, awayScore: lm.awayScore, stage: lm.stage, advanced: lm.advanced },
-      );
-      livePoints += breakdown?.total ?? 0;
-    }
-
     const byMatch = new Map(finished.map((p) => [p.matchId, p]));
     let bestStreak = 0;
     let runningStreak = 0;
@@ -143,12 +125,8 @@ export async function getLeagueLeaderboard(
       name: user.name ?? user.email,
       initials: initials(user.name, user.email),
       avatar: user.avatar ?? null,
-      // `points` = SOLO consolidado (== perfil). Los provisionales en directo se
-      // exponen aparte (`livePoints`) y la UI los pinta como "+N en directo", sin
-      // inflar el total ni el ranking. Antes iban sumados aquí y la clasificación
-      // no cuadraba con el perfil (y el badge "+N" los contaba dos veces).
-      points: totalPoints,
-      livePoints,
+      points: totalPoints, // consolidado; el directo lo añade el envoltorio
+      livePoints: 0,
       accuracy,
       predictionsCount,
       exactCount,
@@ -161,6 +139,61 @@ export async function getLeagueLeaderboard(
   rows.sort((a, b) => b.points - a.points || b.accuracy - a.accuracy);
   rows.forEach((r, i) => (r.rank = i + 1));
 
+  return rows;
+}
+
+/**
+ * Clasificación de una liga. Toma la base consolidada (cacheada, == perfil) y le
+ * añade ENCIMA los puntos provisionales de los partidos EN JUEGO, calculados
+ * FRESCOS en cada petición. Así:
+ *  - Sin partidos en vivo → idéntica al perfil (consolidado puro).
+ *  - Con partidos en vivo → el RANKING se reordena en directo (ordena por
+ *    consolidado + provisional). El total mostrado sigue siendo el consolidado
+ *    (== perfil) y el directo se ve en el badge "+N". Fresco: no se queda pegado
+ *    en la caché cuando el partido termina.
+ */
+export async function getLeagueLeaderboard(
+  leagueId: string,
+  currentUserId: string,
+): Promise<LeaderboardRow[]> {
+  const base = await getConsolidatedLeaderboard(leagueId, currentUserId);
+
+  const liveMatches = await prisma.match.findMany({
+    where: { status: "LIVE" },
+    select: { id: true, homeScore: true, awayScore: true, stage: true, advanced: true },
+  });
+  if (liveMatches.length === 0) return base;
+
+  const liveById = new Map(liveMatches.map((m) => [m.id, m]));
+  const livePreds = await prisma.prediction.findMany({
+    where: { leagueId, matchId: { in: liveMatches.map((m) => m.id) } },
+    select: { userId: true, matchId: true, homeScore: true, awayScore: true, advancePick: true },
+  });
+
+  const liveByUser = new Map<string, number>();
+  for (const p of livePreds) {
+    const lm = liveById.get(p.matchId);
+    if (!lm) continue;
+    const breakdown = scorePrediction(
+      { homeScore: p.homeScore, awayScore: p.awayScore, advancePick: p.advancePick },
+      { homeScore: lm.homeScore, awayScore: lm.awayScore, stage: lm.stage, advanced: lm.advanced },
+    );
+    liveByUser.set(p.userId, (liveByUser.get(p.userId) ?? 0) + (breakdown?.total ?? 0));
+  }
+
+  // Capa en directo (objetos nuevos: no mutar la caché). `points` se mantiene
+  // consolidado (== perfil, sin doble conteo con el badge "+N"); el ranking se
+  // reordena por consolidado + provisional, así la tabla se mueve gol a gol.
+  const rows = base.map((r) => ({
+    ...r,
+    livePoints: liveByUser.get(r.userId) ?? 0,
+  }));
+  rows.sort(
+    (a, b) =>
+      b.points + b.livePoints - (a.points + a.livePoints) ||
+      b.accuracy - a.accuracy,
+  );
+  rows.forEach((r, i) => (r.rank = i + 1));
   return rows;
 }
 
