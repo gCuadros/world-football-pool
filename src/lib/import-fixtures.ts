@@ -24,10 +24,11 @@ function guardedStatus(
   return f.status;
 }
 
+// Campos comunes (sin matchNo): se usan tal cual en UPDATE. El matchNo se añade
+// solo en CREATE, porque es la clave estable que NO debe cambiar al actualizar.
 function buildData(f: ProviderFixture, status: ProviderFixture["status"]) {
   const liveMinute = status === "LIVE" ? f.liveMinute : null;
   return {
-    matchNo: f.matchNo,
     externalId: f.externalId,
     homeTeam: f.homeTeam,
     awayTeam: f.awayTeam,
@@ -64,11 +65,15 @@ export async function importFixtures(
   const existing = await prisma.match.findMany({
     select: { matchNo: true, externalId: true, status: true },
   });
-  const byExternal = new Map<string, string>();
-  const byMatchNo = new Map<number, string>();
+  type Prev = { matchNo: number; status: string };
+  const byExternal = new Map<string, Prev>();
+  const byMatchNo = new Map<number, Prev>();
+  const usedMatchNos = new Set<number>();
   for (const m of existing) {
-    if (m.externalId) byExternal.set(m.externalId, m.status);
-    byMatchNo.set(m.matchNo, m.status);
+    usedMatchNos.add(m.matchNo);
+    const prev = { matchNo: m.matchNo, status: m.status };
+    if (m.externalId) byExternal.set(m.externalId, prev);
+    byMatchNo.set(m.matchNo, prev);
   }
 
   const now = Date.now();
@@ -77,25 +82,40 @@ export async function importFixtures(
   const reverted: number[] = [];
 
   for (const f of fixtures) {
-    const prevStatus = f.externalId
+    const prev = f.externalId
       ? byExternal.get(f.externalId)
       : byMatchNo.get(f.matchNo);
     const status = guardedStatus(f, now);
-    if (prevStatus === undefined) created++;
-    if (status === "FINISHED" && prevStatus !== "FINISHED") finishedUpdated++;
-    if (prevStatus === "FINISHED" && status !== "FINISHED") reverted.push(f.matchNo);
+    if (prev === undefined) created++;
+    if (status === "FINISHED" && prev?.status !== "FINISHED") finishedUpdated++;
+    if (prev?.status === "FINISHED" && status !== "FINISHED") reverted.push(prev.matchNo);
+
+    // matchNo ESTABLE: una vez asignado, un partido conserva su número. El del
+    // proveedor es posicional (i+1) y se DESPLAZA al añadirse eliminatorias, lo
+    // que chocaba con el unique y tiraba el sync (500). Los existentes conservan
+    // el suyo; los nuevos cogen el del proveedor si está libre, si no el
+    // siguiente libre.
+    let matchNo: number;
+    if (prev) {
+      matchNo = prev.matchNo;
+    } else {
+      matchNo = f.matchNo;
+      while (usedMatchNos.has(matchNo)) matchNo++;
+      usedMatchNos.add(matchNo);
+    }
 
     const data = buildData(f, status);
+    const createData = { ...data, matchNo };
     if (f.externalId) {
       await prisma.match.upsert({
         where: { externalId: f.externalId },
-        create: data,
-        update: data,
+        create: createData,
+        update: data, // UPDATE no toca matchNo
       });
     } else {
       await prisma.match.upsert({
-        where: { matchNo: f.matchNo },
-        create: data,
+        where: { matchNo },
+        create: createData,
         update: data,
       });
     }
