@@ -56,34 +56,67 @@ function eventIcon(type: string, detail: string): string {
   return "•";
 }
 
-export async function TimelineSection({ externalId }: { externalId: string | null }) {
+export async function TimelineSection({
+  externalId,
+  homeTeam,
+}: {
+  externalId: string | null;
+  homeTeam: string;
+}) {
   if (!externalId) return null;
   const events = await getMatchEvents(externalId);
   if (events.length === 0) return null;
 
+  // Encabezado de equipos para la crónica a dos columnas
+  const homeLabel = events.find((e) => e.team === homeTeam)?.team ?? homeTeam;
+  const awayTeamName = events.find((e) => e.team !== homeTeam)?.team ?? "";
+
   return (
-    <SectionCard title="Cronología" icon="⏱️">
-      <div className="space-y-2">
-        {events.map((e, i) => (
-          <div key={i} className="flex items-center gap-3 text-sm">
-            <span className="text-muted-foreground w-8 shrink-0 font-mono text-xs">
-              {e.minute != null ? `${e.minute}'` : "—"}
-            </span>
-            <span>{eventIcon(e.type, e.detail)}</span>
-            {e.playerId && e.player ? (
-              <Link href={`/jugador/${e.playerId}`} className="min-w-0 flex-1 truncate hover:underline">
+    <section className="card-glass rounded-2xl p-5">
+      {/* Cabecera local / visitante */}
+      <div className="mb-3 grid grid-cols-[1fr_3rem_1fr] text-center text-xs font-semibold text-muted-foreground">
+        <span className="truncate text-right">{homeLabel}</span>
+        <span />
+        <span className="truncate text-left">{awayTeamName}</span>
+      </div>
+      <div className="space-y-1">
+        {events.map((e, i) => {
+          const isHome = e.team === homeTeam;
+          const icon = eventIcon(e.type, e.detail);
+          const playerEl =
+            e.playerId && e.player ? (
+              <Link href={`/jugador/${e.playerId}`} className="truncate hover:underline">
                 {e.player}
               </Link>
             ) : (
-              <span className="min-w-0 flex-1 truncate">{e.player ?? e.detail}</span>
-            )}
-            <span className="text-muted-foreground shrink-0 truncate text-xs">
-              {e.team}
-            </span>
-          </div>
-        ))}
+              <span className="truncate">{e.player ?? e.detail}</span>
+            );
+          return (
+            <div key={i} className="grid grid-cols-[1fr_3rem_1fr] items-center gap-1 text-sm">
+              <div className="flex min-w-0 items-center justify-end gap-1.5">
+                {isHome && (
+                  <>
+                    <span className="min-w-0 text-right">{playerEl}</span>
+                    <span className="shrink-0">{icon}</span>
+                  </>
+                )}
+              </div>
+              <div className="shrink-0 text-center font-mono text-xs text-muted-foreground">
+                {e.minute != null ? `${e.minute}'` : ""}
+              </div>
+              <div className="flex min-w-0 items-center gap-1.5">
+                {!isHome && (
+                  <>
+                    <span className="shrink-0">{icon}</span>
+                    <span className="min-w-0">{playerEl}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
-    </SectionCard>
+    </section>
   );
 }
 
@@ -94,6 +127,8 @@ function statNum(v: string | number | null): number {
   return Number(String(v).replace("%", "").trim()) || 0;
 }
 
+const TOP_STAT_LABELS = ["Posesión", "Goles esperados (xG)", "Tiros a puerta", "Tiros totales"];
+
 export async function StatsSection({ externalId }: { externalId: string | null }) {
   if (!externalId) return null;
   const stats = await getMatchStatistics(externalId);
@@ -102,8 +137,17 @@ export async function StatsSection({ externalId }: { externalId: string | null }
   const [home, away] = stats;
   const awayMap = new Map(away.stats.map((s) => [s.label, s.value]));
 
+  const topStats = TOP_STAT_LABELS.flatMap((label) => {
+    const hs = home.stats.find((s) => s.label === label);
+    const aVal = awayMap.get(label);
+    if (!hs && aVal == null) return [];
+    return [{ label, hVal: hs?.value ?? null, aVal: aVal ?? null }];
+  });
+
+  const otherStats = home.stats.filter((s) => !TOP_STAT_LABELS.includes(s.label));
+
   return (
-    <SectionCard title="Estadísticas" icon="📊">
+    <section className="card-glass rounded-2xl p-5">
       <div className="mb-3 flex items-center gap-2 text-xs font-semibold">
         <span className="flex min-w-0 flex-1 items-center gap-1.5">
           <TeamCrest crest={null} flag={home.teamFlag} name={home.team} size={16} className="shrink-0" />
@@ -114,8 +158,41 @@ export async function StatsSection({ externalId }: { externalId: string | null }
           <TeamCrest crest={null} flag={away.teamFlag} name={away.team} size={16} className="shrink-0" />
         </span>
       </div>
+
+      {topStats.length > 0 && (
+        <div className="mb-5 space-y-4">
+          {topStats.map(({ label, hVal, aVal }) => {
+            const hn = statNum(hVal);
+            const an = statNum(aVal);
+            const total = hn + an || 1;
+            const isPct = String(hVal).includes("%") || label === "Posesión";
+            const hPct = isPct ? hn : (hn / total) * 100;
+            const aPct = isPct ? an : (an / total) * 100;
+            return (
+              <div key={label}>
+                <div className="mb-1.5 flex items-center justify-between font-mono text-sm font-bold">
+                  <span>{hVal ?? "—"}</span>
+                  <span className="text-muted-foreground text-xs font-normal">{label}</span>
+                  <span>{aVal ?? "—"}</span>
+                </div>
+                <div className="flex h-2.5 gap-0.5 overflow-hidden rounded-full">
+                  <div
+                    className="bg-primary h-full rounded-l-full"
+                    style={{ width: `${hPct}%` }}
+                  />
+                  <div
+                    className="bg-chart-2 h-full rounded-r-full"
+                    style={{ width: `${aPct}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <div className="space-y-2.5">
-        {home.stats.map((s) => {
+        {otherStats.map((s) => {
           const av = awayMap.get(s.label);
           const hn = statNum(s.value);
           const an = statNum(av ?? null);
@@ -139,7 +216,7 @@ export async function StatsSection({ externalId }: { externalId: string | null }
           );
         })}
       </div>
-    </SectionCard>
+    </section>
   );
 }
 
