@@ -171,16 +171,27 @@ export function PredictionCard({
   const initial = match.prediction ?? autofill ?? { homeScore: 0, awayScore: 0 };
   const [home, setHome] = useState(initial.homeScore);
   const [away, setAway] = useState(initial.awayScore);
+  // advancePick manual solo se necesita en empates predichos (penaltis).
+  // Si el resultado no es empate, se infiere del marcador automáticamente.
   const [advancePick, setAdvancePick] = useState<"HOME" | "AWAY" | null>(
     match.prediction?.advancePick ?? null,
   );
+
+  const isDraw = home === away;
+  const effectiveAdvancePick: "HOME" | "AWAY" | null = isKnockout
+    ? isDraw
+      ? advancePick
+      : home > away
+        ? "HOME"
+        : "AWAY"
+    : null;
 
   const saved = match.prediction;
   const dirty =
     !saved ||
     saved.homeScore !== home ||
     saved.awayScore !== away ||
-    (isKnockout && saved.advancePick !== advancePick);
+    (isKnockout && saved.advancePick !== effectiveAdvancePick);
 
   const stageTag =
     match.stage === "GROUP_STAGE" && match.group
@@ -194,7 +205,7 @@ export function PredictionCard({
         match.id,
         home,
         away,
-        isKnockout ? advancePick : null,
+        effectiveAdvancePick,
       );
       if (res.ok) {
         haptics.success();
@@ -285,13 +296,22 @@ export function PredictionCard({
 
           {/* Selector de quién pasa (solo eliminatorias) */}
           {isKnockout && (
-            <AdvanceSelector
-              homeTeam={match.homeTeam}
-              awayTeam={match.awayTeam}
-              value={advancePick}
-              onChange={setAdvancePick}
-              disabled={pending}
-            />
+            isDraw ? (
+              <AdvanceSelector
+                homeTeam={match.homeTeam}
+                awayTeam={match.awayTeam}
+                value={advancePick}
+                onChange={setAdvancePick}
+                disabled={pending}
+              />
+            ) : (
+              <p className="text-muted-foreground text-center text-xs">
+                Clasifica:{" "}
+                <span className="text-foreground font-semibold">
+                  {effectiveAdvancePick === "HOME" ? match.homeTeam : match.awayTeam}
+                </span>
+              </p>
+            )
           )}
 
           <button
