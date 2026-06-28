@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { formatLiveMinute } from "@/lib/format";
 
+import { auth } from "@/auth";
 import { BackButton } from "@/components/ui/back-button";
 import { AutoRefresh } from "@/components/matches/auto-refresh";
 
@@ -10,11 +11,14 @@ import {
   getLiveMatchScore,
   getWorldCupStandings,
   getMatchPrediction,
+  getLastPredictionForMatch,
   type MatchBase,
+  type PredictionVM,
 } from "@/lib/queries";
 import { STAGE_LABELS } from "@/lib/labels";
 import { TeamCrest } from "@/components/matches/team-crest";
 import { TeamLink } from "@/components/matches/team-link";
+import { PredictionBadge } from "@/components/matches/prediction-badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Reveal } from "@/components/ui/reveal";
 import {
@@ -93,7 +97,6 @@ async function PartidoContent({
 }) {
   const { id } = await params;
   const { t } = (await searchParams) ?? {};
-  const initialTab = isValidTab(t) ? t : "partido";
 
   const matches = await getMatchesBase();
   let match = matches.find((m) => m.id === id);
@@ -105,10 +108,15 @@ async function PartidoContent({
   }
 
   const showLive = match.status !== "UPCOMING";
+  const isLiveNow = match.status === "LIVE";
+  const initialTab = isValidTab(t) ? t : isLiveNow ? "cronica" : "partido";
   const isGroupStage = match.stage === "GROUP_STAGE" && match.group != null;
 
+  const session = await auth();
+  const userId = session?.user?.id ?? null;
+
   // Parallel prefetch: form dots (group stage only), video existence, and H2H availability
-  const [standings, videoId, prediction] = await Promise.all([
+  const [standings, videoId, prediction, userPrediction] = await Promise.all([
     isGroupStage ? getWorldCupStandings() : Promise.resolve([]),
     match.status === "FINISHED" || match.status === "UPCOMING"
       ? getMatchVideo(
@@ -118,6 +126,7 @@ async function PartidoContent({
         )
       : Promise.resolve(null),
     match.externalId ? getMatchPrediction(match.externalId) : Promise.resolve(null),
+    userId ? getLastPredictionForMatch(userId, match.id) : Promise.resolve(null),
   ]);
 
   const groupData = isGroupStage
@@ -164,7 +173,7 @@ async function PartidoContent({
     <div className="mx-auto max-w-3xl space-y-2">
       {match.status === "LIVE" && <AutoRefresh intervalMs={30_000} />}
       <BackButton />
-      <MatchHeader match={match} homeForm={homeForm} awayForm={awayForm} />
+      <MatchHeader match={match} homeForm={homeForm} awayForm={awayForm} userPrediction={userPrediction} />
       <MatchTabs
         initialTab={initialTab}
         partido={
@@ -178,9 +187,12 @@ async function PartidoContent({
               ) : undefined
             }
             alineaciones={
-              showLive ? (
+              match.externalId ? (
                 <Suspense fallback={<SectionSkeleton />}>
-                  <LineupsSection externalId={match.externalId} />
+                  <LineupsSection
+                    externalId={match.externalId}
+                    upcoming={match.status === "UPCOMING"}
+                  />
                 </Suspense>
               ) : undefined
             }
@@ -260,10 +272,12 @@ function MatchHeader({
   match,
   homeForm,
   awayForm,
+  userPrediction,
 }: {
   match: MatchBase;
   homeForm: string | null;
   awayForm: string | null;
+  userPrediction?: PredictionVM | null;
 }) {
   const isLive = match.status === "LIVE";
   const isFinished = match.status === "FINISHED";
@@ -338,6 +352,13 @@ function MatchHeader({
           {match.stadium}
           {match.city ? ` · ${match.city}` : ""}
         </p>
+      )}
+
+      {/* Badge de predicción del usuario */}
+      {userPrediction && (
+        <div className="mt-4">
+          <PredictionBadge prediction={userPrediction} match={match} />
+        </div>
       )}
     </div>
   );

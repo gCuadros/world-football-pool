@@ -6,6 +6,7 @@ import { CalendarDots, List, CaretDown, CaretUp, ArrowsClockwise } from "@phosph
 
 import type { MatchBase, MatchVM } from "@/lib/queries";
 import type { MatchFilter } from "@/lib/labels";
+import { KNOCKOUT_STAGES } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
 import { Badge } from "@/components/ui/badge";
@@ -99,50 +100,68 @@ export function MatchesView({
   const listFiltered = useMemo(() => {
     if (stageFilter === "all") return byTeam;
     if (stageFilter === "live") return byTeam.filter((m) => m.status === "LIVE");
+    if (stageFilter === "knockout") return byTeam.filter((m) => KNOCKOUT_STAGES.has(m.stage));
     return byTeam.filter((m) => m.stage === stageFilter);
   }, [byTeam, stageFilter]);
 
   const todayKey = dateKey(now.toISOString());
 
+  const stageFiltered = useMemo(() => {
+    if (stageFilter === "all" || stageFilter === "live") return byTeam;
+    if (stageFilter === "knockout") return byTeam.filter((m) => KNOCKOUT_STAGES.has(m.stage));
+    return byTeam.filter((m) => m.stage === stageFilter);
+  }, [byTeam, stageFilter]);
+
   const pastDayCount = useMemo(() => {
     const days = new Set<string>();
-    for (const m of byTeam) {
+    for (const m of stageFiltered) {
       if (m.status === "FINISHED" && dateKey(m.kickoffAt) < todayKey) {
         days.add(dateKey(m.kickoffAt));
       }
     }
     return days.size;
-  }, [byTeam, todayKey]);
+  }, [stageFiltered, todayKey]);
 
   const calendarMatches = useMemo(
     () =>
       showPast
-        ? byTeam
-        : byTeam.filter(
+        ? stageFiltered
+        : stageFiltered.filter(
             (m) => m.status !== "FINISHED" || dateKey(m.kickoffAt) >= todayKey,
           ),
-    [byTeam, showPast, todayKey],
+    [stageFiltered, showPast, todayKey],
   );
 
   const STATUS_PRIORITY: Record<string, number> = { LIVE: 0, UPCOMING: 1, FINISHED: 2 };
 
   const byDay = useMemo(() => {
-    const map = new Map<string, MatchBase[]>();
+    // Días pasados DESC (más reciente arriba), días de hoy/futuros ASC.
+    const pastMap = new Map<string, MatchBase[]>();
+    const futureMap = new Map<string, MatchBase[]>();
     for (const m of calendarMatches) {
       const key = dateKey(m.kickoffAt);
-      const arr = map.get(key) ?? [];
+      const isPast = m.status === "FINISHED" && key < todayKey;
+      const target = isPast ? pastMap : futureMap;
+      const arr = target.get(key) ?? [];
       arr.push(m);
-      map.set(key, arr);
+      target.set(key, arr);
     }
-    for (const arr of map.values()) {
+    const sortEntries = (entries: [string, MatchBase[]][]) =>
+      entries.sort(([a], [b]) => a.localeCompare(b));
+    const sortMatches = (arr: MatchBase[]) =>
       arr.sort(
         (a, b) =>
           (STATUS_PRIORITY[a.status] ?? 2) - (STATUS_PRIORITY[b.status] ?? 2) ||
           a.kickoffAt.localeCompare(b.kickoffAt),
       );
+    const pastEntries = sortEntries([...pastMap.entries()]).reverse();
+    const futureEntries = sortEntries([...futureMap.entries()]);
+    const map = new Map<string, MatchBase[]>();
+    for (const [key, arr] of [...pastEntries, ...futureEntries]) {
+      map.set(key, sortMatches(arr));
     }
     return map;
-  }, [calendarMatches]);
+  }, [calendarMatches, todayKey]);
 
   const live = listFiltered.filter((m) => m.status === "LIVE");
   const upcoming = listFiltered.filter((m) => m.status === "UPCOMING");
@@ -198,6 +217,9 @@ export function MatchesView({
           <ArrowsClockwise className={cn("size-4", refreshing && "animate-spin")} />
         </button>
       </div>
+
+      {/* Filtros de fase: Grupos / Eliminatorias */}
+      <FilterChips value={stageFilter} onChange={setStageFilter} />
 
       {/* Filtros de equipo */}
       <div className="flex flex-wrap items-center gap-2">
@@ -309,7 +331,6 @@ export function MatchesView({
       {/* ── Vista Lista ──────────────────────────────────────────────────────── */}
       {view === "list" && (
         <>
-          <FilterChips value={stageFilter} onChange={setStageFilter} />
 
           {listFiltered.length === 0 ? (
             <EmptyState />

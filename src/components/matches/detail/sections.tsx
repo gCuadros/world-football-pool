@@ -35,10 +35,26 @@ function SectionCard({
 }
 
 // ── Alineaciones ──────────────────────────────────────────────────────────
-export async function LineupsSection({ externalId }: { externalId: string | null }) {
+export async function LineupsSection({
+  externalId,
+  upcoming = false,
+}: {
+  externalId: string | null;
+  upcoming?: boolean;
+}) {
   if (!externalId) return null;
   const lineups = await getMatchLineups(externalId);
-  if (lineups.length === 0) return null;
+
+  if (lineups.length === 0) {
+    if (!upcoming) return null;
+    return (
+      <SectionCard title="Alineaciones" icon="👕">
+        <p className="text-muted-foreground text-center text-sm py-6">
+          Las alineaciones se publicarán aproximadamente 1 hora antes del partido.
+        </p>
+      </SectionCard>
+    );
+  }
 
   return (
     <SectionCard title="Alineaciones" icon="👕">
