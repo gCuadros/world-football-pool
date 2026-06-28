@@ -6,6 +6,7 @@ import { Target, Zap, BarChart2, Star, ChevronDown, Goal } from "lucide-react";
 
 import type { PublicProfile, PublicPrediction } from "@/lib/queries";
 import { maxPointsFor } from "@/lib/scoring";
+import { KNOCKOUT_STAGES } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { BackButton } from "@/components/ui/back-button";
@@ -54,8 +55,14 @@ export function ProfileView({
   profile: PublicProfile;
   predictions: PublicPrediction[];
 }) {
-  const [showAll, setShowAll] = useState(false);
-  const visible = showAll ? predictions : predictions.slice(0, 15);
+  const [groupsOpen, setGroupsOpen] = useState(false);
+
+  // Más recientes primero en cada sección
+  const sorted = [...predictions].sort(
+    (a, b) => new Date(b.kickoffAt).getTime() - new Date(a.kickoffAt).getTime(),
+  );
+  const knockout = sorted.filter((p) => KNOCKOUT_STAGES.has(p.stage));
+  const groupStage = sorted.filter((p) => !KNOCKOUT_STAGES.has(p.stage));
 
   const totalPoints = predictions.reduce((s, p) => s + (p.points ?? 0), 0);
   const exact = predictions.filter((p) => p.exact).length;
@@ -121,7 +128,7 @@ export function ProfileView({
       )}
 
       {/* Predicciones */}
-      <section className="space-y-3">
+      <section className="space-y-4">
         <h2 className="font-bold">
           Predicciones{" "}
           <span className="text-muted-foreground font-normal text-sm">
@@ -137,21 +144,43 @@ export function ProfileView({
           />
         ) : (
           <>
-            <div className="space-y-2">
-              {visible.map((p) => (
-                <PredictionRow key={p.matchId} p={p} />
-              ))}
-            </div>
+            {/* Eliminatorias */}
+            {knockout.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-muted-foreground border-l-2 border-primary pl-3 text-xs font-semibold tracking-wide uppercase">
+                  Eliminatorias · {knockout.length}
+                </p>
+                {knockout.map((p) => (
+                  <PredictionRow key={p.matchId} p={p} />
+                ))}
+              </div>
+            )}
 
-            {predictions.length > 15 && (
-              <button
-                onClick={() => setShowAll((v) => !v)}
-                className="text-primary hover:text-primary/80 w-full text-center text-sm transition-colors"
-              >
-                {showAll
-                  ? "Ver menos"
-                  : `Ver ${predictions.length - 15} más`}
-              </button>
+            {/* Fase de grupos — desplegable */}
+            {groupStage.length > 0 && (
+              <div className="space-y-2">
+                <button
+                  onClick={() => setGroupsOpen((v) => !v)}
+                  className="flex w-full items-center gap-2 border-l-2 border-muted-foreground/40 pl-3"
+                >
+                  <span className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                    Fase de Grupos · {groupStage.length}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "text-muted-foreground ml-auto size-4 transition-transform",
+                      groupsOpen && "rotate-180",
+                    )}
+                  />
+                </button>
+                {groupsOpen && (
+                  <div className="space-y-2">
+                    {groupStage.map((p) => (
+                      <PredictionRow key={p.matchId} p={p} />
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </>
         )}
