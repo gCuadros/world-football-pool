@@ -6,6 +6,7 @@ import { Broadcast } from "@phosphor-icons/react";
 
 import type { MatchBase } from "@/lib/queries";
 import type { MatchFilter } from "@/lib/labels";
+import { KNOCKOUT_STAGES } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { useNow } from "@/hooks/use-now";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +67,7 @@ export function ResultadosView({
   const filtered = useMemo(() => {
     if (filter === "all") return matches;
     if (filter === "live") return matches.filter((m) => m.status === "LIVE");
+    if (filter === "knockout") return matches.filter((m) => KNOCKOUT_STAGES.has(m.stage));
     return matches.filter((m) => m.stage === filter);
   }, [matches, filter]);
 

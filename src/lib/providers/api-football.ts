@@ -668,6 +668,10 @@ const STAT_LABELS: Record<string, string> = {
   "Passes accurate": "Pases acertados",
   "Passes %": "% de pases",
   "expected_goals": "Goles esperados (xG)",
+  "Blocked Shots": "Tiros bloqueados",
+  "Shots insidebox": "Tiros dentro del área",
+  "Shots outsidebox": "Tiros fuera del área",
+  "Goal Attempts": "Intentos de gol",
 };
 
 export type TeamStats = {
